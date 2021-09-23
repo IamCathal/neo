@@ -1,2 +1,2 @@
 # neo
-NUIG CS&amp;IT Final Year Project 2022
+NUIG CS&IT Final Year Project 2022

@@ -1,0 +1,28 @@
+version: '3.2'
+
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+      - "8090:8090"
+      - "2003:2003"
+    env_file:
+      - 'influxdb/env.influxdb'
+
+  grafana:
+    build:
+      context: grafana/
+      args:
+        GF_INSTALL_IMAGE_RENDERER_PLUGIN: "true"
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    env_file:
+      - 'grafana/env.grafana'
+    user: "0"
+    links:
+      - influxdb

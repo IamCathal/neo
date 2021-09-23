@@ -1,0 +1,26 @@
+version: '3.2'
+
+services:
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbit-mq
+    ports:
+    - "5672:5672"
+    - "15672:15672"
+    - "15692:15692"
+    networks:
+      - "rabbitmq-prometheus"
+    volumes:
+    - ./rabbitMQ/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+
+  prometheus:
+    image: prom/prometheus:v2.28.1
+    ports:
+      - "9090:9090"
+    networks:
+      - "rabbitmq-prometheus"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+networks:
+  rabbitmq-prometheus:

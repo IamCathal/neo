@@ -1,5 +1,7 @@
 # Frontend
 
+![test status badge](https://github.com/IamCathal/neo/actions/workflows/buildFrontEnd.yml/badge.svg)
+
 Frontend of neo
 
 ## Configuration

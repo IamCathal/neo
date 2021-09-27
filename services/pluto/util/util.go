@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IamCathal/neo/services/pluto/datastructures"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
@@ -22,27 +23,29 @@ func GetLocalIPAddress() string {
 	return addrWithNoPort[0]
 }
 
-func LoadConfig() {
+func LoadLoggingConfig() datastructures.LoggingFields {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
-	nodeName = os.Getenv("NODE_NAME")
-	nodeDC = os.Getenv("NODE_DC")
-	logPath = os.Getenv("LOG_PATH")
-	nodeIPV4 = GetLocalIPAddress()
+	logFieldsConfig := datastructures.LoggingFields{
+		NodeName: os.Getenv("NODE_NAME"),
+		NodeDC:   os.Getenv("NODE_DC"),
+		LogPath:  os.Getenv("LOG_PATH"),
+		NodeIPV4: GetLocalIPAddress(),
+	}
+	return logFieldsConfig
 }
 
-func InitLogger() *zap.Logger {
-	os.OpenFile(logPath, os.O_RDONLY|os.O_CREATE, 0666)
+func InitLogger(logFieldsConfig datastructures.LoggingFields) *zap.Logger {
+	os.OpenFile(logFieldsConfig.LogPath, os.O_RDONLY|os.O_CREATE, 0666)
 	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"stdout", logPath}
+	c.OutputPaths = []string{"stdout", logFieldsConfig.LogPath}
 
 	globalLogFields := make(map[string]interface{})
-	globalLogFields["nodeName"] = nodeName
-	globalLogFields["nodeDC"] = nodeDC
-	globalLogFields["nodeIPV4"] = nodeIPV4
+	globalLogFields["nodeName"] = logFieldsConfig.NodeName
+	globalLogFields["nodeDC"] = logFieldsConfig.NodeDC
+	globalLogFields["nodeIPV4"] = logFieldsConfig.NodeIPV4
 	c.InitialFields = globalLogFields
 
 	log, err := c.Build()

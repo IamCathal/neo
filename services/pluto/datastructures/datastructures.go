@@ -7,6 +7,13 @@ type UptimeResponse struct {
 	Uptime time.Duration `json:"uptime"`
 }
 
+type LoggingFields struct {
+	NodeName string
+	NodeDC   string
+	LogPath  string
+	NodeIPV4 string
+}
+
 // Github webhook payload structs
 type WebhookPayload struct {
 	Action       string       `json:"action"`

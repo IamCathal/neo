@@ -142,12 +142,12 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	applicationStartUpTime = time.Now()
-	util.LoadConfig()
+	logConfig := util.LoadLoggingConfig()
 
 	ChanneID = os.Getenv("DISCORD_CHANNEL_ID")
 
 	endpoints := &Endpoints{
-		logger: util.InitLogger(),
+		logger: util.InitLogger(logConfig),
 	}
 	r := mux.NewRouter()
 	r.HandleFunc("/status", endpoints.status).Methods("POST")

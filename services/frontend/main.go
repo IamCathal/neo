@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/neo/frontend/util"
+	"github.com/IamCathal/neo/services/frontend/util"
 )
 
 func main() {

@@ -1,25 +1,15 @@
 # builder image
 FROM golang:1.15.7-alpine as builder
 RUN mkdir /build
-# ADD *.go /build/
-# ADD go.mod /build/
-# ADD go.sum /build/
-# ADD .env /build/
-ADD *.go util/ datastructures/ go.mod go.sum .env /build/
-# ADD *.go go.mod go.sum .env /build/
-# ADD util/ /build/util/
-# ADD datastructures/ /build/datastructures/
+COPY . /build/
 WORKDIR /build
 RUN apk add --no-cache git
-RUN go install
-RUN CGO_ENABLED=0 GOOS=linux go build *.go -a -o frontend .
+RUN go install -v
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o frontend .
 
-
-# generate clean, final image for end users
 FROM alpine:3.13.6
 COPY --from=builder /build/frontend .
 COPY --from=builder /build/.env .
-# executable
-ENTRYPOINT [ "./frontend" ]
+ENTRYPOINT [ "./frontund" ]
 # arguments that can be overridden
 # CMD [ "3", "300" ]

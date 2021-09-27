@@ -6,7 +6,11 @@ RUN mkdir /build
 # ADD go.sum /build/
 # ADD .env /build/
 ADD *.go util/ datastructures/ go.mod go.sum .env /build/
+# ADD *.go go.mod go.sum .env /build/
+# ADD util/ /build/util/
+# ADD datastructures/ /build/datastructures/
 WORKDIR /build
+RUN apk add --no-cache git
 RUN go install
 RUN CGO_ENABLED=0 GOOS=linux go build *.go -a -o frontend .
 

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IamCathal/neo/services/frontend/datastructures"
 	"github.com/joho/godotenv"
+	"github.com/neo/frontend/datastructures"
 	"go.uber.org/zap"
 )
 

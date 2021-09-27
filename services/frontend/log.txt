@@ -1,3 +1,0 @@
-{"level":"info","ts":1632751710.1339471,"caller":"frontend/main.go:66","msg":"Hello world!","nodeDC":"gaff","nodeIPV4":"192.168.0.108","nodeName":"local"}
-{"level":"info","ts":1632751717.6063,"caller":"frontend/main.go:63","msg":"Hello world!","nodeDC":"gaff","nodeIPV4":"192.168.0.108","nodeName":"local"}
-{"level":"info","ts":1632751774.7987795,"caller":"frontend/main.go:63","msg":"Hello world!","nodeDC":"gaff","nodeIPV4":"192.168.0.108","nodeName":"local"}

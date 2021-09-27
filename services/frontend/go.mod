@@ -1,4 +1,4 @@
-module github.com/IamCathal/neo/frontend
+module github.com/IamCathal/neo/services/frontend
 
 go 1.15
 

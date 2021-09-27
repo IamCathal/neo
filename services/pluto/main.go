@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/IamCathal/neo/services/pluto/util"
 	"github.com/bwmarrin/discordgo"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -90,7 +91,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 				endpoints.logger.Error(fmt.Sprintf("normal err: %v", err),
 					zap.String("requestID", vars["requestID"]),
 					zap.Int("status", http.StatusInternalServerError),
-					zap.Int64("duration", GetCurrentTimeInMs()-requestStartTime),
+					zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
 					zap.String("path", r.URL.EscapedPath()),
 				)
 			}
@@ -110,7 +111,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		endpoints.logger.Info("hello world",
 			zap.String("requestID", vars["requestID"]),
 			zap.Int("status", wrapped.status),
-			zap.Int64("duration", GetCurrentTimeInMs()-requestStartTime),
+			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
 			zap.String("path", r.URL.EscapedPath()),
 		)
 	})
@@ -132,7 +133,7 @@ func SendDeployPrompt(Session *discordgo.Session, serviceName, actionsUrl string
 }
 
 func startWebServer(r *mux.Router) {
-	log.Printf("Starting web server on http://%s:%s\n", GetLocalIPAddress(), os.Getenv("API_PORT"))
+	log.Printf("Starting web server on http://%s:%s\n", util.GetLocalIPAddress(), os.Getenv("API_PORT"))
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("API_PORT")), r)
 }
 func main() {
@@ -141,12 +142,12 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	applicationStartUpTime = time.Now()
-	LoadConfig()
+	util.LoadConfig()
 
 	ChanneID = os.Getenv("DISCORD_CHANNEL_ID")
 
 	endpoints := &Endpoints{
-		logger: InitLogger(),
+		logger: util.InitLogger(),
 	}
 	r := mux.NewRouter()
 	r.HandleFunc("/status", endpoints.status).Methods("POST")

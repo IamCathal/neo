@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IamCathal/neo/services/pluto/datastructures"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
@@ -28,7 +29,7 @@ func (endpoints *Endpoints) HomeHandler(w http.ResponseWriter, req *http.Request
 func (endpoints *Endpoints) status(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(400 * time.Millisecond)
 
-	req := UptimeResponse{
+	req := datastructures.UptimeResponse{
 		Uptime: time.Since(applicationStartUpTime),
 		Status: "operational",
 	}
@@ -84,7 +85,7 @@ func (endpoints *Endpoints) ReceiveWebhook(w http.ResponseWriter, r *http.Reques
 		panic("invalid secret given")
 	}
 
-	var reqData WebhookPayload
+	var reqData datastructures.WebhookPayload
 	err = json.Unmarshal(b, &reqData)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")

@@ -1,4 +1,4 @@
-module testing/pluto
+module github.com/IamCathal/neo/services/pluto
 
 go 1.15
 

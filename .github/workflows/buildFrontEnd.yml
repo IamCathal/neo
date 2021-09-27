@@ -3,7 +3,7 @@ name: Build Frontend
 on:
   push:
     paths:
-      - 'services/frontend'
+      - 'services/frontend/**'
 
 jobs:
 

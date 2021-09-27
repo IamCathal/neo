@@ -1,6 +1,6 @@
 # Frontend
 
-Frontend of neo
+Frontend of neo.
 
 ## Configuration
 

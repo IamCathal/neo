@@ -11,5 +11,3 @@ FROM alpine:3.13.6
 COPY --from=builder /build/pluto .
 COPY --from=builder /build/.env .
 ENTRYPOINT [ "./pluto" ]
-# arguments that can be overridden
-# CMD [ "3", "300" ]

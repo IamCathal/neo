@@ -20,13 +20,6 @@ import (
 )
 
 var (
-	applicationStartUpTime time.Time
-
-	nodeName string
-	nodeDC   string
-	logPath  string
-	nodeIPV4 string
-
 	// DiscordBot variables
 	ChanneID       string
 	DiscordSession *discordgo.Session
@@ -141,7 +134,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	applicationStartUpTime = time.Now()
 	logConfig := util.LoadLoggingConfig()
 
 	ChanneID = os.Getenv("DISCORD_CHANNEL_ID")
@@ -176,5 +168,4 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-
 }

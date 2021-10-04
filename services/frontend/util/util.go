@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/IamCathal/neo/services/frontend/datastructures"
-	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
@@ -24,10 +23,6 @@ func GetLocalIPAddress() string {
 }
 
 func LoadLoggingConfig() datastructures.LoggingFields {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	logFieldsConfig := datastructures.LoggingFields{
 		NodeName: os.Getenv("NODE_NAME"),
 		NodeDC:   os.Getenv("NODE_DC"),

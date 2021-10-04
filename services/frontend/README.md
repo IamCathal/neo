@@ -10,7 +10,11 @@ Frontend expects the following variables to be set in .env
 
 #### Frontend specific
 
-Frontend does not currently require any specific environtment variables.
+| Variable     | Description |
+| ----------- | ----------- |
+| `STATIC_CONTENT_DIR_NAME`      | Name of the static content directory       |
+
+
 
 #### Default
 

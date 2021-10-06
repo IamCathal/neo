@@ -8,8 +8,8 @@ RUN go install -v
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o frontend .
 
 FROM alpine:3.13.6
-COPY --from=builder /build/frontend .
-COPY --from=builder /build/.env .
+COPY --from=builder /build/ .
+# COPY --from=builder /build/.env .
 ENTRYPOINT [ "./frontend" ]
 # arguments that can be overridden
 # CMD [ "3", "300" ]

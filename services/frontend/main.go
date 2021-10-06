@@ -68,11 +68,10 @@ func main() {
 	router.Handle("/static", http.NotFoundHandler())
 	fs := http.FileServer(http.Dir(os.Getenv("STATIC_CONTENT_DIR")))
 	router.PathPrefix("/").Handler(http.StripPrefix("/static", disallowFileBrowsing(fs)))
-	// router.PathPrefix("/").Handler(http.StripPrefix("/static", fs))
 
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         fmt.Sprintf("127.0.0.1:%s", os.Getenv("API_PORT")),
+		Addr:         fmt.Sprintf(":%s", os.Getenv("API_PORT")),
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}

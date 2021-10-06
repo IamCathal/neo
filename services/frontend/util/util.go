@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -60,4 +61,12 @@ func GetRequestStartTimeInTimeFormat(requestStartTimeString string) int64 {
 		panic(err)
 	}
 	return requestStartTime
+}
+
+func IsValidFormatGraphID(inputGraphID string) (bool, error) {
+	isNotValid, err := regexp.MatchString("[\\W]", inputGraphID)
+	if err != nil || isNotValid {
+		return false, err
+	}
+	return true, nil
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/IamCathal/neo/services/frontend/datastructures"
@@ -59,6 +60,17 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.wroteHeader = true
 }
 
+func (endpoints *Endpoints) DisallowFileBrowsing(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -103,7 +115,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		wrapped := wrapResponseWriter(w)
 		next.ServeHTTP(wrapped, r)
 
-		endpoints.Logger.Info("served page",
+		endpoints.Logger.Info("served content",
 			zap.String("requestID", vars["requestID"]),
 			zap.Int("status", wrapped.status),
 			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),

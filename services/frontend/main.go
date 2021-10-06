@@ -5,24 +5,12 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/IamCathal/neo/services/frontend/endpoints"
 	"github.com/IamCathal/neo/services/frontend/util"
 	"github.com/joho/godotenv"
 )
-
-func disallowFileBrowsing(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasSuffix(r.URL.Path, "/") {
-			http.NotFound(w, r)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 func main() {
 	err := godotenv.Load()
@@ -31,9 +19,6 @@ func main() {
 	}
 
 	logConfig := util.LoadLoggingConfig()
-	// logger := util.InitLogger(logConfig)
-	// logger.Info("Hello world!")
-
 	endpoints := &endpoints.Endpoints{
 		Logger:                 util.InitLogger(logConfig),
 		ApplicationStartUpTime: time.Now(),
@@ -42,7 +27,7 @@ func main() {
 	router := endpoints.SetupRouter()
 	router.Handle("/static", http.NotFoundHandler())
 	fs := http.FileServer(http.Dir(os.Getenv("STATIC_CONTENT_DIR")))
-	router.PathPrefix("/").Handler(http.StripPrefix("/static", disallowFileBrowsing(fs)))
+	router.PathPrefix("/").Handler(http.StripPrefix("/static", endpoints.DisallowFileBrowsing(fs)))
 
 	srv := &http.Server{
 		Handler:      router,
@@ -50,5 +35,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
+	endpoints.Logger.Info(fmt.Sprintf("frontend start up and serving requsts on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())
 }

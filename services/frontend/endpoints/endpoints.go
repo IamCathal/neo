@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"time"
 
@@ -123,7 +124,7 @@ func (endpoints *Endpoints) HomeHandler(w http.ResponseWriter, req *http.Request
 
 func (endpoints *Endpoints) ServeGraph(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	isValidFormatGraphID, err := util.IsValidFormatGraphID(vars["graphID"])
+	isValidFormatGraphID, err := util.IsValidFormatGraphID(path.Clean(vars["graphID"]))
 	if err != nil || !isValidFormatGraphID {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)

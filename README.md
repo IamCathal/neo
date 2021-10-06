@@ -6,6 +6,8 @@ NUIG CS&IT Final Year Project 2022
 | Service     | State |
 | ----------- | ----------- |
 | frontend      | ![frontend status badge](https://github.com/IamCathal/neo/actions/workflows/buildFrontEnd.yml/badge.svg) |
+| pluto      | ![pluto status badge](https://github.com/IamCathal/neo/actions/workflows/buildPluto.yml/badge.svg) |
+
 
 
 

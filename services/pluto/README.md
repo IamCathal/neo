@@ -1,5 +1,7 @@
 # Pluto
 
+![test status badge](https://github.com/IamCathal/neo/actions/workflows/buildPluto.yml/badge.svg)
+
 Pluto receives webhooks for events happening on github actions and sends prompts to discord to deploy different services once they've successfully built.
 
 ## Configuration

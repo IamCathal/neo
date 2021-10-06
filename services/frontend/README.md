@@ -12,7 +12,7 @@ Frontend expects the following variables to be set in .env
 
 | Variable     | Description |
 | ----------- | ----------- |
-| `STATIC_CONTENT_DIR_NAME`      | Name of the static content directory       |
+| `STATIC_CONTENT_DIR_NAME`      | Name of the static content directory i.e `./static`     |
 
 
 

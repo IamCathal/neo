@@ -18,3 +18,9 @@ Crawler does not currently require any specific environtment variables.
 | `LOG_PATH`   | Where to write logs to        |
 | `NODE_NAME`   | Unique name for this instance      |
 | `NODE_DC`   | Datacenter for this instance        |
+
+
+# Running Crawler
+
+`docker build -f Dockerfile -t iamcathal/crawler:0.0.1 .`
+`docker run -it --rm -p PORT:PORT iamcathal/crawler:0.0.1`

@@ -40,6 +40,10 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 
 	r.Use(endpoints.LoggingMiddleware)
 
+	r.Handle("/static", http.NotFoundHandler())
+	fs := http.FileServer(http.Dir(os.Getenv("STATIC_CONTENT_DIR")))
+	r.PathPrefix("/").Handler(http.StripPrefix("/static", endpoints.DisallowFileBrowsing(fs)))
+
 	return r
 }
 

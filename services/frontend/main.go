@@ -28,9 +28,6 @@ func main() {
 	}
 
 	router := endpoints.SetupRouter()
-	router.Handle("/static", http.NotFoundHandler())
-	fs := http.FileServer(http.Dir(os.Getenv("STATIC_CONTENT_DIR")))
-	router.PathPrefix("/").Handler(http.StripPrefix("/static", endpoints.DisallowFileBrowsing(fs)))
 
 	srv := &http.Server{
 		Handler:      router,

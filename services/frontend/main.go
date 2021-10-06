@@ -18,7 +18,10 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	logConfig := util.LoadLoggingConfig()
+	logConfig, err := util.LoadLoggingConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 	endpoints := &endpoints.Endpoints{
 		Logger:                 util.InitLogger(logConfig),
 		ApplicationStartUpTime: time.Now(),

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -23,14 +24,19 @@ func GetLocalIPAddress() string {
 	return addrWithNoPort[0]
 }
 
-func LoadLoggingConfig() datastructures.LoggingFields {
+func LoadLoggingConfig() (datastructures.LoggingFields, error) {
 	logFieldsConfig := datastructures.LoggingFields{
 		NodeName: os.Getenv("NODE_NAME"),
 		NodeDC:   os.Getenv("NODE_DC"),
 		LogPath:  os.Getenv("LOG_PATH"),
 		NodeIPV4: GetLocalIPAddress(),
 	}
-	return logFieldsConfig
+	if logFieldsConfig.NodeName == "" || logFieldsConfig.NodeDC == "" ||
+		logFieldsConfig.LogPath == "" || logFieldsConfig.NodeIPV4 == "" {
+
+		return datastructures.LoggingFields{}, fmt.Errorf("one or more required environment variables are not set: %v", logFieldsConfig)
+	}
+	return logFieldsConfig, nil
 }
 
 func InitLogger(logFieldsConfig datastructures.LoggingFields) *zap.Logger {

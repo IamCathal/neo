@@ -25,3 +25,9 @@ Pluto expects the following variables to be set in .env
 | `LOG_PATH`   | Where to write logs to        |
 | `NODE_NAME`   | Unique name for this instance      |
 | `NODE_DC`   | Datacenter for this instance        |
+
+## Running 
+
+`docker-compose up` to start with docker-compose (preferred)
+
+`docker build -f Dockerfile -t iamcathal/pluto:0.0.1 .` and `docker run -it --rm -p PORT:PORT iamcathal/pluto:0.0.1` to start as a standalone container

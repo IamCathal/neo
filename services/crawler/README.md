@@ -21,8 +21,8 @@ Crawler does not currently require any specific environtment variables.
 | `NODE_NAME`   | Unique name for this instance      |
 | `NODE_DC`   | Datacenter for this instance        |
 
+## Running 
 
-# Running Crawler
+`docker-compose up` to start with docker-compose (preferred)
 
-`docker build -f Dockerfile -t iamcathal/crawler:0.0.1 .`
-`docker run -it --rm -p PORT:PORT iamcathal/crawler:0.0.1`
+`docker build -f Dockerfile -t iamcathal/crawler:0.0.1 .` and `docker run -it --rm -p PORT:PORT iamcathal/crawler:0.0.1` to start as a standalone container

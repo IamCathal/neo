@@ -30,9 +30,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	logger := util.InitLogger(logConfig)
 
 	endpoints := &endpoints.Endpoints{
-		Logger:                 util.InitLogger(logConfig),
+		Logger:                 logger,
 		ApplicationStartUpTime: time.Now(),
 		ChannelID:              os.Getenv("DISCORD_CHANNEL_ID"),
 	}
@@ -48,20 +49,20 @@ func main() {
 	// Start the discord bot
 	Session, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
+		logger.Fatal(fmt.Sprintf("error creating discord session: %s", err))
 		return
 	}
 	Session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages)
 	err = Session.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
+		logger.Fatal(fmt.Sprintf("error opening discord session: %s", err))
 		return
 	}
 	defer Session.Close()
 
 	endpoints.DiscordSession = Session
 
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	logger.Info("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc

@@ -4,8 +4,7 @@ on:
   push:
     paths:
       - 'services/pluto/**'
-    paths-ignore:
-      - '**.md'
+      - '!**.md'
 
 jobs:
   build:

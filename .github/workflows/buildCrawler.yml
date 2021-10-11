@@ -4,8 +4,7 @@ on:
   push:
     paths:
       - 'services/crawler/**'
-    paths-ignore:
-      - '**.md'
+      - '!**.md'
 
 jobs:
   build:

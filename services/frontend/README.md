@@ -15,7 +15,6 @@ Frontend expects the following variables to be set in .env
 | `STATIC_CONTENT_DIR_NAME`      | Name of the static content directory i.e `./static`     |
 
 
-
 #### Default
 
 | Variable     | Description |
@@ -24,3 +23,9 @@ Frontend expects the following variables to be set in .env
 | `LOG_PATH`   | Where to write logs to        |
 | `NODE_NAME`   | Unique name for this instance      |
 | `NODE_DC`   | Datacenter for this instance        |
+
+## Running 
+
+`docker-compose up` to start with docker-compose (preferred)
+
+`docker build -f Dockerfile -t iamcathal/crawler:0.0.1 .` and `docker run -it --rm -p PORT:PORT iamcathal/crawler:0.0.1` to start as a standalone container

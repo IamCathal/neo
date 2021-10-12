@@ -5,7 +5,7 @@ on: workflow_dispatch
 jobs:
   build:
     name: Deploy frontend job
-    runs-on: self-hosted
+    runs-on: [self-hosted, home]
     steps:
     - uses: actions/checkout@v2
 

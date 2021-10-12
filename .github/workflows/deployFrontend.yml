@@ -10,4 +10,4 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Deploy docker-compose service
-      run: docker-compose up -d
+      run: cd services/frontend && docker-compose up -d

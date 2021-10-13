@@ -6,7 +6,7 @@ To get a new node up and running there are a few key things that must be setup f
 
 - Create a new user with minimal privelages
 - Docker and github actions runner must be installed and configured with appropriate tag to reference in the workflow
-- Github actions runner must be running
+- Run the github actions runner as a service
 
 
 ### Create a new user
@@ -19,7 +19,6 @@ usermod -aG sudo ghrunner
 ```
 sudo su - ghrunner
 ```
-
 
 ### Install docker and github actions runner
 ```
@@ -40,6 +39,7 @@ sudo apt install docker-compose
 ```
 docker-compose -v
 ```
+Log out of ghrunner to the user to the docker group
 ```
 logout
 ```
@@ -51,3 +51,11 @@ sudo usermod -aG docker ghrunner
 ```
 
 Now setup the github runner [official instructions here](https://github.com/IamCathal/neo/settings/actions/runners/new)
+
+Start the runner as a service so it runs indefinitely
+```
+sudo ./svc.sh install 
+```
+```
+sudo ./svc.sh start
+```

@@ -17,7 +17,8 @@ jobs:
         echo NODE_NAME=${{ secrets.FRONTEND_NODE_NAME }} >> .env
         echo NODE_DC=${{ secrets.FRONTEND_NODE_DC }} >> .env
         echo STATIC_CONTENT_DIR_NAME=${{ secrets.FRONTEND_STATIC_CONTENT_DIR_NAME }} >> .env
-        cat .env
+        mv .env services/frontend
+        cat services/frontend/.env
 
     - name: Deploy docker-compose service
       run: cd services/frontend && docker-compose up -d --build

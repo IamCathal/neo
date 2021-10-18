@@ -5,6 +5,7 @@ on:
     paths:
       - 'services/frontend/**'
       - '!**.md'
+  workflow_dispatch:
 
 jobs:
   build:

@@ -9,11 +9,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Create .env file
+      run: |
+        touch .env
+        echo API_PORT=${{ secrets.FRONTEND_API_PORT }} >> .env
+        echo LOG_PATH=${{ secrets.FRONTEND_LOG_PATH }} >> .env
+        echo NODE_NAME=${{ secrets.FRONTEND_NODE_NAME }} >> .env
+        echo NODE_DC=${{ secrets.FRONTEND_NODE_DC }} >> .env
+        echo STATIC_CONTENT_DIR_NAME=${{ secrets.FRONTEND_STATIC_CONTENT_DIR_NAME }} >> .env
+        cat .env
+
     - name: Deploy docker-compose service
       run: cd services/frontend && docker-compose up -d --build
-      env:
-        API_PORT: ${{ secrets.FRONTEND_API_PORT }}
-        LOG_PATH: ${{ secrets.FRONTEND_LOG_PATH }}
-        NODE_NAME: ${{ secrets.FRONTEND_NODE_NAME }}
-        NODE_DC: ${{ secrets.FRONTEND_NODE_DC }}
-        STATIC_CONTENT_DIR_NAME: ${{ secrets.FRONTEND_STATIC_CONTENT_DIR_NAME }}

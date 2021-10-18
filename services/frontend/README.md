@@ -1,6 +1,6 @@
 # Frontend
 
-![test status badge](https://github.com/IamCathal/neo/actions/workflows/buildFrontEnd.yml/badge.svg)
+![frontend test status badge](https://github.com/IamCathal/neo/actions/workflows/buildFrontEnd.yml/badge.svg)   ![frontend deploy status](https://github.com/IamCathal/neo/actions/workflows/deployFrontend.yml/badge.svg) 
 
 Frontend of neo
 

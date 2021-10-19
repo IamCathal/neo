@@ -13,6 +13,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
+	"github.com/iamcathal/neo/services/crawler/worker"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -128,9 +129,20 @@ func CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
 		util.LogBasicErr(err, vars, r, http.StatusBadRequest)
+		return
 	}
 
-	fmt.Println(userInput)
+	validSteamIDs, err := worker.VerifyFormatOfSteamIDs(userInput)
+	if err != nil {
+		util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
+		util.LogBasicErr(err, vars, r, http.StatusBadRequest)
+		return
+	}
+	if len(validSteamIDs) == 0 {
+		util.SendBasicInvalidResponse(w, r, "No valid format steamIDs sent", vars, http.StatusBadRequest)
+	}
+
+	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v", validSteamIDs), vars, r, http.StatusOK)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

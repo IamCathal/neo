@@ -7,24 +7,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/endpoints"
-	"github.com/iamcathal/neo/services/crawler/util"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
+	err := configuration.InitConfig()
 	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	logConfig, err := util.LoadLoggingConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-	endpoints := &endpoints.Endpoints{
-		Logger:                 util.InitLogger(logConfig),
-		ApplicationStartUpTime: time.Now(),
+		log.Fatalf("failure initialising config: %v", err)
 	}
 
 	router := endpoints.SetupRouter()
@@ -35,6 +25,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-	endpoints.Logger.Info(fmt.Sprintf("crawler start up and serving requsts on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
+	configuration.Logger.Info(fmt.Sprintf("crawler start up and serving requsts on %s:%s", configuration.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())
 }

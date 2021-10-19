@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/segmentio/ksuid"
@@ -30,12 +31,12 @@ type responseWriter struct {
 	wroteHeader bool
 }
 
-func (endpoints *Endpoints) SetupRouter() *mux.Router {
+func SetupRouter() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/status", endpoints.Status).Methods("POST")
-	r.HandleFunc("/crawl", endpoints.CrawlUsers).Methods("POST")
+	r.HandleFunc("/status", Status).Methods("POST")
+	r.HandleFunc("/crawl", CrawlUsers).Methods("POST")
 
-	r.Use(endpoints.LoggingMiddleware)
+	r.Use(LoggingMiddleware)
 	return r
 }
 
@@ -56,7 +57,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.wroteHeader = true
 }
 
-func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
+func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -71,11 +72,11 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 				_, timeParseErr := strconv.ParseInt(vars["requestStartTime"], 10, 64)
 				if timeParseErr != nil {
-					util.LogBasicFatal(endpoints.Logger, timeParseErr, vars, r, http.StatusInternalServerError)
+					util.LogBasicFatal(timeParseErr, vars, r, http.StatusInternalServerError)
 					panic(timeParseErr)
 				}
 
-				util.LogBasicErr(endpoints.Logger, errors.New(fmt.Sprintf("%v", err)), vars, r, http.StatusInternalServerError)
+				util.LogBasicErr(errors.New(fmt.Sprintf("%v", err)), vars, r, http.StatusInternalServerError)
 			}
 		}()
 
@@ -90,24 +91,24 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		wrapped := wrapResponseWriter(w)
 		next.ServeHTTP(wrapped, r)
 
-		endpoints.Logger.Info("served content",
+		configuration.Logger.Info("served content",
 			zap.String("requestID", vars["requestID"]),
 			zap.Int("status", wrapped.status),
-			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
+			zap.Int64("duration", configuration.GetCurrentTimeInMs()-requestStartTime),
 			zap.String("path", r.URL.EscapedPath()),
 		)
 	})
 }
 
-func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
+func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
 	})
 }
 
-func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
+func Status(w http.ResponseWriter, r *http.Request) {
 	req := datastructures.UptimeResponse{
-		Uptime: time.Since(endpoints.ApplicationStartUpTime),
+		Uptime: time.Since(configuration.ApplicationStartUpTime),
 		Status: "operational",
 	}
 	jsonObj, err := json.Marshal(req)
@@ -119,18 +120,19 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(jsonObj))
 }
 
-func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
+func CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userInput := datastructures.CrawlUsersInput{}
 
 	err := json.NewDecoder(r.Body).Decode(&userInput)
 	if err != nil {
-		util.SendBasicErrorResponse(endpoints.Logger, w, r, err, vars, http.StatusBadRequest)
-		util.LogBasicErr(endpoints.Logger, err, vars, r, http.StatusBadRequest)
+		util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
+		util.LogBasicErr(err, vars, r, http.StatusBadRequest)
 	}
 
 	fmt.Println(userInput)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
 }

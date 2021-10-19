@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -87,4 +88,14 @@ func LogBasicFatal(logger *zap.Logger, err error, vars map[string]string, req *h
 		zap.Int64("duration", GetCurrentTimeInMs()-requestStartTime),
 		zap.String("path", req.URL.EscapedPath()),
 	)
+}
+
+func SendBasicErrorResponse(logger *zap.Logger, w http.ResponseWriter, req *http.Request, err error, vars map[string]string, statusCode int) {
+	w.WriteHeader(http.StatusInternalServerError)
+	response := struct {
+		Error string `json:"error"`
+	}{
+		fmt.Sprintf("Give the code monkeys this ID: '%s'", vars["requestID"]),
+	}
+	json.NewEncoder(w).Encode(response)
 }

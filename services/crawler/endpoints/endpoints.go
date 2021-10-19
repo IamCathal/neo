@@ -69,19 +69,13 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 				}
 				json.NewEncoder(w).Encode(response)
 
-				requestStartTime, timeParseErr := strconv.ParseInt(vars["requestStartTime"], 10, 64)
+				_, timeParseErr := strconv.ParseInt(vars["requestStartTime"], 10, 64)
 				if timeParseErr != nil {
 					util.LogBasicFatal(endpoints.Logger, timeParseErr, vars, r, http.StatusInternalServerError)
 					panic(timeParseErr)
 				}
 
 				util.LogBasicErr(endpoints.Logger, errors.New(fmt.Sprintf("%v", err)), vars, r, http.StatusInternalServerError)
-				endpoints.Logger.Error(fmt.Sprintf("%v", err),
-					zap.String("requestID", vars["requestID"]),
-					zap.Int("status", http.StatusInternalServerError),
-					zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
-					zap.String("path", r.URL.EscapedPath()),
-				)
 			}
 		}()
 
@@ -131,15 +125,8 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&userInput)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		response := struct {
-			Error string `json:"error"`
-		}{
-			fmt.Sprintf("Give the code monkeys this ID: '%s'", vars["requestID"]),
-		}
-		json.NewEncoder(w).Encode(response)
-
-		util.LogBasicErr(endpoints.Logger, err, vars, r, http.StatusInternalServerError)
+		util.SendBasicErrorResponse(endpoints.Logger, w, r, err, vars, http.StatusBadRequest)
+		util.LogBasicErr(endpoints.Logger, err, vars, r, http.StatusBadRequest)
 	}
 
 	fmt.Println(userInput)

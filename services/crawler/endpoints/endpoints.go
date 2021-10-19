@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/IamCathal/neo/services/frontend/datastructures"
-	"github.com/IamCathal/neo/services/frontend/util"
 	"github.com/gorilla/mux"
+	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -32,6 +32,7 @@ type responseWriter struct {
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
+	r.HandleFunc("/crawl", endpoints.CrawlUsers).Methods("POST")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -125,4 +126,30 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(jsonObj))
+}
+
+func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userInput := datastructures.CrawlUsersInput{}
+
+	err := json.NewDecoder(r.Body).Decode(&userInput)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := struct {
+			Error string `json:"error"`
+		}{
+			fmt.Sprintf("Give the code monkeys this ID: '%s'", vars["requestID"]),
+		}
+		json.NewEncoder(w).Encode(response)
+
+		requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
+		endpoints.Logger.Error(fmt.Sprintf("%v", err),
+			zap.String("requestID", vars["requestID"]),
+			zap.Int("status", http.StatusInternalServerError),
+			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
+			zap.String("path", r.URL.EscapedPath()),
+		)
+	}
+
+	fmt.Println(userInput)
 }

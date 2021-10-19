@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IamCathal/neo/services/frontend/datastructures"
+	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"go.uber.org/zap"
 )
 

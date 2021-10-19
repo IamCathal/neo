@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -70,15 +71,11 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 				requestStartTime, timeParseErr := strconv.ParseInt(vars["requestStartTime"], 10, 64)
 				if timeParseErr != nil {
-					endpoints.Logger.Fatal(fmt.Sprintf("%v", err),
-						zap.String("requestID", vars["requestID"]),
-						zap.Int("status", http.StatusInternalServerError),
-						zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
-						zap.String("path", r.URL.EscapedPath()),
-					)
+					util.LogBasicFatal(endpoints.Logger, timeParseErr, vars, r, http.StatusInternalServerError)
 					panic(timeParseErr)
 				}
 
+				util.LogBasicErr(endpoints.Logger, errors.New(fmt.Sprintf("%v", err)), vars, r, http.StatusInternalServerError)
 				endpoints.Logger.Error(fmt.Sprintf("%v", err),
 					zap.String("requestID", vars["requestID"]),
 					zap.Int("status", http.StatusInternalServerError),
@@ -142,14 +139,11 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		}
 		json.NewEncoder(w).Encode(response)
 
-		requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
-		endpoints.Logger.Error(fmt.Sprintf("%v", err),
-			zap.String("requestID", vars["requestID"]),
-			zap.Int("status", http.StatusInternalServerError),
-			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
-			zap.String("path", r.URL.EscapedPath()),
-		)
+		util.LogBasicErr(endpoints.Logger, err, vars, r, http.StatusInternalServerError)
 	}
 
 	fmt.Println(userInput)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }

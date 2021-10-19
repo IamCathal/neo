@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -66,4 +67,24 @@ func GetRequestStartTimeInTimeFormat(requestStartTimeString string) int64 {
 		panic(err)
 	}
 	return requestStartTime
+}
+
+func LogBasicErr(logger *zap.Logger, err error, vars map[string]string, req *http.Request, statusCode int) {
+	requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
+	logger.Error(fmt.Sprintf("%v", err),
+		zap.String("requestID", vars["requestID"]),
+		zap.Int("status", http.StatusInternalServerError),
+		zap.Int64("duration", GetCurrentTimeInMs()-requestStartTime),
+		zap.String("path", req.URL.EscapedPath()),
+	)
+}
+
+func LogBasicFatal(logger *zap.Logger, err error, vars map[string]string, req *http.Request, statusCode int) {
+	requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
+	logger.Fatal(fmt.Sprintf("%v", err),
+		zap.String("requestID", vars["requestID"]),
+		zap.Int("status", http.StatusInternalServerError),
+		zap.Int64("duration", GetCurrentTimeInMs()-requestStartTime),
+		zap.String("path", req.URL.EscapedPath()),
+	)
 }

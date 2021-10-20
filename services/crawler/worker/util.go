@@ -4,8 +4,15 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 )
+
+func InitWorkerConfig() datastructures.WorkerConfig {
+	return datastructures.WorkerConfig{
+		WorkerAmount: configuration.WorkerConfig.WorkerAmount,
+	}
+}
 
 func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]int64, error) {
 	validSteamIDs := []int64{}
@@ -26,3 +33,7 @@ func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]int64, erro
 	}
 	return validSteamIDs, nil
 }
+
+// func HasUserBeenCrawledBeforeAtThisLevel(steamID int64, level int) (bool, error) {
+
+// }

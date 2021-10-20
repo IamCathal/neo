@@ -19,6 +19,29 @@ type LoggingFields struct {
 type CrawlUsersInput struct {
 	FirstSteamID  int64 `json:"firstSteamID"`
 	SecondSteamID int64 `json:"secondSteamID"`
+	Level         int   `json:"level"`
+}
+
+type WorkerConfig struct {
+	WorkerAmount int
+}
+
+type Job struct {
+	JobType               string `json:"jobType"`
+	OriginalTargetSteamID int64  `json:"originalTargetSteamID"`
+	CurrentTargetSteamID  int64  `json:"currentTargetSteamID"`
+
+	MaxLevel     int `json:"maxLevel"`
+	CurrentLevel int `json:"currentLevel"`
+}
+
+type APIKeysInUse struct {
+	APIKeys []APIKey
+}
+
+type APIKey struct {
+	Key      string
+	LastUsed time.Time
 }
 
 // Steam web API data structs
@@ -53,6 +76,10 @@ type Player struct {
 	Timecreated              int    `json:"timecreated"`
 	Personastateflags        int    `json:"personastateflags"`
 	Loccountrycode           string `json:"loccountrycode"`
+}
+
+type UserDetails struct {
+	Friends Friendslist `json:"friendsList"`
 }
 
 // FriensdList holds all friends for a given user

@@ -11,12 +11,22 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/joho/godotenv"
+	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 )
 
 var (
 	Logger                 *zap.Logger
 	ApplicationStartUpTime time.Time
+
+	WorkerConfig datastructures.WorkerConfig
+
+	rabbitMQUser string
+	rabbitMQURL  string
+	Queue        amqp.Queue
+	Channel      amqp.Channel
+
+	UsableAPIKeys datastructures.APIKeysInUse
 )
 
 func InitConfig() error {
@@ -26,6 +36,8 @@ func InitConfig() error {
 		return err
 	}
 
+	InitAndSetWorkerConfig()
+
 	logConfig, err := LoadLoggingConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -33,6 +45,15 @@ func InitConfig() error {
 	InitAndSetLogger(logConfig)
 
 	return nil
+}
+
+func InitAndSetWorkerConfig() {
+	workerConfig := datastructures.WorkerConfig{}
+
+	workerAmountFromEnv, _ := strconv.Atoi(os.Getenv("WORKER_AMOUNT"))
+	workerConfig.WorkerAmount = workerAmountFromEnv
+
+	WorkerConfig = workerConfig
 }
 
 func LoadLoggingConfig() (datastructures.LoggingFields, error) {
@@ -66,6 +87,35 @@ func InitAndSetLogger(logFieldsConfig datastructures.LoggingFields) {
 		panic(err)
 	}
 	Logger = log
+}
+
+func InitRabbitMQConnection() {
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s/", rabbitMQUser, rabbitMQUser, rabbitMQURL))
+	if err != nil {
+		log.Fatal(err)
+	}
+	// defer conn.Close()
+
+	channel, err := conn.Channel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// defer channel.Close()
+
+	queue, err := channel.QueueDeclare(
+		"jobsQueue", // name
+		false,       // durable
+		false,       // delete when unused
+		false,       // exclusive
+		false,       // no-wait
+		nil,         // arguments
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	Queue = queue
+	Channel = *channel
 }
 
 func GetLocalIPAddress() string {

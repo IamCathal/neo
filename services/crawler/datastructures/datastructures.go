@@ -94,3 +94,10 @@ type Friend struct {
 	Relationship string `json:"relationship"`
 	FriendSince  int    `json:"friend_since"`
 }
+
+// Datastore service DTOs
+
+type FriendsFromDB struct {
+	Exists      bool        `json:"exists"`
+	FriendsList Friendslist `json:"friends"`
+}

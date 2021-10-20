@@ -16,10 +16,14 @@ import (
 // GetFriends gets the friendslist for a given user through either the steam web API
 // or cache
 func GetFriends(cntr controller.CntrInterface, steamID int64) datastructures.Friendslist {
+	// First call the db
+
 	userObj, err := cntr.CallGetFriends(steamID)
 	if err != nil {
 		log.Fatal(err)
 	}
+	// Save to DB
+
 	fmt.Println("Returned obj:")
 	fmt.Printf("%+v\n\n", userObj)
 	return userObj

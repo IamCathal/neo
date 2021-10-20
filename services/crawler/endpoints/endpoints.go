@@ -73,11 +73,11 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 				_, timeParseErr := strconv.ParseInt(vars["requestStartTime"], 10, 64)
 				if timeParseErr != nil {
-					util.LogBasicFatal(timeParseErr, vars, r, http.StatusInternalServerError)
+					util.LogBasicFatal(timeParseErr, r, http.StatusInternalServerError)
 					panic(timeParseErr)
 				}
 
-				util.LogBasicErr(errors.New(fmt.Sprintf("%v", err)), vars, r, http.StatusInternalServerError)
+				util.LogBasicErr(errors.New(fmt.Sprintf("%v", err)), r, http.StatusInternalServerError)
 			}
 		}()
 
@@ -128,19 +128,19 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&userInput)
 	if err != nil {
 		util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
-		util.LogBasicErr(err, vars, r, http.StatusBadRequest)
+		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 
 	validSteamIDs, err := worker.VerifyFormatOfSteamIDs(userInput)
 	if err != nil {
 		util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
-		util.LogBasicErr(err, vars, r, http.StatusBadRequest)
+		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 	if userInput.Level < 1 || userInput.Level > 3 {
 		util.SendBasicInvalidResponse(w, r, "Invalid level given", vars, http.StatusBadRequest)
-		util.LogBasicErr(err, vars, r, http.StatusBadRequest)
+		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 
@@ -148,7 +148,7 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		util.SendBasicInvalidResponse(w, r, "No valid format steamIDs sent", vars, http.StatusBadRequest)
 		return
 	}
-	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", validSteamIDs, userInput.Level), vars, r, http.StatusOK)
+	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", validSteamIDs, userInput.Level), r, http.StatusOK)
 
 	// If calls to the DB are expensive then a check will be made if a user has been crawled before
 	// if calls to the DB are cheap then just a call to see if a graph has been made before

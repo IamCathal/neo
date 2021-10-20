@@ -79,6 +79,7 @@ type Player struct {
 }
 
 type UserDetails struct {
+	SteamID int64       `json:"steamID"`
 	Friends Friendslist `json:"friendsList"`
 }
 
@@ -100,4 +101,9 @@ type Friend struct {
 type FriendsFromDB struct {
 	Exists      bool        `json:"exists"`
 	FriendsList Friendslist `json:"friends"`
+}
+
+type APIResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }

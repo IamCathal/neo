@@ -8,37 +8,71 @@ import (
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 )
 
-// // Worker is a worker pool function that processes jobs asynchronously
-// func Worker(job datastructures.Job) {
-// 	friendsObj, err := GetFriends(job.CurrentTargetSteamID)
-// }
+var (
+	jobsChannel chan datastructures.Job
+)
 
-// GetFriends gets the friendslist for a given user through either the steam web API
-// or cache
-func GetFriends(cntr controller.CntrInterface, steamID int64) datastructures.Friendslist {
-	// First call the db
-
-	userObj, err := cntr.CallGetFriends(steamID)
+// Worker is a worker pool function that processes jobs asynchronously
+func Worker(cntr controller.CntrInterface, job datastructures.Job) {
+	// Get Friends
+	friendsList, err := GetFriends(cntr, job.CurrentTargetSteamID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Save to DB
 
-	fmt.Println("Returned obj:")
-	fmt.Printf("%+v\n\n", userObj)
-	return userObj
+	fmt.Println(friendsList)
+	// // Save to DB
+	// userIDWithFriendsList := datastructures.UserDetails{
+	// 	SteamID: job.CurrentTargetSteamID,
+	// 	Friends: friendsList,
+	// }
+	// success, err := cntr.SaveFriendsListToDataStore(userIDWithFriendsList)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// if !success {
+
+	// }
 }
 
-// // ControlFunc manages workers
-// func ControlFunc(jobsChan <-chan datastructures.Job) {
-// 	// wait for new job frmo queue
-// 	for {
-// 		newJob := <-jobsChan
-// 		go Worker(newJob)
-// 	}
-// }
+// GetFriends gets the friendslist for a given user through either the steam web API
+// or cache
+func GetFriends(cntr controller.CntrInterface, steamID int64) (datastructures.Friendslist, error) {
+	// First call the db
 
-func CrawlUser(cntr controller.CntrInterface, steamID int64, level int) datastructures.Friendslist {
+	friendsList, err := cntr.CallGetFriends(steamID)
+	if err != nil {
+		return datastructures.Friendslist{}, err
+	}
+	// fmt.Println("Returned obj:")
+	// fmt.Printf("%+v\n\n", friendsList)
+	return friendsList, nil
+}
+
+// ControlFunc manages workers
+func ControlFunc(cntr controller.CntrInterface, jobsChan <-chan datastructures.Job) {
+	// wait for new job frmo queue
+	for {
+		newJob := <-jobsChan
+		go Worker(cntr, newJob)
+	}
+}
+
+func CrawlUser(cntr controller.CntrInterface, steamID int64, level int) {
+	if jobsChannel == nil {
+		jobsChannel = make(chan datastructures.Job, 10)
+		newJob := datastructures.Job{
+			JobType:               "crawl",
+			OriginalTargetSteamID: steamID,
+			CurrentTargetSteamID:  steamID,
+			MaxLevel:              3,
+			CurrentLevel:          1,
+		}
+		jobsChannel <- newJob
+		go ControlFunc(cntr, jobsChannel)
+	} else {
+		go ControlFunc(cntr, jobsChannel)
+	}
 	// // push new crawl job to the queue
 	// jobs := make(chan datastructures.Job, 20)
 	// for {
@@ -47,6 +81,4 @@ func CrawlUser(cntr controller.CntrInterface, steamID int64, level int) datastru
 
 	// 	jobs <- newJobFromQueue
 	// }
-
-	return GetFriends(cntr, steamID)
 }

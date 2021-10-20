@@ -127,7 +127,7 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	userInput := datastructures.CrawlUsersInput{}
 	err := json.NewDecoder(r.Body).Decode(&userInput)
 	if err != nil {
-		util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
@@ -150,23 +150,18 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", validSteamIDs, userInput.Level), r, http.StatusOK)
 
-	// If calls to the DB are expensive then a check will be made if a user has been crawled before
-	// if calls to the DB are cheap then just a call to see if a graph has been made before
-	// hasBeenCrawledBeforeAtThisLevel, err := worker.HasUserBeenCrawledBeforeAtThisLevel(validSteamIDs[0], userInput.Level)
+	worker.CrawlUser(endpoints.Cntr, validSteamIDs[0], userInput.Level)
 	// if err != nil {
 	// 	util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
 	// 	util.LogBasicErr(err, vars, r, http.StatusBadRequest)
 	// 	return
 	// }
-	// if hasBeenCrawledBeforeAtThisLevel
-
-	friends := worker.CrawlUser(endpoints.Cntr, validSteamIDs[0], userInput.Level)
-	// if err != nil {
-	// 	util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
-	// 	util.LogBasicErr(err, vars, r, http.StatusBadRequest)
-	// 	return
-	// }
-	jsonObj, err := json.Marshal(friends)
+	response := struct {
+		Status string
+	}{
+		Status: "success, now crawling",
+	}
+	jsonObj, err := json.Marshal(response)
 	if err != nil {
 		log.Fatal(err)
 	}

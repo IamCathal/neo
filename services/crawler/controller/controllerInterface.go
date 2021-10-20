@@ -1,8 +1,12 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
@@ -13,6 +17,7 @@ type Cntr struct{}
 
 type CntrInterface interface {
 	CallGetFriends(steamID int64) (datastructures.Friendslist, error)
+	SaveFriendsListToDataStore(datastructures.UserDetails) (bool, error)
 	// HasUserBeenCrawledBefore(steamID int64) (bool, error)
 }
 
@@ -49,4 +54,38 @@ func (control Cntr) CallGetFriends(steamID int64) (datastructures.Friendslist, e
 	// fmt.Printf("The object: %+v\n\n", friendsListObj)
 
 	return friendsListObj.Friends, nil
+}
+
+func (control Cntr) SaveFriendsListToDataStore(userDetails datastructures.UserDetails) (bool, error) {
+	targetURL := fmt.Sprintf("%s/saveUser", os.Getenv("DATASTORE_URL"))
+	jsonObj, err := json.Marshal(userDetails)
+	if err != nil {
+		return false, err
+	}
+
+	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authentication", "something")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return false, err
+	}
+	APIRes := datastructures.APIResponse{}
+	err = json.Unmarshal(body, &APIRes)
+	if err != nil {
+		return false, err
+	}
+
+	if res.StatusCode == 200 {
+		return true, nil
+	}
+
+	return false, fmt.Errorf("error saving user: %s", APIRes.Message)
 }

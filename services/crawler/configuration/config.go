@@ -21,10 +21,8 @@ var (
 
 	WorkerConfig datastructures.WorkerConfig
 
-	rabbitMQUser string
-	rabbitMQURL  string
-	Queue        amqp.Queue
-	Channel      amqp.Channel
+	Queue   amqp.Queue
+	Channel amqp.Channel
 
 	UsableAPIKeys datastructures.APIKeysInUse
 )
@@ -43,6 +41,8 @@ func InitConfig() error {
 		log.Fatal(err)
 	}
 	InitAndSetLogger(logConfig)
+
+	InitRabbitMQConnection()
 
 	return nil
 }
@@ -90,7 +90,7 @@ func InitAndSetLogger(logFieldsConfig datastructures.LoggingFields) {
 }
 
 func InitRabbitMQConnection() {
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s/", rabbitMQUser, rabbitMQUser, rabbitMQURL))
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s", os.Getenv("RABBITMQ_USER"), os.Getenv("RABBITMQ_PASSWORD"), os.Getenv("RABBITMQ_URL")))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -103,12 +103,20 @@ func InitRabbitMQConnection() {
 	// defer channel.Close()
 
 	queue, err := channel.QueueDeclare(
-		"jobsQueue", // name
-		false,       // durable
-		false,       // delete when unused
-		false,       // exclusive
-		false,       // no-wait
-		nil,         // arguments
+		os.Getenv("RABBITMQ_QUEUE_NAME"), // name
+		false,                            // durable
+		false,                            // delete when unused
+		false,                            // exclusive
+		false,                            // no-wait
+		nil,                              // arguments
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = channel.Qos(
+		10,    // prefetch count
+		0,     // prefetch size
+		false, // global
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -116,6 +124,7 @@ func InitRabbitMQConnection() {
 
 	Queue = queue
 	Channel = *channel
+	Logger.Info("started rabbitMQ connection")
 }
 
 func GetLocalIPAddress() string {

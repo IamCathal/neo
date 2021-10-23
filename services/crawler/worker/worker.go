@@ -1,11 +1,15 @@
 package worker
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 
+	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/streadway/amqp"
 )
 
 var (
@@ -19,8 +23,38 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	configuration.Logger.Info(fmt.Sprintf("Got %d friends at level %d", len(friendsList.Friends), job.CurrentLevel))
+	for _, friend := range friendsList.Friends {
+		nextLevel := job.CurrentLevel + 1
+		if nextLevel <= job.MaxLevel {
+			steamIDInt64, _ := strconv.ParseInt(friend.Steamid, 10, 64)
+			newJob := datastructures.Job{
+				JobType:               "crawl",
+				OriginalTargetSteamID: job.OriginalTargetSteamID,
+				CurrentTargetSteamID:  steamIDInt64,
 
-	fmt.Println(friendsList)
+				MaxLevel:     job.MaxLevel,
+				CurrentLevel: nextLevel,
+			}
+			jsonObj, err := json.Marshal(newJob)
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = configuration.Channel.Publish(
+				"",                       // exchange
+				configuration.Queue.Name, // routing key
+				false,                    // mandatory
+				false,                    // immediate
+				amqp.Publishing{
+					ContentType: "text/json",
+					Body:        []byte(jsonObj),
+				})
+			// configuration.Logger.Info(fmt.Sprintf("placed job %s:%d into queue", friend.Steamid, job.CurrentLevel))
+		} else {
+			// configuration.Logger.Info(fmt.Sprintf("job %d:%d was not published", job.CurrentTargetSteamID, job.CurrentLevel))
+		}
+
+	}
 	// // Save to DB
 	// userIDWithFriendsList := datastructures.UserDetails{
 	// 	SteamID: job.CurrentTargetSteamID,
@@ -50,35 +84,54 @@ func GetFriends(cntr controller.CntrInterface, steamID int64) (datastructures.Fr
 }
 
 // ControlFunc manages workers
-func ControlFunc(cntr controller.CntrInterface, jobsChan <-chan datastructures.Job) {
-	// wait for new job frmo queue
+func ControlFunc(cntr controller.CntrInterface) {
+	msgs, err := configuration.Channel.Consume(
+		configuration.Queue.Name, // queue
+		"",                       // consumer
+		false,                    // auto-ack
+		false,                    // exclusive
+		false,                    // no-local
+		false,                    // no-wait
+		nil,                      // args
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// wait for new job from queue
 	for {
-		newJob := <-jobsChan
-		go Worker(cntr, newJob)
+		for d := range msgs {
+			newJob := datastructures.Job{}
+			err := json.Unmarshal(d.Body, &newJob)
+			if err != nil {
+				log.Fatal(err)
+			}
+			Worker(cntr, newJob)
+			d.Ack(false)
+		}
 	}
 }
 
 func CrawlUser(cntr controller.CntrInterface, steamID int64, level int) {
-	if jobsChannel == nil {
-		jobsChannel = make(chan datastructures.Job, 10)
-		newJob := datastructures.Job{
-			JobType:               "crawl",
-			OriginalTargetSteamID: steamID,
-			CurrentTargetSteamID:  steamID,
-			MaxLevel:              3,
-			CurrentLevel:          1,
-		}
-		jobsChannel <- newJob
-		go ControlFunc(cntr, jobsChannel)
-	} else {
-		go ControlFunc(cntr, jobsChannel)
+	newJob := datastructures.Job{
+		JobType:               "crawl",
+		OriginalTargetSteamID: steamID,
+		CurrentTargetSteamID:  steamID,
+		MaxLevel:              level,
+		CurrentLevel:          1,
 	}
-	// // push new crawl job to the queue
-	// jobs := make(chan datastructures.Job, 20)
-	// for {
-	// 	// find a job from rabbitmQ and push it to the jobs queue
-	// 	newJobFromQueue := datastructures.Job{}
+	jsonObj, err := json.Marshal(newJob)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// 	jobs <- newJobFromQueue
-	// }
+	err = configuration.Channel.Publish(
+		"",                       // exchange
+		configuration.Queue.Name, // routing key
+		false,                    // mandatory
+		false,                    // immediate
+		amqp.Publishing{
+			ContentType: "text/json",
+			Body:        []byte(jsonObj),
+		})
+	configuration.Logger.Info(fmt.Sprintf("placed job %d:%d into queue", steamID, level))
 }

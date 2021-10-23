@@ -11,6 +11,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/endpoints"
+	"github.com/iamcathal/neo/services/crawler/worker"
 )
 
 func main() {
@@ -19,10 +20,14 @@ func main() {
 		log.Fatalf("failure initialising config: %v", err)
 	}
 
+	controller := controller.Cntr{}
+
 	endpoints := &endpoints.Endpoints{
-		Cntr: controller.Cntr{},
+		Cntr: controller,
 	}
 	apikeymanager.InitApiKeys()
+
+	worker.StartUpWorkers(controller)
 
 	router := endpoints.SetupRouter()
 

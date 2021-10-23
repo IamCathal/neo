@@ -5,12 +5,19 @@ import (
 	"strconv"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
+	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 )
 
 func InitWorkerConfig() datastructures.WorkerConfig {
 	return datastructures.WorkerConfig{
 		WorkerAmount: configuration.WorkerConfig.WorkerAmount,
+	}
+}
+
+func StartUpWorkers(cntr controller.CntrInterface) {
+	for i := 0; i < len(configuration.UsableAPIKeys.APIKeys); i++ {
+		go ControlFunc(cntr)
 	}
 }
 

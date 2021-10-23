@@ -131,6 +131,11 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
+	if userInput.Level < 1 || userInput.Level > 3 {
+		util.SendBasicInvalidResponse(w, r, "Invalid level given", vars, http.StatusBadRequest)
+		util.LogBasicErr(err, r, http.StatusBadRequest)
+		return
+	}
 
 	validSteamIDs, err := worker.VerifyFormatOfSteamIDs(userInput)
 	if err != nil {
@@ -138,12 +143,6 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
-	if userInput.Level < 1 || userInput.Level > 3 {
-		util.SendBasicInvalidResponse(w, r, "Invalid level given", vars, http.StatusBadRequest)
-		util.LogBasicErr(err, r, http.StatusBadRequest)
-		return
-	}
-
 	if len(validSteamIDs) == 0 {
 		util.SendBasicInvalidResponse(w, r, "No valid format steamIDs sent", vars, http.StatusBadRequest)
 		return

@@ -17,6 +17,9 @@ jobs:
         echo NODE_NAME=${{ secrets.FRONTEND_NODE_NAME }} >> .env
         echo NODE_DC=${{ secrets.FRONTEND_NODE_DC }} >> .env
         echo STATIC_CONTENT_DIR_NAME=${{ secrets.FRONTEND_STATIC_CONTENT_DIR_NAME }} >> .env
+        echo ORG=${{ secrets.ORG }} >> .env
+        echo SYSTEM_STATS_BUCKET=${{ secrets.SYSTEM_STATS_BUCKET }} >> .env
+        echo SYSTEM_STATS_BUCKET_TOKEN=${{ secrets.SYSTEM_STATS_BUCKET_TOKEN }} >> .env
         mv .env services/frontend
         cat services/frontend/.env
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/IamCathal/neo/services/frontend/endpoints"
+	"github.com/IamCathal/neo/services/frontend/statsmonitoring"
 	"github.com/IamCathal/neo/services/frontend/util"
 	"github.com/joho/godotenv"
 )
@@ -26,6 +27,8 @@ func main() {
 		Logger:                 util.InitLogger(logConfig),
 		ApplicationStartUpTime: time.Now(),
 	}
+
+	go statsmonitoring.CollectAndShipStats()
 
 	router := endpoints.SetupRouter()
 

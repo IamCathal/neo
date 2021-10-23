@@ -5,10 +5,15 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+)
+
+var (
+	keyGetLock sync.Mutex
 )
 
 func InitApiKeys() {
@@ -27,11 +32,13 @@ func InitApiKeys() {
 // being used too frequently. If none are found then the function
 // waits a short period and tries again until one is returned
 func GetSteamAPIKey() string {
+	keyGetLock.Lock()
 	for {
-		for _, usableKey := range configuration.UsableAPIKeys.APIKeys {
+		for i, usableKey := range configuration.UsableAPIKeys.APIKeys {
 			timeSinceLastUsed := time.Now().Sub(usableKey.LastUsed)
 			if timeSinceLastUsed > time.Duration(1000*time.Millisecond) {
-				usableKey.LastUsed = time.Now()
+				configuration.UsableAPIKeys.APIKeys[i].LastUsed = time.Now()
+				keyGetLock.Unlock()
 				return usableKey.Key
 			}
 		}

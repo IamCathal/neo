@@ -1,7 +1,9 @@
 package apikeymanager
 
 import (
+	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -33,6 +35,10 @@ func GetSteamAPIKey() string {
 				return usableKey.Key
 			}
 		}
-		time.Sleep(2 * time.Millisecond)
+		sleepTimeMs, err := strconv.Atoi(os.Getenv("KEY_SLEEP_TIME"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		time.Sleep(time.Duration(sleepTimeMs) * time.Millisecond)
 	}
 }

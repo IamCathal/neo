@@ -26,7 +26,7 @@ func getCPUUsagePercentage(cpuUsage *float64) {
 		}
 		total := float64(after.Total - before.Total)
 
-		*cpuUsage = float64(after.Idle-before.Idle) / total * 100
+		*cpuUsage = float64(after.User-before.User) / total * 100
 		time.Sleep(8 * time.Second)
 	}
 }

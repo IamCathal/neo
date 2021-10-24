@@ -3,10 +3,8 @@ package configuration
 import (
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/datastructures"
@@ -29,19 +27,17 @@ var (
 
 func InitConfig() error {
 	ApplicationStartUpTime = time.Now()
-
 	if err := godotenv.Load(); err != nil {
 		return err
 	}
 
 	InitAndSetWorkerConfig()
-
 	logConfig, err := LoadLoggingConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	InitAndSetLogger(logConfig)
 
+	InitAndSetLogger(logConfig)
 	InitRabbitMQConnection()
 
 	return nil
@@ -90,6 +86,17 @@ func InitAndSetLogger(logFieldsConfig datastructures.LoggingFields) {
 }
 
 func InitRabbitMQConnection() {
+	if os.Getenv("RABBITMQ_PASSWORD") == "" ||
+		os.Getenv("RABBITMQ_USER") == "" ||
+		os.Getenv("RABBITMQ_URL") == "" {
+		logMsg := "one or more env vars for connecting to rabbitMQ are not set\n"
+		logMsg += fmt.Sprintf("RABBITMQ_PASSWORD is empty: %t", os.Getenv("RABBITMQ_PASSWORD") == "")
+		logMsg += fmt.Sprintf("RABBITMQ_USER is empty: %t", os.Getenv("RABBITMQ_USER") == "")
+		logMsg += fmt.Sprintf("RABBITMQ_URL is empty: %t", os.Getenv("RABBITMQ_URL") == "")
+		Logger.Fatal(logMsg)
+		log.Fatal(logMsg)
+	}
+
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s", os.Getenv("RABBITMQ_USER"), os.Getenv("RABBITMQ_PASSWORD"), os.Getenv("RABBITMQ_URL")))
 	if err != nil {
 		log.Fatal(err)
@@ -125,26 +132,4 @@ func InitRabbitMQConnection() {
 	Queue = queue
 	Channel = *channel
 	Logger.Info("started rabbitMQ connection")
-}
-
-func GetLocalIPAddress() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	addrWithNoPort := strings.Split(conn.LocalAddr().(*net.UDPAddr).String(), ":")
-	return addrWithNoPort[0]
-}
-
-func GetCurrentTimeInMs() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}
-
-func GetRequestStartTimeInTimeFormat(requestStartTimeString string) int64 {
-	requestStartTime, err := strconv.ParseInt(requestStartTimeString, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	return requestStartTime
 }

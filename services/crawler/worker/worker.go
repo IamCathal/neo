@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
@@ -24,36 +23,10 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	configuration.Logger.Info(fmt.Sprintf("Got %d friends at level %d", len(friendsList.Friends), job.CurrentLevel))
-	for _, friend := range friendsList.Friends {
-		nextLevel := job.CurrentLevel + 1
-		if nextLevel <= job.MaxLevel {
-			steamIDInt64, _ := strconv.ParseInt(friend.Steamid, 10, 64)
-			newJob := datastructures.Job{
-				JobType:               "crawl",
-				OriginalTargetSteamID: job.OriginalTargetSteamID,
-				CurrentTargetSteamID:  steamIDInt64,
-
-				MaxLevel:     job.MaxLevel,
-				CurrentLevel: nextLevel,
-			}
-			jsonObj, err := json.Marshal(newJob)
-			if err != nil {
-				log.Fatal(err)
-			}
-			err = configuration.Channel.Publish(
-				"",                       // exchange
-				configuration.Queue.Name, // routing key
-				false,                    // mandatory
-				false,                    // immediate
-				amqp.Publishing{
-					ContentType: "text/json",
-					Body:        []byte(jsonObj),
-				})
-			// configuration.Logger.Info(fmt.Sprintf("placed job %s:%d into queue", friend.Steamid, job.CurrentLevel))
-		} else {
-			// configuration.Logger.Info(fmt.Sprintf("job %d:%d was not published", job.CurrentTargetSteamID, job.CurrentLevel))
-		}
-
+	err = putFriendsIntoQueue(job, friendsList.Friends)
+	if err != nil {
+		configuration.Logger.Fatal(err.Error())
+		log.Fatal(err)
 	}
 	// // Save to DB
 	// userIDWithFriendsList := datastructures.UserDetails{

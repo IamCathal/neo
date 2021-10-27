@@ -8,45 +8,37 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
-	"github.com/streadway/amqp"
 )
 
 var (
 	jobsChannel chan datastructures.Job
 )
 
-// Worker is a worker pool function that processes jobs asynchronously
+// Worker crawls the steam API to get data from steam for a given user
+// e.g account details and details of a user's friend
 func Worker(cntr controller.CntrInterface, job datastructures.Job) {
-	// Get Friends
 	friendsList, err := GetFriends(cntr, job.CurrentTargetSteamID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// configuration.Logger.Info(fmt.Sprintf("Got %d friends at level %d from %s", len(friendsList.Friends), job.CurrentLevel, job.CurrentTargetSteamID))
 
-	// get player summary for current target user
-	playerSummary, err := cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
+	playerSummaryForCurrentUser, err := cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
 	if err != nil {
-		configuration.Logger.Fatal(err.Error())
-		fmt.Println("eeeeeeeeeeeeeeee")
-		panic(err)
+		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
+		log.Fatal(err)
 	}
-	fmt.Printf("Original player summary: %+v\n\n", playerSummary)
-	// Get summaries for (non private profile) friends
+
 	friendPlayerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
 	if err != nil {
-		fmt.Println("ooooooooooooo")
-		configuration.Logger.Fatal(err.Error())
-		panic(err)
+		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
+		log.Fatal(err)
 	}
-	// fmt.Printf("Got %d player summaries from steamID: %s", len(playerSummaries), job.OriginalTargetSteamID)
 
 	friendPlayerSummarySteamIDs := getSteamIDsFromPlayers(friendPlayerSummaries)
-	// Put friends into queue (who aren't private profiles)
 	err = putFriendsIntoQueue(job, friendPlayerSummarySteamIDs)
 	if err != nil {
-		configuration.Logger.Fatal(err.Error())
-		panic(err)
+		configuration.Logger.Fatal(fmt.Sprintf("failed publish friends from steamID: %s to queue: %v", job.CurrentTargetSteamID, err.Error()))
+		log.Fatal(err)
 	}
 
 	// TODO Implement when target user profile summary is included in the main call
@@ -69,7 +61,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	// }
 	// fmt.Printf("\n\n\nThe data: \n %s\n\n", yuppa)
 	logMsg := fmt.Sprintf("Got data for [%s][%s][%s] %d friends",
-		playerSummary[0].Steamid, playerSummary[0].Personaname, playerSummary[0].Loccountrycode,
+		playerSummaryForCurrentUser[0].Steamid, playerSummaryForCurrentUser[0].Personaname, playerSummaryForCurrentUser[0].Loccountrycode,
 		len(friendPlayerSummaries))
 	configuration.Logger.Info(logMsg)
 
@@ -107,28 +99,24 @@ func GetFriends(cntr controller.CntrInterface, steamID string) (datastructures.F
 
 // ControlFunc manages workers
 func ControlFunc(cntr controller.CntrInterface) {
-	msgs, err := configuration.Channel.Consume(
-		configuration.Queue.Name, // queue
-		"",                       // consumer
-		false,                    // auto-ack
-		false,                    // exclusive
-		false,                    // no-local
-		false,                    // no-wait
-		nil,                      // args
-	)
+	msgs, err := cntr.ConsumeFromJobsQueue()
 	if err != nil {
+		configuration.Logger.Fatal(fmt.Sprintf("failed to consume from jobs queue on ControlFunc init: %v", err))
 		log.Fatal(err)
 	}
-	// wait for new job from queue
+
 	for {
 		for d := range msgs {
 			newJob := datastructures.Job{}
 			err := json.Unmarshal(d.Body, &newJob)
 			if err != nil {
+				configuration.Logger.Fatal(fmt.Sprintf("failed unmarshal job from queue: %v", err))
 				log.Fatal(err)
 			}
+
 			logMsg := fmt.Sprintf("Received job: original: %s, current: %s, max level: %d, currlevel: %d", newJob.OriginalTargetSteamID, newJob.CurrentTargetSteamID, newJob.MaxLevel, newJob.CurrentLevel)
 			configuration.Logger.Info(logMsg)
+
 			Worker(cntr, newJob)
 			d.Ack(false)
 		}
@@ -148,14 +136,12 @@ func CrawlUser(cntr controller.CntrInterface, steamID string, level int) {
 		log.Fatal(err)
 	}
 
-	err = configuration.Channel.Publish(
-		"",                       // exchange
-		configuration.Queue.Name, // routing key
-		false,                    // mandatory
-		false,                    // immediate
-		amqp.Publishing{
-			ContentType: "text/json",
-			Body:        []byte(jsonObj),
-		})
-	configuration.Logger.Info(fmt.Sprintf("placed job %s:%d into queue", steamID, level))
+	err = cntr.PublishToJobsQueue(jsonObj)
+	if err != nil {
+		logMsg := fmt.Sprintf("failed to publish new crawl user job with steamID: %s level: %d to queue: %+v",
+			steamID, level, err)
+		configuration.Logger.Error(logMsg)
+	} else {
+		configuration.Logger.Info(fmt.Sprintf("placed job steamID: %s level: %d into queue", steamID, level))
+	}
 }

@@ -9,16 +9,23 @@ import (
 	"os"
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
+	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
+	"github.com/streadway/amqp"
 )
 
 type Cntr struct{}
 
 type CntrInterface interface {
+	// Steam web API related functions
 	CallGetFriends(steamID string) (datastructures.Friendslist, error)
 	CallGetPlayerSummaries(steamIDList string) ([]datastructures.Player, error)
 	SaveFriendsListToDataStore(datastructures.UserDetails) (bool, error)
+	// RabbitMQ related functions
+	PublishToJobsQueue(jobJSON []byte) error
+	ConsumeFromJobsQueue() (<-chan amqp.Delivery, error)
+	// Datastore related functions
 	// HasUserBeenCrawledBefore(steamID int64) (bool, error)
 }
 
@@ -108,4 +115,28 @@ func (control Cntr) SaveFriendsListToDataStore(userDetails datastructures.UserDe
 	}
 
 	return false, fmt.Errorf("error saving user: %s", APIRes.Message)
+}
+
+func (control Cntr) PublishToJobsQueue(jobJSON []byte) error {
+	return configuration.Channel.Publish(
+		"",                       // exchange
+		configuration.Queue.Name, // routing key
+		false,                    // mandatory
+		false,                    // immediate
+		amqp.Publishing{
+			ContentType: "text/json",
+			Body:        jobJSON,
+		})
+}
+
+func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
+	return configuration.Channel.Consume(
+		configuration.Queue.Name, // queue
+		"",                       // consumer
+		false,                    // auto-ack
+		false,                    // exclusive
+		false,                    // no-local
+		false,                    // no-wait
+		nil,                      // args
+	)
 }

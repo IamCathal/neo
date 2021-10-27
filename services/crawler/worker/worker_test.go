@@ -103,17 +103,110 @@ func TestBreakSteamIDsIntoListsOf100OrLess20IDs(t *testing.T) {
 	assert.Equal(t, expectedSteamIDList, realSteamIDList)
 }
 
-func TestBreakSteamIDsIntoListsOf1911OrLessWith120IDs(t *testing.T) {
+func TestBreakSteamIDsIntoListsOf100OrLessWith1911IDs(t *testing.T) {
 	idList := []string{}
 	for i := 0; i < 1911; i++ {
 		idList = append(idList, strconv.Itoa(i))
 	}
-	// firstBatchOfURLFormattedSteamIDs := strings.Join(idList[:100], ",")
-	// remainderBatchOfURLFormattedSteamIDs := strings.Join(idList[100:], ",")
-
-	// expectedSteamIDList := []string{firstBatchOfURLFormattedSteamIDs, remainderBatchOfURLFormattedSteamIDs}
 
 	realSteamIDList := breakIntoStacksOf100OrLessSteamIDs(idList)
 
 	assert.Len(t, realSteamIDList, 20)
+}
+
+func TestGetUsersProfileSummaryFromSliceReturnsTheSearchedForProfile(t *testing.T) {
+	expectedUserProfile := datastructures.Player{
+		Steamid:  "54290543656",
+		Realname: "Eddie Durcan",
+	}
+	exampleSummaries := []datastructures.Player{
+		{
+			Steamid:  "213023525435",
+			Realname: "Buzz Mc Donell",
+		},
+		expectedUserProfile,
+		{
+			Steamid:  "5647568578975",
+			Realname: "The Boogenhagen",
+		},
+	}
+
+	found, realUserProfile := getUsersProfileSummaryFromSlice(expectedUserProfile.Steamid, exampleSummaries)
+
+	assert.True(t, found)
+	assert.Equal(t, expectedUserProfile, realUserProfile)
+}
+
+func TestGetUsersProfileSummaryFromSliceReturnsFalseWhenNotFound(t *testing.T) {
+	nonExistantSteamID := "45356346547567"
+	exampleSummaries := []datastructures.Player{
+		{
+			Steamid:  "213023525435",
+			Realname: "Buzz Mc Donell",
+		},
+		{
+			Steamid:  "5647568578975",
+			Realname: "The Boogenhagen",
+		},
+	}
+
+	found, realUserProfile := getUsersProfileSummaryFromSlice(nonExistantSteamID, exampleSummaries)
+
+	assert.False(t, found)
+	assert.Empty(t, realUserProfile)
+}
+
+func TestGetSteamIDsFromPlayersReturnsAllSteamIDs(t *testing.T) {
+	examplePlayers := []datastructures.Player{
+		{
+			Steamid:  "213023525435",
+			Realname: "Buzz Mc Donell",
+		},
+		{
+			Steamid:  "54290543656",
+			Realname: "Eddie Durcan",
+		},
+		{
+			Steamid:  "5647568578975",
+			Realname: "The Boogenhagen",
+		},
+	}
+	expectedSteamIDList := []string{examplePlayers[0].Steamid, examplePlayers[1].Steamid, examplePlayers[2].Steamid}
+
+	realSteamIDs := getSteamIDsFromPlayers(examplePlayers)
+
+	assert.Equal(t, expectedSteamIDList, realSteamIDs)
+}
+
+func TestGetSteamIDsFromPlayersFromAnEmptySliceReturnsNothing(t *testing.T) {
+	examplePlayers := []datastructures.Player{}
+
+	realSteamIDs := getSteamIDsFromPlayers(examplePlayers)
+
+	assert.Empty(t, realSteamIDs)
+}
+
+func TestGetPublicProfilesReturnsOnlyPublicProfiles(t *testing.T) {
+	expectedPublicProfile := datastructures.Player{
+		Steamid:                  "54290543656",
+		Realname:                 "Eddie Durcan",
+		Communityvisibilitystate: 3,
+	}
+	examplePlayers := []datastructures.Player{
+		{
+			Steamid:                  "213023525435",
+			Realname:                 "Buzz Mc Donell",
+			Communityvisibilitystate: 2,
+		},
+		expectedPublicProfile,
+		{
+			Steamid:                  "5647568578975",
+			Realname:                 "The Boogenhagen",
+			Communityvisibilitystate: 1,
+		},
+	}
+
+	realPublicProfiles := getPublicProfiles(examplePlayers)
+
+	assert.Equal(t, expectedPublicProfile, realPublicProfiles[0])
 }

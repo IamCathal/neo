@@ -16,7 +16,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestVerifyFormatOfSteamIDsVerifiesTwoValidSteamIDs(t *testing.T) {
-	expectedSteamIDs := []int64{12345678901234456, 72348978301996243}
+	expectedSteamIDs := []string{"12345678901234456", "72348978301996243"}
 	inputData := datastructures.CrawlUsersInput{
 		FirstSteamID:  expectedSteamIDs[0],
 		SecondSteamID: expectedSteamIDs[1],
@@ -29,7 +29,7 @@ func TestVerifyFormatOfSteamIDsVerifiesTwoValidSteamIDs(t *testing.T) {
 }
 
 func TestVerifyFormatOfSteamIDsReturnsNothingForTwoInvalidFormatSteamIDs(t *testing.T) {
-	expectedSteamIDs := []int64{12345634456, 0}
+	expectedSteamIDs := []string{"12345634456", "0"}
 	inputData := datastructures.CrawlUsersInput{
 		FirstSteamID:  expectedSteamIDs[0],
 		SecondSteamID: expectedSteamIDs[1],

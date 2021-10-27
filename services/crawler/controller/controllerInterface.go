@@ -16,13 +16,13 @@ import (
 type Cntr struct{}
 
 type CntrInterface interface {
-	CallGetFriends(steamID int64) (datastructures.Friendslist, error)
+	CallGetFriends(steamID string) (datastructures.Friendslist, error)
 	CallGetPlayerSummaries(steamIDList []string) ([]datastructures.Player, error)
 	SaveFriendsListToDataStore(datastructures.UserDetails) (bool, error)
 	// HasUserBeenCrawledBefore(steamID int64) (bool, error)
 }
 
-func (control Cntr) CallGetFriends(steamID int64) (datastructures.Friendslist, error) {
+func (control Cntr) CallGetFriends(steamID string) (datastructures.Friendslist, error) {
 	friendsList := datastructures.Friendslist{}
 
 	// // Check if DB has this user
@@ -37,7 +37,8 @@ func (control Cntr) CallGetFriends(steamID int64) (datastructures.Friendslist, e
 	// Call the steam web API
 	friendsListObj := datastructures.UserDetails{}
 	apiKey := apikeymanager.GetSteamAPIKey()
-	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%d",
+	fmt.Println("get friends list")
+	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
 		apiKey, steamID)
 	res, err := util.GetAndRead(targetURL)
 	if err != nil {
@@ -60,6 +61,7 @@ func (control Cntr) CallGetFriends(steamID int64) (datastructures.Friendslist, e
 func (control Cntr) CallGetPlayerSummaries(steamIDList []string) ([]datastructures.Player, error) {
 	allPlayerSummaries := datastructures.UserStatsStruct{}
 	apiKey := apikeymanager.GetSteamAPIKey()
+	fmt.Println("get player summary")
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
 		apiKey, steamIDList)
 	res, err := util.GetAndRead(targetURL)

@@ -25,10 +25,14 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	configuration.Logger.Info(fmt.Sprintf("Got %d friends at level %d", len(friendsList.Friends), job.CurrentLevel))
 
 	// Get summaries for friends
-	_, err = getPlayerSummaries(cntr, friendsList)
-
+	playerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
+	fmt.Printf("Got %d player summaries from steamID: %s", len(playerSummaries), job.OriginalTargetSteamID)
+	if len(playerSummaries) > 0 {
+		fmt.Printf("\n\n%+v\n\n", playerSummaries[0])
+	}
+	playerSummarySteamIDs := getSteamIDsFromPlayers(playerSummaries)
 	// Put friends into queue (who aren't private profiles)
-	err = putFriendsIntoQueue(job, friendsList.Friends)
+	err = putFriendsIntoQueue(job, playerSummarySteamIDs)
 	if err != nil {
 		configuration.Logger.Fatal(err.Error())
 		log.Fatal(err)
@@ -54,7 +58,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 
 // GetFriends gets the friendslist for a given user through either the steam web API
 // or cache
-func GetFriends(cntr controller.CntrInterface, steamID int64) (datastructures.Friendslist, error) {
+func GetFriends(cntr controller.CntrInterface, steamID string) (datastructures.Friendslist, error) {
 	// First call the db
 
 	friendsList, err := cntr.CallGetFriends(steamID)
@@ -88,13 +92,15 @@ func ControlFunc(cntr controller.CntrInterface) {
 			if err != nil {
 				log.Fatal(err)
 			}
+			logMsg := fmt.Sprintf("Received job: original: %s, current: %s, max level: %d, currlevel: %d", newJob.OriginalTargetSteamID, newJob.CurrentTargetSteamID, newJob.MaxLevel, newJob.CurrentLevel)
+			configuration.Logger.Info(logMsg)
 			Worker(cntr, newJob)
 			d.Ack(false)
 		}
 	}
 }
 
-func CrawlUser(cntr controller.CntrInterface, steamID int64, level int) {
+func CrawlUser(cntr controller.CntrInterface, steamID string, level int) {
 	newJob := datastructures.Job{
 		JobType:               "crawl",
 		OriginalTargetSteamID: steamID,
@@ -116,5 +122,5 @@ func CrawlUser(cntr controller.CntrInterface, steamID int64, level int) {
 			ContentType: "text/json",
 			Body:        []byte(jsonObj),
 		})
-	configuration.Logger.Info(fmt.Sprintf("placed job %d:%d into queue", steamID, level))
+	configuration.Logger.Info(fmt.Sprintf("placed job %s:%d into queue", steamID, level))
 }

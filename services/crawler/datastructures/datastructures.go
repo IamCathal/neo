@@ -17,9 +17,9 @@ type LoggingFields struct {
 }
 
 type CrawlUsersInput struct {
-	FirstSteamID  int64 `json:"firstSteamID"`
-	SecondSteamID int64 `json:"secondSteamID"`
-	Level         int   `json:"level"`
+	FirstSteamID  string `json:"firstSteamID"`
+	SecondSteamID string `json:"secondSteamID"`
+	Level         int    `json:"level"`
 }
 
 type WorkerConfig struct {
@@ -28,8 +28,8 @@ type WorkerConfig struct {
 
 type Job struct {
 	JobType               string `json:"jobType"`
-	OriginalTargetSteamID int64  `json:"originalTargetSteamID"`
-	CurrentTargetSteamID  int64  `json:"currentTargetSteamID"`
+	OriginalTargetSteamID string `json:"originalTargetSteamID"`
+	CurrentTargetSteamID  string `json:"currentTargetSteamID"`
 
 	MaxLevel     int `json:"maxLevel"`
 	CurrentLevel int `json:"currentLevel"`

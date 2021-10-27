@@ -2,8 +2,8 @@ package worker
 
 import (
 	"encoding/json"
+	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
@@ -24,9 +24,9 @@ func StartUpWorkers(cntr controller.CntrInterface) {
 	}
 }
 
-func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]int64, error) {
-	validSteamIDs := []int64{}
-	match, err := regexp.MatchString("([0-9]){17}", strconv.FormatInt(input.FirstSteamID, 10))
+func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]string, error) {
+	validSteamIDs := []string{}
+	match, err := regexp.MatchString("([0-9]){17}", input.FirstSteamID)
 	if err != nil {
 		return validSteamIDs, err
 	}
@@ -34,7 +34,7 @@ func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]int64, erro
 		validSteamIDs = append(validSteamIDs, input.FirstSteamID)
 	}
 
-	match, err = regexp.MatchString("([0-9]){17}", strconv.FormatInt(input.SecondSteamID, 10))
+	match, err = regexp.MatchString("([0-9]){17}", input.SecondSteamID)
 	if err != nil {
 		return validSteamIDs, err
 	}
@@ -44,15 +44,14 @@ func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]int64, erro
 	return validSteamIDs, nil
 }
 
-func putFriendsIntoQueue(currentJob datastructures.Job, friends []datastructures.Friend) error {
-	for _, friend := range friends {
+func putFriendsIntoQueue(currentJob datastructures.Job, friendIDs []string) error {
+	for _, ID := range friendIDs {
 		nextLevel := currentJob.CurrentLevel + 1
 		if nextLevel <= currentJob.MaxLevel {
-			steamIDInt64, _ := strconv.ParseInt(friend.Steamid, 10, 64)
 			newJob := datastructures.Job{
 				JobType:               "crawl",
 				OriginalTargetSteamID: currentJob.OriginalTargetSteamID,
-				CurrentTargetSteamID:  steamIDInt64,
+				CurrentTargetSteamID:  ID,
 
 				MaxLevel:     currentJob.MaxLevel,
 				CurrentLevel: nextLevel,
@@ -61,6 +60,7 @@ func putFriendsIntoQueue(currentJob datastructures.Job, friends []datastructures
 			if err != nil {
 				return err
 			}
+			configuration.Logger.Info(fmt.Sprintf("pushing new job: %+v", newJob))
 			err = configuration.Channel.Publish(
 				"",                       // exchange
 				configuration.Queue.Name, // routing key
@@ -82,10 +82,12 @@ func putFriendsIntoQueue(currentJob datastructures.Job, friends []datastructures
 	return nil
 }
 
-func getPlayerSummaries(cntr controller.CntrInterface, friends datastructures.Friendslist) ([]datastructures.Player, error) {
+func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friends datastructures.Friendslist) ([]datastructures.Player, error) {
 	// Only 100 steamIDs can be queried per call
 	steamIDs := extractSteamIDsfromFriendsList(friends)
+	configuration.Logger.Info(fmt.Sprintf("extracted %d steamIDs", len(steamIDs)))
 	stacksOfSteamIDs := breakIntoStacksOf100OrLessSteamIDs(steamIDs)
+	configuration.Logger.Info(fmt.Sprintf("%d stacks", len(stacksOfSteamIDs)))
 
 	allPlayerSummaries := []datastructures.Player{}
 	for i := 0; i < len(stacksOfSteamIDs); i++ {
@@ -97,6 +99,7 @@ func getPlayerSummaries(cntr controller.CntrInterface, friends datastructures.Fr
 	}
 
 	onlyPublicProfiles := getPublicProfiles(allPlayerSummaries)
+	configuration.Logger.Info(fmt.Sprintf("%d/%d public profiles from user %s", len(onlyPublicProfiles), len(allPlayerSummaries), job.CurrentTargetSteamID))
 	return onlyPublicProfiles, nil
 }
 
@@ -162,11 +165,19 @@ func extractSteamIDsfromFriendsList(friends datastructures.Friendslist) []string
 func getPublicProfiles(users []datastructures.Player) []datastructures.Player {
 	publicProfiles := []datastructures.Player{}
 	for i := 0; i < len(users); i++ {
-		if users[i].Communityvisibilitystate == 1 {
+		if users[i].Communityvisibilitystate != 1 {
 			publicProfiles = append(publicProfiles, users[i])
 		}
 	}
 	return publicProfiles
+}
+
+func getSteamIDsFromPlayers(users []datastructures.Player) []string {
+	steamIDs := []string{}
+	for _, user := range users {
+		steamIDs = append(steamIDs, user.Steamid)
+	}
+	return steamIDs
 }
 
 // func HasUserBeenCrawledBeforeAtThisLevel(steamID int64, level int) (bool, error) {

@@ -12,7 +12,7 @@ type UptimeResponse struct {
 type LoggingFields struct {
 	NodeName string
 	NodeDC   string
-	LogPath  string
+	LogPaths []string
 	NodeIPV4 string
 }
 

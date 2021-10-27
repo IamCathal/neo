@@ -56,11 +56,11 @@ func LoadLoggingConfig() (datastructures.LoggingFields, error) {
 	logFieldsConfig := datastructures.LoggingFields{
 		NodeName: os.Getenv("NODE_NAME"),
 		NodeDC:   os.Getenv("NODE_DC"),
-		LogPath:  os.Getenv("LOG_PATH"),
+		LogPaths: []string{"stdout", os.Getenv("LOG_PATH")},
 		NodeIPV4: GetLocalIPAddress(),
 	}
 	if logFieldsConfig.NodeName == "" || logFieldsConfig.NodeDC == "" ||
-		logFieldsConfig.LogPath == "" || logFieldsConfig.NodeIPV4 == "" {
+		logFieldsConfig.LogPaths[1] == "" || logFieldsConfig.NodeIPV4 == "" {
 
 		return datastructures.LoggingFields{}, fmt.Errorf("one or more required environment variables are not set: %v", logFieldsConfig)
 	}
@@ -68,9 +68,9 @@ func LoadLoggingConfig() (datastructures.LoggingFields, error) {
 }
 
 func InitAndSetLogger(logFieldsConfig datastructures.LoggingFields) {
-	os.OpenFile(logFieldsConfig.LogPath, os.O_RDONLY|os.O_CREATE, 0666)
+	os.OpenFile(logFieldsConfig.LogPaths[1], os.O_RDONLY|os.O_CREATE, 0666)
 	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"stdout", logFieldsConfig.LogPath}
+	c.OutputPaths = logFieldsConfig.LogPaths
 
 	globalLogFields := make(map[string]interface{})
 	globalLogFields["nodeName"] = logFieldsConfig.NodeName

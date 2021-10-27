@@ -35,7 +35,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	}
 
 	friendPlayerSummarySteamIDs := getSteamIDsFromPlayers(friendPlayerSummaries)
-	err = putFriendsIntoQueue(job, friendPlayerSummarySteamIDs)
+	err = putFriendsIntoQueue(cntr, job, friendPlayerSummarySteamIDs)
 	if err != nil {
 		configuration.Logger.Fatal(fmt.Sprintf("failed publish friends from steamID: %s to queue: %v", job.CurrentTargetSteamID, err.Error()))
 		log.Fatal(err)

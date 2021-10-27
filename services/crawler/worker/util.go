@@ -9,7 +9,6 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
-	"github.com/streadway/amqp"
 )
 
 func InitWorkerConfig() datastructures.WorkerConfig {
@@ -44,7 +43,7 @@ func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]string, err
 	return validSteamIDs, nil
 }
 
-func putFriendsIntoQueue(currentJob datastructures.Job, friendIDs []string) error {
+func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructures.Job, friendIDs []string) error {
 	for _, ID := range friendIDs {
 		nextLevel := currentJob.CurrentLevel + 1
 		if nextLevel <= currentJob.MaxLevel {
@@ -60,16 +59,8 @@ func putFriendsIntoQueue(currentJob datastructures.Job, friendIDs []string) erro
 			if err != nil {
 				return err
 			}
-			configuration.Logger.Info(fmt.Sprintf("pushing new job: %+v", newJob))
-			err = configuration.Channel.Publish(
-				"",                       // exchange
-				configuration.Queue.Name, // routing key
-				false,                    // mandatory
-				false,                    // immediate
-				amqp.Publishing{
-					ContentType: "text/json",
-					Body:        []byte(jsonObj),
-				})
+			configuration.Logger.Info(fmt.Sprintf("pushing job from: %+v", newJob))
+			err = cntr.PublishToJobsQueue(jsonObj)
 			if err != nil {
 				return err
 			}

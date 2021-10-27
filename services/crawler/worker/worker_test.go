@@ -6,13 +6,45 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/iamcathal/neo/services/crawler/configuration"
+	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"go.uber.org/zap"
 )
 
 func TestMain(m *testing.M) {
+	c := zap.NewProductionConfig()
+	log, err := c.Build()
+	if err != nil {
+		panic(err)
+	}
+	configuration.Logger = log
+
 	code := m.Run()
+
 	os.Exit(code)
+}
+
+func TestPutFriendsIntoJobsQueue(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	currentJob := datastructures.Job{
+		JobType:               "crawl",
+		OriginalTargetSteamID: "12345",
+		CurrentTargetSteamID:  "12345",
+		MaxLevel:              2,
+		CurrentLevel:          1,
+	}
+	friendIDs := []string{"12455", "29456", "05838", "54954", "45967"}
+
+	mockController.On("PublishToJobsQueue", mock.Anything).Return(nil)
+
+	err := putFriendsIntoQueue(mockController, currentJob, friendIDs)
+
+	assert.Nil(t, err)
+	mockController.AssertNumberOfCalls(t, "PublishToJobsQueue", len(friendIDs))
+
 }
 
 func TestVerifyFormatOfSteamIDsVerifiesTwoValidSteamIDs(t *testing.T) {
@@ -209,4 +241,13 @@ func TestGetPublicProfilesReturnsOnlyPublicProfiles(t *testing.T) {
 	realPublicProfiles := getPublicProfiles(examplePlayers)
 
 	assert.Equal(t, expectedPublicProfile, realPublicProfiles[0])
+}
+
+func TestInitWorkerConfig(t *testing.T) {
+	expectedWorkerAmount := 20
+	configuration.WorkerConfig.WorkerAmount = expectedWorkerAmount
+
+	workerConfig := InitWorkerConfig()
+
+	assert.Equal(t, expectedWorkerAmount, workerConfig.WorkerAmount)
 }

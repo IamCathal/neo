@@ -102,3 +102,18 @@ func TestBreakSteamIDsIntoListsOf100OrLess20IDs(t *testing.T) {
 
 	assert.Equal(t, expectedSteamIDList, realSteamIDList)
 }
+
+func TestBreakSteamIDsIntoListsOf1911OrLessWith120IDs(t *testing.T) {
+	idList := []string{}
+	for i := 0; i < 1911; i++ {
+		idList = append(idList, strconv.Itoa(i))
+	}
+	// firstBatchOfURLFormattedSteamIDs := strings.Join(idList[:100], ",")
+	// remainderBatchOfURLFormattedSteamIDs := strings.Join(idList[100:], ",")
+
+	// expectedSteamIDList := []string{firstBatchOfURLFormattedSteamIDs, remainderBatchOfURLFormattedSteamIDs}
+
+	realSteamIDList := breakIntoStacksOf100OrLessSteamIDs(idList)
+
+	assert.Len(t, realSteamIDList, 20)
+}

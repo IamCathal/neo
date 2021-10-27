@@ -85,13 +85,12 @@ func putFriendsIntoQueue(currentJob datastructures.Job, friendIDs []string) erro
 func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friends datastructures.Friendslist) ([]datastructures.Player, error) {
 	// Only 100 steamIDs can be queried per call
 	steamIDs := extractSteamIDsfromFriendsList(friends)
-	configuration.Logger.Info(fmt.Sprintf("extracted %d steamIDs", len(steamIDs)))
 	stacksOfSteamIDs := breakIntoStacksOf100OrLessSteamIDs(steamIDs)
-	configuration.Logger.Info(fmt.Sprintf("%d stacks", len(stacksOfSteamIDs)))
+	configuration.Logger.Info(fmt.Sprintf("%s has %d private and public friends", job.CurrentTargetSteamID, len(steamIDs)))
 
 	allPlayerSummaries := []datastructures.Player{}
 	for i := 0; i < len(stacksOfSteamIDs); i++ {
-		batchOfPlayerSummaries, err := cntr.CallGetPlayerSummaries(stacksOfSteamIDs)
+		batchOfPlayerSummaries, err := cntr.CallGetPlayerSummaries(stacksOfSteamIDs[i])
 		if err != nil {
 			return []datastructures.Player{}, err
 		}
@@ -154,6 +153,14 @@ func divideAndGetRemainder(numerator, denominator int) (quotient, remainder int)
 	return
 }
 
+func extractSteamIDsFromPlayersList(friends []datastructures.Player) []string {
+	steamIDs := []string{}
+	for _, friend := range friends {
+		steamIDs = append(steamIDs, friend.Steamid)
+	}
+	return steamIDs
+}
+
 func extractSteamIDsfromFriendsList(friends datastructures.Friendslist) []string {
 	steamIDs := []string{}
 	for _, friend := range friends.Friends {
@@ -165,7 +172,8 @@ func extractSteamIDsfromFriendsList(friends datastructures.Friendslist) []string
 func getPublicProfiles(users []datastructures.Player) []datastructures.Player {
 	publicProfiles := []datastructures.Player{}
 	for i := 0; i < len(users); i++ {
-		if users[i].Communityvisibilitystate != 1 {
+		// Visibility state of 1 or 2 means some level of privacy
+		if users[i].Communityvisibilitystate == 3 {
 			publicProfiles = append(publicProfiles, users[i])
 		}
 	}
@@ -178,6 +186,15 @@ func getSteamIDsFromPlayers(users []datastructures.Player) []string {
 		steamIDs = append(steamIDs, user.Steamid)
 	}
 	return steamIDs
+}
+
+func getUsersProfileSummaryFromSlice(steamID string, playerSummaries []datastructures.Player) (bool, datastructures.Player) {
+	for _, player := range playerSummaries {
+		if player.Steamid == steamID {
+			return true, player
+		}
+	}
+	return false, datastructures.Player{}
 }
 
 // func HasUserBeenCrawledBeforeAtThisLevel(steamID int64, level int) (bool, error) {

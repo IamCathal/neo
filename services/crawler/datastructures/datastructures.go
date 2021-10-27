@@ -55,3 +55,9 @@ type APIResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
+
+type UserDocument struct {
+	SteamID    string   `json:"steamid"`
+	AccDetails Player   `json:"accDetails"`
+	FriendIDs  []string `json:"friends"`
+}

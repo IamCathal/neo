@@ -22,21 +22,56 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	configuration.Logger.Info(fmt.Sprintf("Got %d friends at level %d", len(friendsList.Friends), job.CurrentLevel))
+	// configuration.Logger.Info(fmt.Sprintf("Got %d friends at level %d from %s", len(friendsList.Friends), job.CurrentLevel, job.CurrentTargetSteamID))
 
-	// Get summaries for friends
-	playerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
-	fmt.Printf("Got %d player summaries from steamID: %s", len(playerSummaries), job.OriginalTargetSteamID)
-	if len(playerSummaries) > 0 {
-		fmt.Printf("\n\n%+v\n\n", playerSummaries[0])
-	}
-	playerSummarySteamIDs := getSteamIDsFromPlayers(playerSummaries)
-	// Put friends into queue (who aren't private profiles)
-	err = putFriendsIntoQueue(job, playerSummarySteamIDs)
+	// get player summary for current target user
+	playerSummary, err := cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
 	if err != nil {
 		configuration.Logger.Fatal(err.Error())
-		log.Fatal(err)
+		fmt.Println("eeeeeeeeeeeeeeee")
+		panic(err)
 	}
+	fmt.Printf("Original player summary: %+v\n\n", playerSummary)
+	// Get summaries for (non private profile) friends
+	friendPlayerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
+	if err != nil {
+		fmt.Println("ooooooooooooo")
+		configuration.Logger.Fatal(err.Error())
+		panic(err)
+	}
+	// fmt.Printf("Got %d player summaries from steamID: %s", len(playerSummaries), job.OriginalTargetSteamID)
+
+	friendPlayerSummarySteamIDs := getSteamIDsFromPlayers(friendPlayerSummaries)
+	// Put friends into queue (who aren't private profiles)
+	err = putFriendsIntoQueue(job, friendPlayerSummarySteamIDs)
+	if err != nil {
+		configuration.Logger.Fatal(err.Error())
+		panic(err)
+	}
+
+	// TODO Implement when target user profile summary is included in the main call
+	// Will also need to slice off this user because a user cannot be in their own friendslist
+	// found, targetUsersProfileSummary := getUsersProfileSummaryFromSlice(job.CurrentTargetSteamID, playerSummaries)
+	// if !found {
+	// 	log.Fatal("players own summary not found in lookup")
+	// }
+
+	// Print locally just for convenience
+	// userDocument := datastructures.UserDocument{
+	// 	SteamID:    job.CurrentTargetSteamID,
+	// 	AccDetails: playerSummary[0],
+	// 	FriendIDs:  extractSteamIDsFromPlayersList(friendPlayerSummaries),
+	// }
+	// yuppa, err := json.Marshal(userDocument)
+	// if err != nil {
+	// 	configuration.Logger.Fatal(err.Error())
+	// 	panic(err)
+	// }
+	// fmt.Printf("\n\n\nThe data: \n %s\n\n", yuppa)
+	logMsg := fmt.Sprintf("Got data for [%s][%s][%s] %d friends",
+		playerSummary[0].Steamid, playerSummary[0].Personaname, playerSummary[0].Loccountrycode,
+		len(friendPlayerSummaries))
+	configuration.Logger.Info(logMsg)
 
 	// Get game details for target user
 

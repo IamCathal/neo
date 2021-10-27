@@ -17,6 +17,7 @@ type Cntr struct{}
 
 type CntrInterface interface {
 	CallGetFriends(steamID int64) (datastructures.Friendslist, error)
+	CallGetPlayerSummaries(steamIDList []string) ([]datastructures.Player, error)
 	SaveFriendsListToDataStore(datastructures.UserDetails) (bool, error)
 	// HasUserBeenCrawledBefore(steamID int64) (bool, error)
 }
@@ -54,6 +55,20 @@ func (control Cntr) CallGetFriends(steamID int64) (datastructures.Friendslist, e
 	// fmt.Printf("The object: %+v\n\n", friendsListObj)
 
 	return friendsListObj.Friends, nil
+}
+
+func (control Cntr) CallGetPlayerSummaries(steamIDList []string) ([]datastructures.Player, error) {
+	allPlayerSummaries := datastructures.UserStatsStruct{}
+	apiKey := apikeymanager.GetSteamAPIKey()
+	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
+		apiKey, steamIDList)
+	res, err := util.GetAndRead(targetURL)
+	if err != nil {
+		return []datastructures.Player{}, err
+	}
+	json.Unmarshal(res, &allPlayerSummaries)
+
+	return allPlayerSummaries.Response.Players, nil
 }
 
 func (control Cntr) SaveFriendsListToDataStore(userDetails datastructures.UserDetails) (bool, error) {

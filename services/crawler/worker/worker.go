@@ -23,12 +23,22 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	configuration.Logger.Info(fmt.Sprintf("Got %d friends at level %d", len(friendsList.Friends), job.CurrentLevel))
+
+	// Get summaries for friends
+	_, err = getPlayerSummaries(cntr, friendsList)
+
+	// Put friends into queue (who aren't private profiles)
 	err = putFriendsIntoQueue(job, friendsList.Friends)
 	if err != nil {
 		configuration.Logger.Fatal(err.Error())
 		log.Fatal(err)
 	}
-	// // Save to DB
+
+	// Get game details for target user
+
+	// Save game details to DB
+
+	// // Save friendslist to DB
 	// userIDWithFriendsList := datastructures.UserDetails{
 	// 	SteamID: job.CurrentTargetSteamID,
 	// 	Friends: friendsList,

@@ -57,7 +57,17 @@ type APIResponse struct {
 }
 
 type UserDocument struct {
-	SteamID    string   `json:"steamid"`
-	AccDetails Player   `json:"accDetails"`
-	FriendIDs  []string `json:"friends"`
+	SteamID            string     `json:"steamid"`
+	AccDetails         Player     `json:"accDetails"`
+	FriendIDs          []string   `json:"friends"`
+	AmountOfGamesOwned int        `json:"amountOfGamesOwned"`
+	GamesOwned         []GameInfo `json:"gamesOwned"`
+}
+
+type GameInfo struct {
+	Name            string `json:"name"`
+	PlaytimeForever int    `json:"playtimeForever"`
+	Playtime2Weeks  int    `json:"playtime2Weeks"`
+	ImgIconURL      string `json:"imgIconUrl"`
+	ImgLogoURL      string `json:"imgLogoUrl"`
 }

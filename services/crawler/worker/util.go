@@ -73,6 +73,31 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 	return nil
 }
 
+func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]datastructures.GameInfo, error) {
+	gamesInfo := []datastructures.GameInfo{}
+	ownedGamesResponse, err := cntr.CallGetOwnedGames(steamID)
+	if err != nil {
+		return gamesInfo, err
+	}
+
+	for _, game := range ownedGamesResponse.Games {
+		ImgIconURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg", game.Appid, game.ImgIconURL)
+		ImgLogoURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg", game.Appid, game.ImgLogoURL)
+
+		currentGame := datastructures.GameInfo{
+			Name:            game.Name,
+			PlaytimeForever: game.PlaytimeForever,
+			Playtime2Weeks:  game.Playtime2Weeks,
+			ImgIconURL:      ImgIconURL,
+			ImgLogoURL:      ImgLogoURL,
+		}
+
+		gamesInfo = append(gamesInfo, currentGame)
+	}
+
+	return gamesInfo, nil
+}
+
 func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friends datastructures.Friendslist) ([]datastructures.Player, error) {
 	// Only 100 steamIDs can be queried per call
 	steamIDs := extractSteamIDsfromFriendsList(friends)

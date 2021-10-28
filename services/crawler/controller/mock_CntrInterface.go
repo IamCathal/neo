@@ -35,6 +35,27 @@ func (_m *MockCntrInterface) CallGetFriends(steamID string) (datastructures.Frie
 	return r0, r1
 }
 
+// CallGetOwnedGames provides a mock function with given fields: steamID
+func (_m *MockCntrInterface) CallGetOwnedGames(steamID string) (datastructures.GamesOwnedResponse, error) {
+	ret := _m.Called(steamID)
+
+	var r0 datastructures.GamesOwnedResponse
+	if rf, ok := ret.Get(0).(func(string) datastructures.GamesOwnedResponse); ok {
+		r0 = rf(steamID)
+	} else {
+		r0 = ret.Get(0).(datastructures.GamesOwnedResponse)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(steamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CallGetPlayerSummaries provides a mock function with given fields: steamIDList
 func (_m *MockCntrInterface) CallGetPlayerSummaries(steamIDList string) ([]datastructures.Player, error) {
 	ret := _m.Called(steamIDList)

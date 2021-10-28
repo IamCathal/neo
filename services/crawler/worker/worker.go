@@ -28,6 +28,12 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 
+	gamesOwnedForCurrentUser, err := getGamesOwned(cntr, job.CurrentTargetSteamID)
+	if err != nil {
+		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
+		log.Fatal(err)
+	}
+
 	friendPlayerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
 	if err != nil {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
@@ -60,9 +66,9 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	// 	panic(err)
 	// }
 	// fmt.Printf("\n\n\nThe data: \n %s\n\n", yuppa)
-	logMsg := fmt.Sprintf("Got data for [%s][%s][%s] %d friends",
+	logMsg := fmt.Sprintf("Got data for [%s][%s][%s][%d friends][%d games]",
 		playerSummaryForCurrentUser[0].Steamid, playerSummaryForCurrentUser[0].Personaname, playerSummaryForCurrentUser[0].Loccountrycode,
-		len(friendPlayerSummaries))
+		len(friendPlayerSummaries), len(gamesOwnedForCurrentUser))
 	configuration.Logger.Info(logMsg)
 
 	// Get game details for target user

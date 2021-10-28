@@ -21,11 +21,12 @@ type CntrInterface interface {
 	// Steam web API related functions
 	CallGetFriends(steamID string) (datastructures.Friendslist, error)
 	CallGetPlayerSummaries(steamIDList string) ([]datastructures.Player, error)
-	SaveFriendsListToDataStore(datastructures.UserDetails) (bool, error)
+	CallGetOwnedGames(steamID string) (datastructures.GamesOwnedResponse, error)
 	// RabbitMQ related functions
 	PublishToJobsQueue(jobJSON []byte) error
 	ConsumeFromJobsQueue() (<-chan amqp.Delivery, error)
 	// Datastore related functions
+	SaveFriendsListToDataStore(datastructures.UserDetails) (bool, error)
 	// HasUserBeenCrawledBefore(steamID int64) (bool, error)
 }
 
@@ -68,12 +69,12 @@ func (control Cntr) CallGetFriends(steamID string) (datastructures.Friendslist, 
 }
 
 func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]datastructures.Player, error) {
-	allPlayerSummaries := datastructures.UserStatsStruct{}
+	allPlayerSummaries := datastructures.SteamAPIResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
 	fmt.Println("get player summary")
+
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
 		apiKey, steamIDStringList)
-	// fmt.Printf("\n\n%s\n", targetURL)
 	res, err := util.GetAndRead(targetURL)
 	if err != nil {
 		return []datastructures.Player{}, err
@@ -81,6 +82,45 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]datastru
 	json.Unmarshal(res, &allPlayerSummaries)
 
 	return allPlayerSummaries.Response.Players, nil
+}
+
+func (control Cntr) CallGetOwnedGames(steamID string) (datastructures.GamesOwnedResponse, error) {
+	apiResponse := datastructures.GamesOwnedSteamResponse{}
+	apiKey := apikeymanager.GetSteamAPIKey()
+	fmt.Println("get owned games")
+
+	targetURL := fmt.Sprintf("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json&include_appinfo=true&include_played_free_games=true",
+		apiKey, steamID)
+	res, err := util.GetAndRead(targetURL)
+	if err != nil {
+		return datastructures.GamesOwnedResponse{}, err
+	}
+	json.Unmarshal(res, &apiResponse)
+	return apiResponse.Response, nil
+}
+
+func (control Cntr) PublishToJobsQueue(jobJSON []byte) error {
+	return configuration.Channel.Publish(
+		"",                       // exchange
+		configuration.Queue.Name, // routing key
+		false,                    // mandatory
+		false,                    // immediate
+		amqp.Publishing{
+			ContentType: "text/json",
+			Body:        jobJSON,
+		})
+}
+
+func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
+	return configuration.Channel.Consume(
+		configuration.Queue.Name, // queue
+		"",                       // consumer
+		false,                    // auto-ack
+		false,                    // exclusive
+		false,                    // no-local
+		false,                    // no-wait
+		nil,                      // args
+	)
 }
 
 func (control Cntr) SaveFriendsListToDataStore(userDetails datastructures.UserDetails) (bool, error) {
@@ -115,28 +155,4 @@ func (control Cntr) SaveFriendsListToDataStore(userDetails datastructures.UserDe
 	}
 
 	return false, fmt.Errorf("error saving user: %s", APIRes.Message)
-}
-
-func (control Cntr) PublishToJobsQueue(jobJSON []byte) error {
-	return configuration.Channel.Publish(
-		"",                       // exchange
-		configuration.Queue.Name, // routing key
-		false,                    // mandatory
-		false,                    // immediate
-		amqp.Publishing{
-			ContentType: "text/json",
-			Body:        jobJSON,
-		})
-}
-
-func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
-	return configuration.Channel.Consume(
-		configuration.Queue.Name, // queue
-		"",                       // consumer
-		false,                    // auto-ack
-		false,                    // exclusive
-		false,                    // no-local
-		false,                    // no-wait
-		nil,                      // args
-	)
 }

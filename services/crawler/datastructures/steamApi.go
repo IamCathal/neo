@@ -54,7 +54,7 @@ type GamesOwnedSteamResponse struct {
 	Response GamesOwnedResponse `json:"response"`
 }
 
-type Games struct {
+type Game struct {
 	Appid                    int    `json:"appid"`
 	Name                     string `json:"name"`
 	PlaytimeForever          int    `json:"playtime_forever"`
@@ -68,6 +68,6 @@ type Games struct {
 }
 
 type GamesOwnedResponse struct {
-	GameCount int     `json:"game_count"`
-	Games     []Games `json:"games"`
+	GameCount int    `json:"game_count"`
+	Games     []Game `json:"games"`
 }

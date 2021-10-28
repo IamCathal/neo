@@ -1,6 +1,8 @@
 package worker
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -44,9 +46,69 @@ func TestPutFriendsIntoJobsQueue(t *testing.T) {
 
 	assert.Nil(t, err)
 	mockController.AssertNumberOfCalls(t, "PublishToJobsQueue", len(friendIDs))
-
 }
 
+func TestGetOwnedGamesReturnsAValidResponse(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	gameID := 123
+	gameIconHash := "exampleHash"
+	gameLogoHash := "anotherExampleHash"
+
+	testResponse := datastructures.GamesOwnedResponse{
+		GameCount: 1,
+		Games: []datastructures.Game{
+			{
+				Appid:           gameID,
+				Name:            "CS:GO",
+				PlaytimeForever: 1377,
+				Playtime2Weeks:  15,
+				ImgIconURL:      gameIconHash,
+				ImgLogoURL:      gameLogoHash,
+			},
+		},
+	}
+	mockController.On("CallGetOwnedGames", mock.AnythingOfType("string")).Return(testResponse, nil)
+
+	gamesOwnedForCurrentUser, err := getGamesOwned(mockController, "exampleSteamID")
+
+	assert.Nil(t, err)
+
+	expectedFirstGameIconURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg",
+		gameID, gameIconHash)
+	expectedFirstGameLogoURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg",
+		gameID, gameLogoHash)
+
+	assert.Len(t, gamesOwnedForCurrentUser, 1)
+	assert.Equal(t, expectedFirstGameIconURL, gamesOwnedForCurrentUser[0].ImgIconURL)
+	assert.Equal(t, expectedFirstGameLogoURL, gamesOwnedForCurrentUser[0].ImgLogoURL)
+}
+
+func TestGetOwnedGamesEmptyWhenNoGamesFound(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	testResponse := datastructures.GamesOwnedResponse{}
+
+	mockController.On("CallGetOwnedGames", mock.AnythingOfType("string")).Return(testResponse, nil)
+
+	gamesOwnedForCurrentUser, err := getGamesOwned(mockController, "exampleSteamID")
+
+	assert.Nil(t, err)
+	assert.Len(t, gamesOwnedForCurrentUser, 0)
+}
+
+func TestGetOwnedGamesAnErrorWhenAPIThrowsOne(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	testErrorMsg := "all your base are belong to us"
+	testError := errors.New(testErrorMsg)
+
+	mockController.On("CallGetOwnedGames", mock.AnythingOfType("string")).Return(datastructures.GamesOwnedResponse{}, testError)
+
+	gamesOwnedForCurrentUser, err := getGamesOwned(mockController, "exampleSteamID")
+
+	assert.ErrorIs(t, testError, err)
+	assert.Len(t, gamesOwnedForCurrentUser, 0)
+}
 func TestVerifyFormatOfSteamIDsVerifiesTwoValidSteamIDs(t *testing.T) {
 	expectedSteamIDs := []string{"12345678901234456", "72348978301996243"}
 	inputData := datastructures.CrawlUsersInput{

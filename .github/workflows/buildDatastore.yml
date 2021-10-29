@@ -1,0 +1,28 @@
+name: Build Datastore
+
+on:
+  push:
+    paths:
+      - 'services/datastore/**'
+      - '!**.md'
+
+jobs:
+  build:
+    name: Build datastore job
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup go runtime
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Build the module
+      run: cd services/datastore && go build -v ./...
+
+    - name: Run service tests
+      run: cd services/datastore && go test -v ./...

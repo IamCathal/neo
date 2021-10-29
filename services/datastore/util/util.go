@@ -1,16 +1,20 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
 
@@ -28,11 +32,11 @@ func LoadLoggingConfig() (datastructures.LoggingFields, error) {
 	logFieldsConfig := datastructures.LoggingFields{
 		NodeName: os.Getenv("NODE_NAME"),
 		NodeDC:   os.Getenv("NODE_DC"),
-		LogPath:  os.Getenv("LOG_PATH"),
+		LogPaths: []string{"stdout", os.Getenv("LOG_PATH")},
 		NodeIPV4: GetLocalIPAddress(),
 	}
 	if logFieldsConfig.NodeName == "" || logFieldsConfig.NodeDC == "" ||
-		logFieldsConfig.LogPath == "" || logFieldsConfig.NodeIPV4 == "" {
+		logFieldsConfig.LogPaths[1] == "" || logFieldsConfig.NodeIPV4 == "" {
 
 		return datastructures.LoggingFields{}, fmt.Errorf("one or more required environment variables are not set: %v", logFieldsConfig)
 	}
@@ -40,9 +44,9 @@ func LoadLoggingConfig() (datastructures.LoggingFields, error) {
 }
 
 func InitLogger(logFieldsConfig datastructures.LoggingFields) *zap.Logger {
-	os.OpenFile(logFieldsConfig.LogPath, os.O_RDONLY|os.O_CREATE, 0666)
+	os.OpenFile(logFieldsConfig.LogPaths[1], os.O_RDONLY|os.O_CREATE, 0666)
 	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"stdout", logFieldsConfig.LogPath}
+	c.OutputPaths = []string{"stdout", logFieldsConfig.LogPaths[1]}
 
 	globalLogFields := make(map[string]interface{})
 	globalLogFields["nodeName"] = logFieldsConfig.NodeName
@@ -75,4 +79,26 @@ func IsValidFormatGraphID(inputGraphID string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// copied
+func SendBasicInvalidResponse(w http.ResponseWriter, req *http.Request, msg string, vars map[string]string, statusCode int) {
+	w.WriteHeader(statusCode)
+	response := struct {
+		Error string `json:"error"`
+	}{
+		msg,
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func LogBasicErr(err error, req *http.Request, statusCode int) {
+	vars := mux.Vars(req)
+	requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
+	configuration.Logger.Error(fmt.Sprintf("%v", err),
+		zap.String("requestID", vars["requestID"]),
+		zap.Int("status", http.StatusInternalServerError),
+		zap.Int64("duration", configuration.GetCurrentTimeInMs()-requestStartTime),
+		zap.String("path", req.URL.EscapedPath()),
+	)
 }

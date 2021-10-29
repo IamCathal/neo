@@ -7,25 +7,23 @@ import (
 	"os"
 	"time"
 
+	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/IamCathal/neo/services/datastore/endpoints"
 	"github.com/IamCathal/neo/services/datastore/statsmonitoring"
 	"github.com/IamCathal/neo/services/datastore/util"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
+	err := configuration.InitConfig()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("failure initialising config: %v", err)
 	}
 
-	logConfig, err := util.LoadLoggingConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
+	controller := controller.Cntr{}
+
 	endpoints := &endpoints.Endpoints{
-		Logger:                 util.InitLogger(logConfig),
-		ApplicationStartUpTime: time.Now(),
+		Cntr: controller,
 	}
 
 	go statsmonitoring.CollectAndShipStats()
@@ -38,6 +36,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-	endpoints.Logger.Info(fmt.Sprintf("frontend start up and serving requsts on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
+	configuration.Logger.Info(fmt.Sprintf("frontend start up and serving requsts on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())
 }

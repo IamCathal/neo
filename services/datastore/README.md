@@ -2,7 +2,7 @@
 
 ![datastore test status badge](https://github.com/IamCathal/neo/actions/workflows/buildDatastore.yml/badge.svg)   ![datastore deploy status]() 
 
-Frontend of neo
+Datastore is the thin client that sits infront of the database
 
 ## Configuration
 
@@ -12,7 +12,7 @@ Datastore expects the following variables to be set in .env
 
 | Variable     | Description |
 | ----------- | ----------- |
-| `STATIC_CONTENT_DIR_NAME`      | Name of the static content directory i.e `./static`     |
+| ``      |     |
 
 
 #### Default

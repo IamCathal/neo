@@ -23,7 +23,7 @@ func TestLoadLoggingConfigWithSpecifiedVariables(t *testing.T) {
 	expectedConfig := datastructures.LoggingFields{
 		NodeName: "expectedName",
 		NodeDC:   "expectedDC",
-		LogPath:  "expectedLogPath",
+		LogPaths: []string{"stdout", "expectedLogPath"},
 		NodeIPV4: GetLocalIPAddress(),
 	}
 
@@ -43,15 +43,4 @@ func TestLoadLoggingConfigWithoutAllVariablesSetReturnsAnError(t *testing.T) {
 	_, err := LoadLoggingConfig()
 
 	assert.Contains(t, err.Error(), "one or more required environment variables are not set:")
-}
-
-func TestIsValidFormatGraphID(t *testing.T) {
-	isValid, err := IsValidFormatGraphID("helloWorld1234234")
-	assert.True(t, isValid)
-	assert.Nil(t, err)
-}
-func TestIsValidFormatGraphIDWithPathTraversalInput(t *testing.T) {
-	isValid, err := IsValidFormatGraphID("../../../../.env")
-	assert.False(t, isValid)
-	assert.Nil(t, err)
 }

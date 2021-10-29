@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/IamCathal/neo/services/datastore/util"
 	"github.com/gorilla/mux"
@@ -16,8 +18,7 @@ import (
 )
 
 type Endpoints struct {
-	ApplicationStartUpTime time.Time
-	Logger                 *zap.Logger
+	Cntr controller.CntrInterface
 }
 
 // responseWriter is a minimal wrapper for http.ResponseWriter that allows the
@@ -32,6 +33,7 @@ type responseWriter struct {
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
+	r.HandleFunc("/saveUser", endpoints.SaveUser).Methods("POST")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -59,6 +61,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				vars := mux.Vars(r)
+				fmt.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				response := struct {
 					Error string `json:"error"`
@@ -69,7 +72,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 				requestStartTime, timeParseErr := strconv.ParseInt(vars["requestStartTime"], 10, 64)
 				if timeParseErr != nil {
-					endpoints.Logger.Fatal(fmt.Sprintf("%v", err),
+					configuration.Logger.Fatal(fmt.Sprintf("%v", err),
 						zap.String("requestID", vars["requestID"]),
 						zap.Int("status", http.StatusInternalServerError),
 						zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
@@ -78,7 +81,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 					panic(timeParseErr)
 				}
 
-				endpoints.Logger.Error(fmt.Sprintf("%v", err),
+				configuration.Logger.Error(fmt.Sprintf("%v", err),
 					zap.String("requestID", vars["requestID"]),
 					zap.Int("status", http.StatusInternalServerError),
 					zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
@@ -98,7 +101,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		wrapped := wrapResponseWriter(w)
 		next.ServeHTTP(wrapped, r)
 
-		endpoints.Logger.Info("served content",
+		configuration.Logger.Info("served content",
 			zap.String("requestID", vars["requestID"]),
 			zap.Int("status", wrapped.status),
 			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
@@ -109,13 +112,40 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Authenticate JWT
 		next.ServeHTTP(w, r)
 	})
 }
 
+func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userDetails := datastructures.UserDocument{}
+
+	err := json.NewDecoder(r.Body).Decode(&userDetails)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		util.LogBasicErr(err, r, http.StatusBadRequest)
+		return
+	}
+
+	configuration.Logger.Info("success!")
+
+	response := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"very good",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	req := datastructures.UptimeResponse{
-		Uptime: time.Since(endpoints.ApplicationStartUpTime),
+		Uptime: time.Since(configuration.ApplicationStartUpTime),
 		Status: "operational",
 	}
 	jsonObj, err := json.Marshal(req)

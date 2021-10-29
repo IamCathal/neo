@@ -11,6 +11,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/endpoints"
+	"github.com/iamcathal/neo/services/crawler/statsmonitoring"
 	"github.com/iamcathal/neo/services/crawler/worker"
 )
 
@@ -28,7 +29,7 @@ func main() {
 	apikeymanager.InitApiKeys()
 
 	worker.StartUpWorkers(controller)
-
+	go statsmonitoring.CollectAndShipStats()
 	router := endpoints.SetupRouter()
 
 	srv := &http.Server{

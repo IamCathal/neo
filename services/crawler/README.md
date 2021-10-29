@@ -20,7 +20,6 @@ Crawler instances expect the following variables to be set in .env
 | `STEAM_API_KEYS` | Comma seperated list of Steam web API keys    |
 | `KEY_SLEEP_TIME` | Minimum time elapsed in milliseconds between subsequent uses of a given API key    |
 
-
 #### Default
 
 | Variable     | Description |

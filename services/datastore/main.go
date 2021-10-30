@@ -21,13 +21,10 @@ func main() {
 	}
 
 	controller := controller.Cntr{}
-
 	endpoints := &endpoints.Endpoints{
 		Cntr: controller,
 	}
-
 	go statsmonitoring.CollectAndShipStats()
-
 	router := endpoints.SetupRouter()
 
 	srv := &http.Server{
@@ -36,6 +33,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-	configuration.Logger.Info(fmt.Sprintf("frontend start up and serving requsts on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
+	configuration.Logger.Info(fmt.Sprintf("datastore start up and serving requests on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())
 }

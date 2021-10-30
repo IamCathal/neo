@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -8,12 +9,16 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 )
 
 var (
 	Logger                 *zap.Logger
 	ApplicationStartUpTime time.Time
+	DBClient               *mongo.Client
 )
 
 func InitConfig() error {
@@ -28,6 +33,7 @@ func InitConfig() error {
 	}
 
 	InitAndSetLogger(logConfig)
+	InitMongoDBConnection()
 
 	return nil
 }
@@ -63,4 +69,30 @@ func InitAndSetLogger(logFieldsConfig datastructures.LoggingFields) {
 		panic(err)
 	}
 	Logger = log
+}
+
+func InitMongoDBConnection() {
+	mongoDBUser := os.Getenv("MONGODB_USER")
+	mongoDBPassword := os.Getenv("MONGODB_PASSWORD")
+	mongoDBURL := os.Getenv("MONGODB_URL")
+
+	if mongoDBUser == "" || mongoDBPassword == "" || mongoDBURL == "" {
+		Logger.Fatal("one or more mongoDB env vars are not set")
+		log.Fatal("err")
+	}
+
+	mongoDBConnectionURL := fmt.Sprintf("mongodb://%s:%s@%s", mongoDBUser, mongoDBPassword, mongoDBURL)
+
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoDBConnectionURL))
+	if err != nil {
+		Logger.Fatal(fmt.Sprintf("unable to connect to mongoDB with url '%s': %v", mongoDBConnectionURL, err))
+		log.Fatal(err)
+	}
+
+	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		Logger.Fatal(fmt.Sprintf("unable to ping mongoDB: %v", err))
+		log.Fatal(err)
+	}
+
+	DBClient = client
 }

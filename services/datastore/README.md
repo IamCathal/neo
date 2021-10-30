@@ -12,7 +12,9 @@ Datastore expects the following variables to be set in .env
 
 | Variable     | Description |
 | ----------- | ----------- |
-| ``      |     |
+| `MONGODB_USER`      |  MongoDB account username  |
+| `MONGODB_PASSWORD`      |  MongoDB account password  |
+| `MONGODB_URL`      |  Full URL for connecting to mongoDB  |
 
 
 #### Default

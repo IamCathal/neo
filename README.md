@@ -18,4 +18,4 @@ NUIG CS&IT Final Year Project 2022
 
 Rough architecture of Neo
 
-![Architecture diagram](https://i.imgur.com/PfBWmOr.png)
+![Architecture diagram](https://i.imgur.com/tshEzNT.png)

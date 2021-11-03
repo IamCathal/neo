@@ -50,3 +50,11 @@ Change root user password
 mongosh admin -u root -p password
 db.changeUserPassword("root", passwordPrompt())
 ```
+
+### Creating Collections With Schemas
+
+Use [JSON Schema](https://www.jsonschema.net/home) to translate JSON to a valid mongo DB schema. However, all `$id`, `example` and `default` tags must be removed. All `integer` tags must also be replaced with `number`
+
+```
+db.createCollection("collectionName", {validator: {$jsonSchema:{....}}})
+```

@@ -17,3 +17,6 @@
 #  Microservice specific files
 .env
 log.txt
+
+# MongoDB data
+mongodb_data/

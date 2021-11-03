@@ -35,7 +35,7 @@ db.createUser(
   {
     user: "workerUser",
     pwd: passwordPrompt(),
-    roles: [ { role: "readWrite", db: "testdb" },
+    roles: [ { role: "readWrite", db: "testdb" }],
   }
 )
 ```

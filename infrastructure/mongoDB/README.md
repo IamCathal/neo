@@ -6,7 +6,7 @@ Containerised mongoDB single node instance
 
 Connect with initialsed root user details
 ```
-mongosh -u user -p password
+mongosh -u root -p rootpassword
 ```
 
 Add a new user for creating users and roles
@@ -25,7 +25,6 @@ Disconnect and then login to the admin user
 ```
 use admin
 db.auth("userAdmin", passwordPrompt())
-
 ```
 
 Create a new user to read and write to `testdb`
@@ -47,9 +46,29 @@ db.dayta.insertOne({name:"Cathal"})
 
 Change root user password
 ```
-mongosh admin -u root -p password
+mongosh admin -u root -p rootpassword
 db.changeUserPassword("root", passwordPrompt())
 ```
+
+Create a user for the metrics exporter
+```
+use admin
+db.createUser(
+  {
+    user: "mongodb_exporter",
+    pwd: passwordPrompt(),
+    roles: [
+        { role: "clusterMonitor", db: "admin" },
+        { role: "read", db: "local" }
+    ]
+  }
+)
+```
+Place the mongoDB exporter user password into an env
+```
+echo "MONGODB_CONNECT_URL=mongodb://mongodb_exporter:[PASSWORDHERE]@mongodb:27017" > .env
+```
+Restart both containers to let the mongoDB exporter connect
 
 ### Creating Collections With Schemas
 

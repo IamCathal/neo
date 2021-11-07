@@ -9,8 +9,8 @@ import (
 
 	"github.com/IamCathal/neo/services/frontend/endpoints"
 	"github.com/IamCathal/neo/services/frontend/statsmonitoring"
-	"github.com/IamCathal/neo/services/frontend/util"
 	"github.com/joho/godotenv"
+	"github.com/neosteamfriendgraphing/common/util"
 )
 
 func main() {

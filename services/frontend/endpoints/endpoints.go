@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IamCathal/neo/services/frontend/util"
 	"github.com/gorilla/mux"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )

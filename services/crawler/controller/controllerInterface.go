@@ -11,8 +11,8 @@ import (
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
-	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
 )
 
@@ -51,7 +51,7 @@ func (control Cntr) CallGetFriends(steamID string) (common.Friendslist, error) {
 	fmt.Println("get friends list")
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
 		apiKey, steamID)
-	res, err := util.GetAndRead(targetURL)
+	res, err := commonUtil.GetAndRead(targetURL)
 	if err != nil {
 		return friendsList, err
 	}
@@ -76,7 +76,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
 		apiKey, steamIDStringList)
-	res, err := util.GetAndRead(targetURL)
+	res, err := commonUtil.GetAndRead(targetURL)
 	if err != nil {
 		return []common.Player{}, err
 	}
@@ -92,7 +92,7 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 
 	targetURL := fmt.Sprintf("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json&include_appinfo=true&include_played_free_games=true",
 		apiKey, steamID)
-	res, err := util.GetAndRead(targetURL)
+	res, err := commonUtil.GetAndRead(targetURL)
 	if err != nil {
 		return common.GamesOwnedResponse{}, err
 	}

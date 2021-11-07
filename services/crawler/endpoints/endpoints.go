@@ -15,6 +15,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/iamcathal/neo/services/crawler/worker"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -127,24 +128,24 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	userInput := datastructures.CrawlUsersInput{}
 	err := json.NewDecoder(r.Body).Decode(&userInput)
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 	if userInput.Level < 1 || userInput.Level > 3 {
-		util.SendBasicInvalidResponse(w, r, "Invalid level given", vars, http.StatusBadRequest)
+		commonUtil.SendBasicInvalidResponse(w, r, "Invalid level given", vars, http.StatusBadRequest)
 		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 
 	validSteamIDs, err := worker.VerifyFormatOfSteamIDs(userInput)
 	if err != nil {
-		util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
+		commonUtil.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
 		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 	if len(validSteamIDs) == 0 {
-		util.SendBasicInvalidResponse(w, r, "No valid format steamIDs sent", vars, http.StatusBadRequest)
+		commonUtil.SendBasicInvalidResponse(w, r, "No valid format steamIDs sent", vars, http.StatusBadRequest)
 		return
 	}
 	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", validSteamIDs, userInput.Level), r, http.StatusOK)

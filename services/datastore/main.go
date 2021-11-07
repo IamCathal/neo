@@ -11,7 +11,7 @@ import (
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/IamCathal/neo/services/datastore/endpoints"
 	"github.com/IamCathal/neo/services/datastore/statsmonitoring"
-	"github.com/IamCathal/neo/services/datastore/util"
+	"github.com/neosteamfriendgraphing/common/util"
 )
 
 func main() {

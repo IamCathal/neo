@@ -127,8 +127,8 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJ
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
-github.com/neosteamfriendgraphing/common v0.0.0-20211107143112-b20a40aafd29 h1:QmrBfTn1XzITlh+FsSWKXwvzbR9E+09jwTlaQm8KXf0=
-github.com/neosteamfriendgraphing/common v0.0.0-20211107143112-b20a40aafd29/go.mod h1:jcPoci9ZjmJs1bbWHW1cdjt1TVJ2gqMzJHp1IB8AcRk=
+github.com/neosteamfriendgraphing/common v0.0.0-20211107154649-943fd182cfd8 h1:tgQ0WA8wsjDJXr9yaXuh5C8HLyiOKBcFJwHN3rjummk=
+github.com/neosteamfriendgraphing/common v0.0.0-20211107154649-943fd182cfd8/go.mod h1:TmrIQZw6KRImTnXAtRYu9cbhGzSVViSk1qnGHDwuXqA=
 github.com/pelletier/go-toml v1.7.0/go.mod h1:vwGMzjaWMwyfHwgIBhI2YUM4fB6nL6lVAvS1LBMMhTE=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

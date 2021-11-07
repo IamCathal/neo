@@ -10,9 +10,9 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
-	"github.com/IamCathal/neo/services/datastore/util"
 	"github.com/gorilla/mux"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -124,7 +124,7 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&userDetails)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
-		util.LogBasicErr(err, r, http.StatusBadRequest)
+		LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IamCathal/neo/services/frontend/datastructures"
+	"github.com/neosteamfriendgraphing/common"
 	"go.uber.org/zap"
 )
 
@@ -24,25 +24,25 @@ func GetLocalIPAddress() string {
 	return addrWithNoPort[0]
 }
 
-func LoadLoggingConfig() (datastructures.LoggingFields, error) {
-	logFieldsConfig := datastructures.LoggingFields{
+func LoadLoggingConfig() (common.LoggingFields, error) {
+	logFieldsConfig := common.LoggingFields{
 		NodeName: os.Getenv("NODE_NAME"),
 		NodeDC:   os.Getenv("NODE_DC"),
-		LogPath:  os.Getenv("LOG_PATH"),
+		LogPaths: []string{"stdout", os.Getenv("LOG_PATH")},
 		NodeIPV4: GetLocalIPAddress(),
 	}
 	if logFieldsConfig.NodeName == "" || logFieldsConfig.NodeDC == "" ||
-		logFieldsConfig.LogPath == "" || logFieldsConfig.NodeIPV4 == "" {
+		logFieldsConfig.LogPaths[1] == "" || logFieldsConfig.NodeIPV4 == "" {
 
-		return datastructures.LoggingFields{}, fmt.Errorf("one or more required environment variables are not set: %v", logFieldsConfig)
+		return common.LoggingFields{}, fmt.Errorf("one or more required environment variables are not set: %v", logFieldsConfig)
 	}
 	return logFieldsConfig, nil
 }
 
-func InitLogger(logFieldsConfig datastructures.LoggingFields) *zap.Logger {
-	os.OpenFile(logFieldsConfig.LogPath, os.O_RDONLY|os.O_CREATE, 0666)
+func InitLogger(logFieldsConfig common.LoggingFields) *zap.Logger {
+	os.OpenFile(logFieldsConfig.LogPaths[1], os.O_RDONLY|os.O_CREATE, 0666)
 	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"stdout", logFieldsConfig.LogPath}
+	c.OutputPaths = []string{"stdout", logFieldsConfig.LogPaths[1]}
 
 	globalLogFields := make(map[string]interface{})
 	globalLogFields["nodeName"] = logFieldsConfig.NodeName

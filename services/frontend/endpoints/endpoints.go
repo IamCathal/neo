@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IamCathal/neo/services/frontend/datastructures"
 	"github.com/IamCathal/neo/services/frontend/util"
 	"github.com/gorilla/mux"
+	"github.com/neosteamfriendgraphing/common"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -156,7 +156,7 @@ func (endpoints *Endpoints) ServeGraph(w http.ResponseWriter, req *http.Request)
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
-	req := datastructures.UptimeResponse{
+	req := common.UptimeResponse{
 		Uptime: time.Since(endpoints.ApplicationStartUpTime),
 		Status: "operational",
 	}

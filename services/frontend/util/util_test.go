@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/IamCathal/neo/services/frontend/datastructures"
+	"github.com/neosteamfriendgraphing/common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,10 +20,10 @@ func TestGetLocalIPAddress(t *testing.T) {
 }
 
 func TestLoadLoggingConfigWithSpecifiedVariables(t *testing.T) {
-	expectedConfig := datastructures.LoggingFields{
+	expectedConfig := common.LoggingFields{
 		NodeName: "expectedName",
 		NodeDC:   "expectedDC",
-		LogPath:  "expectedLogPath",
+		LogPaths: []string{"stdout", "expectedLogPath"},
 		NodeIPV4: GetLocalIPAddress(),
 	}
 

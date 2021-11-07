@@ -8,7 +8,6 @@ NUIG CS&IT Final Year Project 2022
 | Frontend      | ![frontend test status badge](https://github.com/IamCathal/neo/actions/workflows/buildFrontEnd.yml/badge.svg) |  ![frontend deploy status](https://github.com/IamCathal/neo/actions/workflows/deployFrontend.yml/badge.svg) |  
 | Datastore | ![datastore test status badge](https://github.com/IamCathal/neo/actions/workflows/buildDatastore.yml/badge.svg) | |
 | Crawler      | ![test test status badge](https://github.com/IamCathal/neo/actions/workflows/buildCrawler.yml/badge.svg) ||  
-| Pluto      | ![pluto test status badge](https://github.com/IamCathal/neo/actions/workflows/buildPluto.yml/badge.svg) | |  
 
 
 

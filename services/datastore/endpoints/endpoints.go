@@ -10,9 +10,9 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
-	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/IamCathal/neo/services/datastore/util"
 	"github.com/gorilla/mux"
+	"github.com/neosteamfriendgraphing/common"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -119,7 +119,7 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 
 func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	userDetails := datastructures.UserDocument{}
+	userDetails := common.UserDocument{}
 
 	err := json.NewDecoder(r.Body).Decode(&userDetails)
 	if err != nil {
@@ -144,7 +144,7 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
-	req := datastructures.UptimeResponse{
+	req := common.UptimeResponse{
 		Uptime: time.Since(configuration.ApplicationStartUpTime),
 		Status: "operational",
 	}

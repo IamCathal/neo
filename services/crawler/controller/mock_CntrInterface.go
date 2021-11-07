@@ -4,8 +4,7 @@ package controller
 import (
 	amqp "github.com/streadway/amqp"
 
-	datastructures "github.com/iamcathal/neo/services/crawler/datastructures"
-
+	"github.com/neosteamfriendgraphing/common"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,14 +14,14 @@ type MockCntrInterface struct {
 }
 
 // CallGetFriends provides a mock function with given fields: steamID
-func (_m *MockCntrInterface) CallGetFriends(steamID string) (datastructures.Friendslist, error) {
+func (_m *MockCntrInterface) CallGetFriends(steamID string) (common.Friendslist, error) {
 	ret := _m.Called(steamID)
 
-	var r0 datastructures.Friendslist
-	if rf, ok := ret.Get(0).(func(string) datastructures.Friendslist); ok {
+	var r0 common.Friendslist
+	if rf, ok := ret.Get(0).(func(string) common.Friendslist); ok {
 		r0 = rf(steamID)
 	} else {
-		r0 = ret.Get(0).(datastructures.Friendslist)
+		r0 = ret.Get(0).(common.Friendslist)
 	}
 
 	var r1 error
@@ -36,14 +35,14 @@ func (_m *MockCntrInterface) CallGetFriends(steamID string) (datastructures.Frie
 }
 
 // CallGetOwnedGames provides a mock function with given fields: steamID
-func (_m *MockCntrInterface) CallGetOwnedGames(steamID string) (datastructures.GamesOwnedResponse, error) {
+func (_m *MockCntrInterface) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error) {
 	ret := _m.Called(steamID)
 
-	var r0 datastructures.GamesOwnedResponse
-	if rf, ok := ret.Get(0).(func(string) datastructures.GamesOwnedResponse); ok {
+	var r0 common.GamesOwnedResponse
+	if rf, ok := ret.Get(0).(func(string) common.GamesOwnedResponse); ok {
 		r0 = rf(steamID)
 	} else {
-		r0 = ret.Get(0).(datastructures.GamesOwnedResponse)
+		r0 = ret.Get(0).(common.GamesOwnedResponse)
 	}
 
 	var r1 error
@@ -57,15 +56,15 @@ func (_m *MockCntrInterface) CallGetOwnedGames(steamID string) (datastructures.G
 }
 
 // CallGetPlayerSummaries provides a mock function with given fields: steamIDList
-func (_m *MockCntrInterface) CallGetPlayerSummaries(steamIDList string) ([]datastructures.Player, error) {
+func (_m *MockCntrInterface) CallGetPlayerSummaries(steamIDList string) ([]common.Player, error) {
 	ret := _m.Called(steamIDList)
 
-	var r0 []datastructures.Player
-	if rf, ok := ret.Get(0).(func(string) []datastructures.Player); ok {
+	var r0 []common.Player
+	if rf, ok := ret.Get(0).(func(string) []common.Player); ok {
 		r0 = rf(steamIDList)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]datastructures.Player)
+			r0 = ret.Get(0).([]common.Player)
 		}
 	}
 
@@ -117,18 +116,18 @@ func (_m *MockCntrInterface) PublishToJobsQueue(jobJSON []byte) error {
 }
 
 // SaveFriendsListToDataStore provides a mock function with given fields: _a0
-func (_m *MockCntrInterface) SaveFriendsListToDataStore(_a0 datastructures.UserDetails) (bool, error) {
+func (_m *MockCntrInterface) SaveFriendsListToDataStore(_a0 common.UserDetails) (bool, error) {
 	ret := _m.Called(_a0)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(datastructures.UserDetails) bool); ok {
+	if rf, ok := ret.Get(0).(func(common.UserDetails) bool); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(datastructures.UserDetails) error); ok {
+	if rf, ok := ret.Get(1).(func(common.UserDetails) error); ok {
 		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)

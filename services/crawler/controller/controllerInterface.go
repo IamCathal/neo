@@ -12,6 +12,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
+	"github.com/neosteamfriendgraphing/common"
 	"github.com/streadway/amqp"
 )
 
@@ -19,19 +20,19 @@ type Cntr struct{}
 
 type CntrInterface interface {
 	// Steam web API related functions
-	CallGetFriends(steamID string) (datastructures.Friendslist, error)
-	CallGetPlayerSummaries(steamIDList string) ([]datastructures.Player, error)
-	CallGetOwnedGames(steamID string) (datastructures.GamesOwnedResponse, error)
+	CallGetFriends(steamID string) (common.Friendslist, error)
+	CallGetPlayerSummaries(steamIDList string) ([]common.Player, error)
+	CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error)
 	// RabbitMQ related functions
 	PublishToJobsQueue(jobJSON []byte) error
 	ConsumeFromJobsQueue() (<-chan amqp.Delivery, error)
 	// Datastore related functions
-	SaveFriendsListToDataStore(datastructures.UserDetails) (bool, error)
+	SaveFriendsListToDataStore(common.UserDetails) (bool, error)
 	// HasUserBeenCrawledBefore(steamID int64) (bool, error)
 }
 
-func (control Cntr) CallGetFriends(steamID string) (datastructures.Friendslist, error) {
-	friendsList := datastructures.Friendslist{}
+func (control Cntr) CallGetFriends(steamID string) (common.Friendslist, error) {
+	friendsList := common.Friendslist{}
 	if len(steamID) > 25 {
 		panic("GREATER THAN 25 wtf")
 	}
@@ -45,7 +46,7 @@ func (control Cntr) CallGetFriends(steamID string) (datastructures.Friendslist, 
 	// }
 
 	// Call the steam web API
-	friendsListObj := datastructures.UserDetails{}
+	friendsListObj := common.UserDetails{}
 	apiKey := apikeymanager.GetSteamAPIKey()
 	fmt.Println("get friends list")
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
@@ -68,8 +69,8 @@ func (control Cntr) CallGetFriends(steamID string) (datastructures.Friendslist, 
 	return friendsListObj.Friends, nil
 }
 
-func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]datastructures.Player, error) {
-	allPlayerSummaries := datastructures.SteamAPIResponse{}
+func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.Player, error) {
+	allPlayerSummaries := common.SteamAPIResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
 	fmt.Println("get player summary")
 
@@ -77,15 +78,15 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]datastru
 		apiKey, steamIDStringList)
 	res, err := util.GetAndRead(targetURL)
 	if err != nil {
-		return []datastructures.Player{}, err
+		return []common.Player{}, err
 	}
 	json.Unmarshal(res, &allPlayerSummaries)
 
 	return allPlayerSummaries.Response.Players, nil
 }
 
-func (control Cntr) CallGetOwnedGames(steamID string) (datastructures.GamesOwnedResponse, error) {
-	apiResponse := datastructures.GamesOwnedSteamResponse{}
+func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error) {
+	apiResponse := common.GamesOwnedSteamResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
 	fmt.Println("get owned games")
 
@@ -93,7 +94,7 @@ func (control Cntr) CallGetOwnedGames(steamID string) (datastructures.GamesOwned
 		apiKey, steamID)
 	res, err := util.GetAndRead(targetURL)
 	if err != nil {
-		return datastructures.GamesOwnedResponse{}, err
+		return common.GamesOwnedResponse{}, err
 	}
 	json.Unmarshal(res, &apiResponse)
 	return apiResponse.Response, nil
@@ -123,7 +124,7 @@ func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
 	)
 }
 
-func (control Cntr) SaveFriendsListToDataStore(userDetails datastructures.UserDetails) (bool, error) {
+func (control Cntr) SaveFriendsListToDataStore(userDetails common.UserDetails) (bool, error) {
 	targetURL := fmt.Sprintf("%s/saveUser", os.Getenv("DATASTORE_URL"))
 	jsonObj, err := json.Marshal(userDetails)
 	if err != nil {

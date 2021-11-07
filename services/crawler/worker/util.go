@@ -9,6 +9,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/neosteamfriendgraphing/common"
 )
 
 func InitWorkerConfig() datastructures.WorkerConfig {
@@ -98,17 +99,17 @@ func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]datastructu
 	return gamesInfo, nil
 }
 
-func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friends datastructures.Friendslist) ([]datastructures.Player, error) {
+func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friends common.Friendslist) ([]common.Player, error) {
 	// Only 100 steamIDs can be queried per call
 	steamIDs := extractSteamIDsfromFriendsList(friends)
 	stacksOfSteamIDs := breakIntoStacksOf100OrLessSteamIDs(steamIDs)
 	configuration.Logger.Info(fmt.Sprintf("%s has %d private and public friends", job.CurrentTargetSteamID, len(steamIDs)))
 
-	allPlayerSummaries := []datastructures.Player{}
+	allPlayerSummaries := []common.Player{}
 	for i := 0; i < len(stacksOfSteamIDs); i++ {
 		batchOfPlayerSummaries, err := cntr.CallGetPlayerSummaries(stacksOfSteamIDs[i])
 		if err != nil {
-			return []datastructures.Player{}, err
+			return []common.Player{}, err
 		}
 		allPlayerSummaries = append(allPlayerSummaries, batchOfPlayerSummaries...)
 	}
@@ -169,7 +170,7 @@ func divideAndGetRemainder(numerator, denominator int) (quotient, remainder int)
 	return
 }
 
-func extractSteamIDsFromPlayersList(friends []datastructures.Player) []string {
+func extractSteamIDsFromPlayersList(friends []common.Player) []string {
 	steamIDs := []string{}
 	for _, friend := range friends {
 		steamIDs = append(steamIDs, friend.Steamid)
@@ -177,7 +178,7 @@ func extractSteamIDsFromPlayersList(friends []datastructures.Player) []string {
 	return steamIDs
 }
 
-func extractSteamIDsfromFriendsList(friends datastructures.Friendslist) []string {
+func extractSteamIDsfromFriendsList(friends common.Friendslist) []string {
 	steamIDs := []string{}
 	for _, friend := range friends.Friends {
 		steamIDs = append(steamIDs, friend.Steamid)
@@ -185,8 +186,8 @@ func extractSteamIDsfromFriendsList(friends datastructures.Friendslist) []string
 	return steamIDs
 }
 
-func getPublicProfiles(users []datastructures.Player) []datastructures.Player {
-	publicProfiles := []datastructures.Player{}
+func getPublicProfiles(users []common.Player) []common.Player {
+	publicProfiles := []common.Player{}
 	for i := 0; i < len(users); i++ {
 		// Visibility state of 1 or 2 means some level of privacy
 		if users[i].Communityvisibilitystate == 3 {
@@ -196,7 +197,7 @@ func getPublicProfiles(users []datastructures.Player) []datastructures.Player {
 	return publicProfiles
 }
 
-func getSteamIDsFromPlayers(users []datastructures.Player) []string {
+func getSteamIDsFromPlayers(users []common.Player) []string {
 	steamIDs := []string{}
 	for _, user := range users {
 		steamIDs = append(steamIDs, user.Steamid)
@@ -204,13 +205,13 @@ func getSteamIDsFromPlayers(users []datastructures.Player) []string {
 	return steamIDs
 }
 
-func getUsersProfileSummaryFromSlice(steamID string, playerSummaries []datastructures.Player) (bool, datastructures.Player) {
+func getUsersProfileSummaryFromSlice(steamID string, playerSummaries []common.Player) (bool, common.Player) {
 	for _, player := range playerSummaries {
 		if player.Steamid == steamID {
 			return true, player
 		}
 	}
-	return false, datastructures.Player{}
+	return false, common.Player{}
 }
 
 // func HasUserBeenCrawledBeforeAtThisLevel(steamID int64, level int) (bool, error) {

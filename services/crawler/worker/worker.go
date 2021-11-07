@@ -8,6 +8,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/neosteamfriendgraphing/common"
 )
 
 var (
@@ -91,12 +92,12 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 
 // GetFriends gets the friendslist for a given user through either the steam web API
 // or cache
-func GetFriends(cntr controller.CntrInterface, steamID string) (datastructures.Friendslist, error) {
+func GetFriends(cntr controller.CntrInterface, steamID string) (common.Friendslist, error) {
 	// First call the db
 
 	friendsList, err := cntr.CallGetFriends(steamID)
 	if err != nil {
-		return datastructures.Friendslist{}, err
+		return common.Friendslist{}, err
 	}
 	// fmt.Println("Returned obj:")
 	// fmt.Printf("%+v\n\n", friendsList)

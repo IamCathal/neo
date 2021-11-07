@@ -2,6 +2,8 @@ package datastructures
 
 import (
 	"time"
+
+	"github.com/neosteamfriendgraphing/common"
 )
 
 type UptimeResponse struct {
@@ -47,8 +49,8 @@ type APIKey struct {
 // Datastore service DTOs
 
 type FriendsFromDB struct {
-	Exists      bool        `json:"exists"`
-	FriendsList Friendslist `json:"friends"`
+	Exists      bool               `json:"exists"`
+	FriendsList common.Friendslist `json:"friends"`
 }
 
 type APIResponse struct {
@@ -57,11 +59,11 @@ type APIResponse struct {
 }
 
 type UserDocument struct {
-	SteamID            string     `json:"steamid"`
-	AccDetails         Player     `json:"accDetails"`
-	FriendIDs          []string   `json:"friends"`
-	AmountOfGamesOwned int        `json:"amountOfGamesOwned"`
-	GamesOwned         []GameInfo `json:"gamesOwned"`
+	SteamID            string        `json:"steamid"`
+	AccDetails         common.Player `json:"accDetails"`
+	FriendIDs          []string      `json:"friends"`
+	AmountOfGamesOwned int           `json:"amountOfGamesOwned"`
+	GamesOwned         []GameInfo    `json:"gamesOwned"`
 }
 
 type GameInfo struct {

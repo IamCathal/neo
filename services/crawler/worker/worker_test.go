@@ -11,6 +11,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/neosteamfriendgraphing/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -54,9 +55,9 @@ func TestGetOwnedGamesReturnsAValidResponse(t *testing.T) {
 	gameIconHash := "exampleHash"
 	gameLogoHash := "anotherExampleHash"
 
-	testResponse := datastructures.GamesOwnedResponse{
+	testResponse := common.GamesOwnedResponse{
 		GameCount: 1,
-		Games: []datastructures.Game{
+		Games: []common.Game{
 			{
 				Appid:           gameID,
 				Name:            "CS:GO",
@@ -86,7 +87,7 @@ func TestGetOwnedGamesReturnsAValidResponse(t *testing.T) {
 func TestGetOwnedGamesEmptyWhenNoGamesFound(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 
-	testResponse := datastructures.GamesOwnedResponse{}
+	testResponse := common.GamesOwnedResponse{}
 
 	mockController.On("CallGetOwnedGames", mock.AnythingOfType("string")).Return(testResponse, nil)
 
@@ -102,7 +103,7 @@ func TestGetOwnedGamesAnErrorWhenAPIThrowsOne(t *testing.T) {
 	testErrorMsg := "all your base are belong to us"
 	testError := errors.New(testErrorMsg)
 
-	mockController.On("CallGetOwnedGames", mock.AnythingOfType("string")).Return(datastructures.GamesOwnedResponse{}, testError)
+	mockController.On("CallGetOwnedGames", mock.AnythingOfType("string")).Return(common.GamesOwnedResponse{}, testError)
 
 	gamesOwnedForCurrentUser, err := getGamesOwned(mockController, "exampleSteamID")
 
@@ -137,8 +138,8 @@ func TestVerifyFormatOfSteamIDsReturnsNothingForTwoInvalidFormatSteamIDs(t *test
 
 func TestExctractSteamIDsfromFriendsList(t *testing.T) {
 	expectedList := []string{"1234", "5436", "6718"}
-	friends := datastructures.Friendslist{
-		Friends: []datastructures.Friend{
+	friends := common.Friendslist{
+		Friends: []common.Friend{
 			{
 				Steamid: "1234",
 			},
@@ -209,11 +210,11 @@ func TestBreakSteamIDsIntoListsOf100OrLessWith1911IDs(t *testing.T) {
 }
 
 func TestGetUsersProfileSummaryFromSliceReturnsTheSearchedForProfile(t *testing.T) {
-	expectedUserProfile := datastructures.Player{
+	expectedUserProfile := common.Player{
 		Steamid:  "54290543656",
 		Realname: "Eddie Durcan",
 	}
-	exampleSummaries := []datastructures.Player{
+	exampleSummaries := []common.Player{
 		{
 			Steamid:  "213023525435",
 			Realname: "Buzz Mc Donell",
@@ -233,7 +234,7 @@ func TestGetUsersProfileSummaryFromSliceReturnsTheSearchedForProfile(t *testing.
 
 func TestGetUsersProfileSummaryFromSliceReturnsFalseWhenNotFound(t *testing.T) {
 	nonExistantSteamID := "45356346547567"
-	exampleSummaries := []datastructures.Player{
+	exampleSummaries := []common.Player{
 		{
 			Steamid:  "213023525435",
 			Realname: "Buzz Mc Donell",
@@ -251,7 +252,7 @@ func TestGetUsersProfileSummaryFromSliceReturnsFalseWhenNotFound(t *testing.T) {
 }
 
 func TestGetSteamIDsFromPlayersReturnsAllSteamIDs(t *testing.T) {
-	examplePlayers := []datastructures.Player{
+	examplePlayers := []common.Player{
 		{
 			Steamid:  "213023525435",
 			Realname: "Buzz Mc Donell",
@@ -273,7 +274,7 @@ func TestGetSteamIDsFromPlayersReturnsAllSteamIDs(t *testing.T) {
 }
 
 func TestGetSteamIDsFromPlayersFromAnEmptySliceReturnsNothing(t *testing.T) {
-	examplePlayers := []datastructures.Player{}
+	examplePlayers := []common.Player{}
 
 	realSteamIDs := getSteamIDsFromPlayers(examplePlayers)
 
@@ -281,12 +282,12 @@ func TestGetSteamIDsFromPlayersFromAnEmptySliceReturnsNothing(t *testing.T) {
 }
 
 func TestGetPublicProfilesReturnsOnlyPublicProfiles(t *testing.T) {
-	expectedPublicProfile := datastructures.Player{
+	expectedPublicProfile := common.Player{
 		Steamid:                  "54290543656",
 		Realname:                 "Eddie Durcan",
 		Communityvisibilitystate: 3,
 	}
-	examplePlayers := []datastructures.Player{
+	examplePlayers := []common.Player{
 		{
 			Steamid:                  "213023525435",
 			Realname:                 "Buzz Mc Donell",

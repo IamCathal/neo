@@ -8,10 +8,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/IamCathal/neo/services/datastore/app"
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/gorilla/mux"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -119,16 +121,30 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 
 func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	userDetails := common.UserDocument{}
+	saveUserDTO := dtos.SaveUserDTO{}
 
-	err := json.NewDecoder(r.Body).Decode(&userDetails)
+	err := json.NewDecoder(r.Body).Decode(&saveUserDTO)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
-
-	configuration.Logger.Info("success!")
+	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, saveUserDTO)
+	if err != nil {
+		// send error
+		w.WriteHeader(http.StatusBadRequest)
+		LogBasicErr(err, r, http.StatusBadRequest)
+		fmt.Println("BAD cannot save crawling stats to DB")
+		return
+	}
+	err = app.SaveUserToDB(endpoints.Cntr, saveUserDTO.User)
+	if err != nil {
+		// send error
+		w.WriteHeader(http.StatusBadRequest)
+		LogBasicErr(err, r, http.StatusBadRequest)
+		fmt.Println("BAD cannot save user to DB")
+		return
+	}
 
 	response := struct {
 		Status  string `json:"status"`

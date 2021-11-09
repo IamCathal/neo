@@ -27,6 +27,15 @@ func InitConfig() error {
 		return err
 	}
 
+	err := EnsureAllServiceSpecificEnvVarsAreSet()
+	if err != nil {
+		return err
+	}
+	// err := common.EnsureAllDefaultEnvVarsAreSet()
+	// if err != nil {
+	// 	return err
+	// }
+
 	logConfig, err := LoadLoggingConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -35,6 +44,33 @@ func InitConfig() error {
 	InitAndSetLogger(logConfig)
 	InitMongoDBConnection()
 
+	return nil
+}
+
+func EnsureAllServiceSpecificEnvVarsAreSet() error {
+	resultString := ""
+	if os.Getenv("MONGODB_USER") == "" {
+		resultString += "MONGODB_USER\n"
+	}
+	if os.Getenv("MONGODB_PASSWORD") == "" {
+		resultString += "MONGODB_PASSWORD\n"
+	}
+	if os.Getenv("MONGO_INSTANCE_IP") == "" {
+		resultString += "MONGO_INSTANCE_IP\n"
+	}
+	if os.Getenv("DB_NAME") == "" {
+		resultString += "DB_NAME\n"
+	}
+	if os.Getenv("USER_COLLECTION") == "" {
+		resultString += "USER_COLLECTION\n"
+	}
+	if os.Getenv("CRAWLING_STATS_COLLECTION") == "" {
+		resultString += "CRAWLING_STATS_COLLECTION\n"
+	}
+
+	if resultString != "" {
+		return fmt.Errorf("One or more service specific env vars were not set: %s", resultString)
+	}
 	return nil
 }
 
@@ -74,14 +110,14 @@ func InitAndSetLogger(logFieldsConfig common.LoggingFields) {
 func InitMongoDBConnection() {
 	mongoDBUser := os.Getenv("MONGODB_USER")
 	mongoDBPassword := os.Getenv("MONGODB_PASSWORD")
-	mongoDBURL := os.Getenv("MONGODB_URL")
+	mongoInstanceIP := os.Getenv("MONGO_INSTANCE_IP")
 
-	if mongoDBUser == "" || mongoDBPassword == "" || mongoDBURL == "" {
+	if mongoDBUser == "" || mongoDBPassword == "" || mongoInstanceIP == "" {
 		Logger.Fatal("one or more mongoDB env vars are not set")
 		log.Fatal("err")
 	}
 
-	mongoDBConnectionURL := fmt.Sprintf("mongodb://%s:%s@%s", mongoDBUser, mongoDBPassword, mongoDBURL)
+	mongoDBConnectionURL := fmt.Sprintf("mongodb://%s:%s@%s:27017/testdb", mongoDBUser, mongoDBPassword, mongoInstanceIP)
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoDBConnectionURL))
 	if err != nil {
@@ -95,4 +131,5 @@ func InitMongoDBConnection() {
 	}
 
 	DBClient = client
+	Logger.Info("MongoDB connection initialised successfully")
 }

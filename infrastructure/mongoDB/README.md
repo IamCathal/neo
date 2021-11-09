@@ -72,7 +72,13 @@ Restart both containers to let the mongoDB exporter connect
 
 ### Creating Collections With Schemas
 
-Use [JSON Schema](https://www.jsonschema.net/home) to translate JSON to a valid mongo DB schema. However, all `$id`, `example` and `default` tags must be removed. All `integer` tags must also be replaced with `number`
+First marshal the struct into JSON. Make *sure* all json keys are all lowercase before proceeding to create the schema.
+
+Use [JSON Schema](https://www.jsonschema.net/home) to translate the JSON to a valid mongo DB schema. However, 
+
+* All `$id`, `example` and `default` tags must be removed. 
+* All `integer` tags must also be replaced with `number`
+
 
 ```
 db.createCollection("collectionName", {validator: {$jsonSchema:{....}}})

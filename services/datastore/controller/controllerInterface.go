@@ -2,7 +2,10 @@ package controller
 
 import (
 	"context"
+	"os"
 
+	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,6 +16,7 @@ type Cntr struct{}
 type CntrInterface interface {
 	InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error)
 	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO, moreUsersToCrawl, usersCrawled int) (bool, error)
+	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
 }
 
 func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error) {
@@ -45,4 +49,16 @@ func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.
 	}
 	// Document did exist (best case)
 	return true, nil
+}
+
+func (control Cntr) GetUser(ctx context.Context, steamID string) (common.UserDocument, error) {
+	userCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("USER_COLLECTION"))
+	userDoc := common.UserDocument{}
+
+	if err := userCollection.FindOne(ctx, bson.M{
+		"steamid": steamID,
+	}).Decode(&userDoc); err != nil {
+		return common.UserDocument{}, err
+	}
+	return userDoc, nil
 }

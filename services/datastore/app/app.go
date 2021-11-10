@@ -70,3 +70,11 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 	configuration.Logger.Info("success on update crawling stats and user document")
 	return nil
 }
+
+func GetUserFromDB(cntr controller.CntrInterface, steamID string) (common.UserDocument, error) {
+	user, err := cntr.GetUser(context.TODO(), steamID)
+	if err != nil {
+		return common.UserDocument{}, err
+	}
+	return user, nil
+}

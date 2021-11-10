@@ -36,6 +36,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/saveUser", endpoints.SaveUser).Methods("POST")
+	r.HandleFunc("/getUser/{steamid}", endpoints.GetUser).Methods("GET")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -159,6 +160,37 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	// Validate steamid
+	if isValid := isValidFormatSteamID(vars["steamid"]); !isValid {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		LogBasicInfo("invalid steamID given", r, http.StatusBadRequest)
+		return
+	}
+
+	user, err := app.GetUserFromDB(endpoints.Cntr, vars["steamid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "couldn't get user", vars, http.StatusBadRequest)
+		LogBasicInfo("couldn't get user", r, http.StatusBadRequest)
+		return
+	}
+
+	response := struct {
+		Status string              `json:"status"`
+		User   common.UserDocument `json:"user"`
+	}{
+		"success",
+		user,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+
+}
+
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	req := common.UptimeResponse{
 		Uptime: time.Since(configuration.ApplicationStartUpTime),
@@ -171,4 +203,8 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(jsonObj))
+}
+
+func isValidFormatSteamID(steamID string) bool {
+	return true
 }

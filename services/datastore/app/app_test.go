@@ -1,8 +1,8 @@
 package app
 
 import (
-	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -74,17 +74,18 @@ func initTestData() {
 		},
 	}
 }
-func TestSaveUserToDBCallsMongoDB(t *testing.T) {
+func TestSaveUserToDBCallsMongoDBOnce(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	mockController.On("InsertOne",
 		mock.Anything,
 		mock.Anything,
 		mock.Anything).Return(nil, nil)
-	bson := make([]byte, 1)
+	configuration.DBClient = &mongo.Client{}
 
-	_, err := mockController.InsertOne(context.TODO(), nil, bson)
+	err := SaveUserToDB(mockController, testSaveUserDTO.User)
 
 	assert.Nil(t, err)
+	mockController.AssertNumberOfCalls(t, "InsertOne", 1)
 }
 
 func TestSaveUserToDBCallsReturnsErrorWhenMongoDoes(t *testing.T) {
@@ -94,11 +95,12 @@ func TestSaveUserToDBCallsReturnsErrorWhenMongoDoes(t *testing.T) {
 		mock.Anything,
 		mock.Anything,
 		mock.Anything).Return(nil, expectedError)
-	bson := make([]byte, 1)
+	configuration.DBClient = &mongo.Client{}
 
-	_, err := mockController.InsertOne(context.TODO(), nil, bson)
+	err := SaveUserToDB(mockController, testSaveUserDTO.User)
 
 	assert.EqualError(t, err, expectedError.Error())
+	mockController.AssertNumberOfCalls(t, "InsertOne", 1)
 }
 
 func TestSaveCrawlingStatsToDBForExistingUserAtMaxLevelOnlyCallsUpdate(t *testing.T) {
@@ -121,7 +123,57 @@ func TestSaveCrawlingStatsToDBForExistingUserAtMaxLevelOnlyCallsUpdate(t *testin
 	mockController.AssertNotCalled(t, "InsertOne")
 }
 
-// func TestSaveCrawlingStatsToDBForNewUserCallsUpdateAndThenInsert(t *testing.T) {
-// 	mockController := &controller.MockCntrInterface{}
+func TestSaveCrawlingStatsToDBCallsUpdateAndThenInsertForNewUser(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
 
-// }
+	// Return document does not exist when trying to update it
+	mockController.On("UpdateCrawlingStatus",
+		mock.Anything,
+		mock.Anything,
+		testSaveUserDTO,
+		mock.AnythingOfType("int"),
+		mock.AnythingOfType("int")).Return(false, nil)
+
+	// Return valid for insertion of new record
+	mockController.On("InsertOne",
+		mock.Anything,
+		mock.Anything,
+		mock.Anything).Return(nil, nil)
+
+	err := SaveCrawlingStatsToDB(mockController, testSaveUserDTO)
+
+	assert.Nil(t, err)
+	mockController.AssertNumberOfCalls(t, "UpdateCrawlingStatus", 1)
+	mockController.AssertNumberOfCalls(t, "InsertOne", 1)
+}
+
+func TestSaveCrawlingStatsToDBReturnsAnErrorWhenFailsToIncrementUsersCrawledForUserOnMaxLevel(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+	maxLevelTestSaveUserDTO := testSaveUserDTO
+	maxLevelTestSaveUserDTO.CurrentLevel = maxLevelTestSaveUserDTO.MaxLevel
+	expectedError := fmt.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", maxLevelTestSaveUserDTO)
+
+	// Return document does not exist when trying to update it
+	mockController.On("UpdateCrawlingStatus",
+		mock.Anything,
+		mock.Anything,
+		maxLevelTestSaveUserDTO,
+		mock.AnythingOfType("int"),
+		mock.AnythingOfType("int")).Return(false, nil).Once()
+
+	// Return an error when this max level user cannot be updated
+	mockController.On("UpdateCrawlingStatus",
+		mock.Anything,
+		mock.Anything,
+		maxLevelTestSaveUserDTO,
+		mock.AnythingOfType("int"),
+		mock.AnythingOfType("int")).Return(false, nil).Once()
+
+	err := SaveCrawlingStatsToDB(mockController, maxLevelTestSaveUserDTO)
+
+	assert.EqualError(t, err, expectedError.Error())
+	mockController.AssertNumberOfCalls(t, "UpdateCrawlingStatus", 1)
+	mockController.AssertNotCalled(t, "InsertOne")
+}

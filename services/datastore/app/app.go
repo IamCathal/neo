@@ -6,7 +6,6 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
-	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/pkg/errors"
@@ -36,7 +35,7 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 		}
 
 		if !docExisted {
-			crawlingStats := datastructures.CrawlingStatus{
+			crawlingStats := common.CrawlingStatus{
 				OriginalCrawlTarget: saveUserDTO.OriginalCrawlTarget,
 				MaxLevel:            saveUserDTO.MaxLevel,
 				TotalUsersToCrawl:   len(saveUserDTO.User.FriendIDs),

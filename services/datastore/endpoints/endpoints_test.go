@@ -263,6 +263,67 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }
 
+func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+	randomPort := rand.Intn(48150) + 1024
+
+	maxLeveltestUserDTO := testSaveUserDTO
+	maxLeveltestUserDTO.CurrentLevel = maxLeveltestUserDTO.MaxLevel
+
+	// Start a server with this test's mock controller
+	// and shutdown after 2ms
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
+
+	mockController.On("UpdateCrawlingStatus",
+		mock.Anything,
+		mock.Anything,
+		maxLeveltestUserDTO,
+		0,
+		1).Return(true, nil)
+
+	singleResult := mongo.InsertOneResult{}
+	mockController.On("InsertOne",
+		mock.Anything,
+		mock.Anything,
+		mock.Anything).Return(&singleResult, nil)
+
+	expectedResponse := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"very good",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	requestBodyJSON, err := json.Marshal(maxLeveltestUserDTO)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveUser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.AssertNumberOfCalls(t, "UpdateCrawlingStatus", 1)
+	mockController.AssertNumberOfCalls(t, "InsertOne", 1)
+
+	assert.Equal(t, 200, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
 func TestGetUser(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	randomPort := rand.Intn(48150) + 1024

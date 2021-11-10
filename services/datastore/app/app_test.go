@@ -177,3 +177,24 @@ func TestSaveCrawlingStatsToDBReturnsAnErrorWhenFailsToIncrementUsersCrawledForU
 	mockController.AssertNumberOfCalls(t, "UpdateCrawlingStatus", 1)
 	mockController.AssertNotCalled(t, "InsertOne")
 }
+
+func TestGetUser(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(testSaveUserDTO.User, nil)
+
+	user, err := GetUserFromDB(mockController, testSaveUserDTO.User.SteamID)
+
+	assert.NoError(t, err)
+	assert.Equal(t, user, testSaveUserDTO.User)
+}
+
+func TestGetUserReturnsAnErrorAndEmptyUserWhenMongoReturnsAnError(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	expectedError := fmt.Errorf("error message")
+	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, expectedError)
+
+	user, err := GetUserFromDB(mockController, testSaveUserDTO.User.SteamID)
+
+	assert.EqualError(t, err, expectedError.Error())
+	assert.Equal(t, user, common.UserDocument{})
+}

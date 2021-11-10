@@ -11,7 +11,7 @@ require (
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/joho/godotenv v1.4.0
 	github.com/mackerelio/go-osstat v0.2.1
-	github.com/neosteamfriendgraphing/common v0.0.0-20211109214818-b1e98342538f
+	github.com/neosteamfriendgraphing/common v0.0.0-20211110201732-cf83fe7ff42f
 	github.com/pkg/errors v0.9.1
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/objx v0.3.0 // indirect
@@ -21,5 +21,6 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.1
-	golang.org/x/sys v0.0.0-20211107104306-e0b2ad06fe42 // indirect
+	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
+	golang.org/x/sys v0.0.0-20211110154304-99a53858aa08 // indirect
 )

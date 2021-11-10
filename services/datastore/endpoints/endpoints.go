@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -165,7 +164,7 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	// Validate steamid
-	if isValid := isValidFormatSteamID(vars["steamid"]); !isValid {
+	if isValid := util.IsValidFormatSteamID(vars["steamid"]); !isValid {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		LogBasicInfo("invalid steamID given", r, http.StatusBadRequest)
 		fmt.Printf("SteamID: '%s'\n", vars["steamid"])
@@ -205,12 +204,4 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(jsonObj))
-}
-
-func isValidFormatSteamID(steamID string) bool {
-	if len(steamID) != 17 {
-		return false
-	}
-	match, _ := regexp.MatchString("([0-9]){17}", steamID)
-	return match
 }

@@ -98,7 +98,7 @@ func TestGetAPIStatus(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
-	randomPort := rand.Intn(9000) + 1000
+	randomPort := rand.Intn(48150) + 1024
 
 	// Start a server with this test's mock controller
 	// and shutdown after 2ms
@@ -131,7 +131,7 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
-	randomPort := rand.Intn(9000) + 1000
+	randomPort := rand.Intn(48150) + 1024
 
 	// Start a server with this test's mock controller
 	// and shutdown after 2ms

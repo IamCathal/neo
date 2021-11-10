@@ -132,18 +132,14 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, saveUserDTO)
 	if err != nil {
-		// send error
-		w.WriteHeader(http.StatusBadRequest)
 		LogBasicErr(err, r, http.StatusBadRequest)
-		fmt.Println("BAD cannot save crawling stats to DB")
+		util.SendBasicInvalidResponse(w, r, "cannot save crawling stats", vars, http.StatusBadRequest)
 		return
 	}
 	err = app.SaveUserToDB(endpoints.Cntr, saveUserDTO.User)
 	if err != nil {
-		// send error
-		w.WriteHeader(http.StatusBadRequest)
 		LogBasicErr(err, r, http.StatusBadRequest)
-		fmt.Println("BAD cannot save user to DB")
+		util.SendBasicInvalidResponse(w, r, "cannot save user", vars, http.StatusBadRequest)
 		return
 	}
 
@@ -167,7 +163,6 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	if isValid := util.IsValidFormatSteamID(vars["steamid"]); !isValid {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		LogBasicInfo("invalid steamID given", r, http.StatusBadRequest)
-		fmt.Printf("SteamID: '%s'\n", vars["steamid"])
 		return
 	}
 

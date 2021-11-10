@@ -1,10 +1,12 @@
 package endpoints
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -15,19 +17,23 @@ import (
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
 var (
-	testUser common.UserDocument
+	testUser        common.UserDocument
+	testSaveUserDTO dtos.SaveUserDTO
 )
 
 func TestMain(m *testing.M) {
 	initTestData()
 	c := zap.NewProductionConfig()
+	c.OutputPaths = []string{"/dev/null"}
 	logger, err := c.Build()
 	if err != nil {
 		log.Fatal(err)
@@ -70,6 +76,12 @@ func initTestData() {
 			},
 		},
 	}
+	testSaveUserDTO = dtos.SaveUserDTO{
+		OriginalCrawlTarget: "76561197969081524",
+		CurrentLevel:        2,
+		MaxLevel:            3,
+		User:                testUser,
+	}
 }
 
 func runServer(cntr controller.CntrInterface, ctx context.Context, port int) {
@@ -94,6 +106,161 @@ func TestGetAPIStatus(t *testing.T) {
 
 	assert.HTTPStatusCode(t, endpoints.Status, "POST", "/status", nil, 200)
 	assert.HTTPBodyContains(t, endpoints.Status, "POST", "/status", nil, "operational")
+}
+
+func TestSaveUserWithExistingUser(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+	randomPort := rand.Intn(48150) + 1024
+
+	// Start a server with this test's mock controller
+	// and shutdown after 2ms
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
+
+	mockController.On("UpdateCrawlingStatus",
+		mock.Anything,
+		mock.Anything,
+		testSaveUserDTO,
+		len(testSaveUserDTO.User.FriendIDs),
+		1).Return(true, nil)
+
+	insertResult := mongo.InsertOneResult{}
+	mockController.On("InsertOne",
+		mock.Anything,
+		mock.Anything,
+		mock.Anything).Return(&insertResult, nil)
+
+	expectedResponse := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"very good",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	requestBodyJSON, err := json.Marshal(testSaveUserDTO)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveUser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, res.StatusCode, 200)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+	randomPort := rand.Intn(48150) + 1024
+
+	// Start a server with this test's mock controller
+	// and shutdown after 2ms
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
+
+	mockController.On("UpdateCrawlingStatus",
+		mock.Anything,
+		mock.Anything,
+		testSaveUserDTO,
+		len(testSaveUserDTO.User.FriendIDs),
+		1).Return(false, errors.New("random error from UpdateCrawlingStatus"))
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"cannot save crawling stats",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	requestBodyJSON, err := json.Marshal(testSaveUserDTO)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveUser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, res.StatusCode, 400)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+	randomPort := rand.Intn(48150) + 1024
+
+	// Start a server with this test's mock controller
+	// and shutdown after 2ms
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
+
+	mockController.On("UpdateCrawlingStatus",
+		mock.Anything,
+		mock.Anything,
+		testSaveUserDTO,
+		len(testSaveUserDTO.User.FriendIDs),
+		1).Return(true, nil)
+
+	insertResult := mongo.InsertOneResult{}
+	mockController.On("InsertOne",
+		mock.Anything,
+		mock.Anything,
+		mock.Anything).Return(&insertResult, errors.New("random error from SaveUserToDB"))
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"cannot save user",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	requestBodyJSON, err := json.Marshal(testSaveUserDTO)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveUser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, res.StatusCode, 400)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }
 
 func TestGetUser(t *testing.T) {

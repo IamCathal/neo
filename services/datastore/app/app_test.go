@@ -25,6 +25,7 @@ func TestMain(m *testing.M) {
 	initTestData()
 
 	c := zap.NewProductionConfig()
+	c.OutputPaths = []string{"/dev/null"}
 	logger, err := c.Build()
 	if err != nil {
 		log.Fatal(err)

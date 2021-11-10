@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -167,6 +168,7 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	if isValid := isValidFormatSteamID(vars["steamid"]); !isValid {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		LogBasicInfo("invalid steamID given", r, http.StatusBadRequest)
+		fmt.Printf("SteamID: '%s'\n", vars["steamid"])
 		return
 	}
 
@@ -206,5 +208,9 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 }
 
 func isValidFormatSteamID(steamID string) bool {
-	return true
+	if len(steamID) != 17 {
+		return false
+	}
+	match, _ := regexp.MatchString("([0-9]){17}", steamID)
+	return match
 }

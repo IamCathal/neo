@@ -11,7 +11,6 @@ import (
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func SaveUserToDB(cntr controller.CntrInterface, userDocument common.UserDocument) error {
@@ -31,9 +30,12 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 	if saveUserDTO.CurrentLevel < saveUserDTO.MaxLevel {
 		// Increment the users crawled counter by one and add len(friends) to
 		// totaluserstocrawl as they need to be crawled
-		updatedDoc := cntr.UpdateCrawlingStatus(context.TODO(), crawlingStatsCollection, saveUserDTO)
+		docExisted, err := cntr.UpdateCrawlingStatus(context.TODO(), crawlingStatsCollection, saveUserDTO, len(saveUserDTO.User.FriendIDs), 1)
+		if err != nil {
+			return err
+		}
 
-		if updatedDoc.Err() == mongo.ErrNoDocuments {
+		if !docExisted {
 			crawlingStats := datastructures.CrawlingStatus{
 				OriginalCrawlTarget: saveUserDTO.OriginalCrawlTarget,
 				MaxLevel:            saveUserDTO.MaxLevel,
@@ -51,26 +53,20 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 			}
 			return nil
 		}
-		if updatedDoc.Err() != nil {
-			return updatedDoc.Err()
-		}
 	} else {
 		// Increment the users crawled counter by one
-		updatedDoc := crawlingStatsCollection.FindOneAndUpdate(context.TODO(),
-			bson.M{"originalcrawltarget": saveUserDTO.OriginalCrawlTarget},
-			bson.D{
-				{
-					"$inc",
-					bson.D{
-						{"userscrawled", 1},
-					},
-				},
-			})
-		if updatedDoc.Err() == mongo.ErrNoDocuments {
+		docExisted, err := cntr.UpdateCrawlingStatus(context.TODO(),
+			crawlingStatsCollection,
+			saveUserDTO,
+			0, 1)
+		if err != nil {
+			return err
+		}
+		if !docExisted {
 			return errors.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", saveUserDTO)
 		}
 	}
 
-	configuration.Logger.Info("success on update crawling stats")
+	configuration.Logger.Info("success on update crawling stats and user document")
 	return nil
 }

@@ -40,18 +40,23 @@ func (_m *MockCntrInterface) InsertOne(ctx context.Context, collection *mongo.Co
 	return r0, r1
 }
 
-// UpdateCrawlingStatus provides a mock function with given fields: ctx, collection, saveUserDTO
-func (_m *MockCntrInterface) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO) *mongo.SingleResult {
-	ret := _m.Called(ctx, collection, saveUserDTO)
+// UpdateCrawlingStatus provides a mock function with given fields: ctx, collection, saveUserDTO, moreUsersToCrawl, usersCrawled
+func (_m *MockCntrInterface) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO, moreUsersToCrawl int, usersCrawled int) (bool, error) {
+	ret := _m.Called(ctx, collection, saveUserDTO, moreUsersToCrawl, usersCrawled)
 
-	var r0 *mongo.SingleResult
-	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, dtos.SaveUserDTO) *mongo.SingleResult); ok {
-		r0 = rf(ctx, collection, saveUserDTO)
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, dtos.SaveUserDTO, int, int) bool); ok {
+		r0 = rf(ctx, collection, saveUserDTO, moreUsersToCrawl, usersCrawled)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*mongo.SingleResult)
-		}
+		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, dtos.SaveUserDTO, int, int) error); ok {
+		r1 = rf(ctx, collection, saveUserDTO, moreUsersToCrawl, usersCrawled)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

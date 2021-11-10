@@ -12,7 +12,7 @@ type Cntr struct{}
 
 type CntrInterface interface {
 	InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error)
-	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO) *mongo.SingleResult
+	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO, moreUsersToCrawl, usersCrawled int) (bool, error)
 }
 
 func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error) {
@@ -23,17 +23,26 @@ func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection,
 	return insertionResult, nil
 }
 
-func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO) *mongo.SingleResult {
+func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO, moreUsersToCrawl, usersCrawled int) (bool, error) {
 	updatedDoc := collection.FindOneAndUpdate(context.TODO(),
 		bson.M{"originalcrawltarget": saveUserDTO.OriginalCrawlTarget},
 		bson.D{
 			{
 				"$inc",
 				bson.D{
-					{"totaluserstocrawl", len(saveUserDTO.User.FriendIDs)},
-					{"userscrawled", 1},
+					{"totaluserstocrawl", moreUsersToCrawl},
+					{"userscrawled", usersCrawled},
 				},
 			},
 		})
-	return updatedDoc
+	// If the document did not exists
+	if updatedDoc.Err() == mongo.ErrNoDocuments {
+		return false, nil
+	}
+	// Document did exist but a different error was returned
+	if updatedDoc.Err() != nil {
+		return false, updatedDoc.Err()
+	}
+	// Document did exist (best case)
+	return true, nil
 }

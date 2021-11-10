@@ -1,9 +1,12 @@
 package endpoints
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"testing"
@@ -69,14 +72,14 @@ func initTestData() {
 	}
 }
 
-func runServer(cntr controller.CntrInterface) {
+func runServer(cntr controller.CntrInterface, ctx context.Context, port int) {
 	endpoints := &Endpoints{
 		Cntr: cntr,
 	}
 	router := endpoints.SetupRouter()
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         fmt.Sprintf(":5150"),
+		Addr:         fmt.Sprintf(":%d", port),
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
@@ -95,9 +98,15 @@ func TestGetAPIStatus(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
+	randomPort := rand.Intn(9000) + 1000
 
-	go runServer(mockController)
-	time.Sleep(5 * time.Millisecond)
+	// Start a server with this test's mock controller
+	// and shutdown after 2ms
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
 
 	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(testUser, nil)
 	expectedResponse := struct {
@@ -112,12 +121,46 @@ func TestGetUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:5150/getUser/%s", testUser.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getUser/%s", randomPort, testUser.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	randomPort := rand.Intn(9000) + 1000
+
+	// Start a server with this test's mock controller
+	// and shutdown after 2ms
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
+
+	expectedError := errors.New("couldn't get user")
+	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, expectedError)
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		expectedError.Error(),
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getUser/%s", randomPort, testUser.SteamID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+
+	time.Sleep(100 * time.Millisecond)
 }
 
 func TestGetUserReturnsInvalidResponseWhenGivenAnInvalidSteamID(t *testing.T) {

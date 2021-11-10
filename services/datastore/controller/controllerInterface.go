@@ -8,6 +8,7 @@ import (
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -31,11 +32,11 @@ func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.
 	updatedDoc := collection.FindOneAndUpdate(context.TODO(),
 		bson.M{"originalcrawltarget": saveUserDTO.OriginalCrawlTarget},
 		bson.D{
-			{
-				"$inc",
-				bson.D{
-					{"totaluserstocrawl", moreUsersToCrawl},
-					{"userscrawled", usersCrawled},
+			primitive.E{
+				Key: "$inc",
+				Value: bson.D{
+					primitive.E{Key: "totaluserstocrawl", Value: moreUsersToCrawl},
+					primitive.E{Key: "userscrawled", Value: usersCrawled},
 				},
 			},
 		})

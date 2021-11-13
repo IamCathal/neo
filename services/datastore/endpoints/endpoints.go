@@ -16,6 +16,7 @@ import (
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
@@ -35,8 +36,8 @@ type responseWriter struct {
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
-	r.HandleFunc("/saveUser", endpoints.SaveUser).Methods("POST")
-	r.HandleFunc("/getUser/{steamid}", endpoints.GetUser).Methods("GET")
+	r.HandleFunc("/saveuser", endpoints.SaveUser).Methods("POST")
+	r.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -167,6 +168,12 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := app.GetUserFromDB(endpoints.Cntr, vars["steamid"])
+	if err == mongo.ErrNoDocuments {
+		util.SendBasicInvalidResponse(w, r, "user does not exist", vars, http.StatusNotFound)
+		LogBasicInfo("user was not found in DB", r, http.StatusBadRequest)
+		return
+	}
+
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "couldn't get user", vars, http.StatusBadRequest)
 		LogBasicInfo("couldn't get user", r, http.StatusBadRequest)

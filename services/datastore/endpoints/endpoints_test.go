@@ -40,6 +40,8 @@ func TestMain(m *testing.M) {
 	}
 	configuration.Logger = logger
 
+	rand.Seed(time.Now().UnixNano())
+
 	code := m.Run()
 	os.Exit(code)
 }
@@ -150,7 +152,7 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveUser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -197,7 +199,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveUser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -250,7 +252,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveUser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -308,7 +310,7 @@ func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveUser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -349,7 +351,7 @@ func TestGetUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getUser/%s", randomPort, testUser.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", randomPort, testUser.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -381,7 +383,7 @@ func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getUser/%s", randomPort, testUser.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", randomPort, testUser.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}

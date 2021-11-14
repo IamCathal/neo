@@ -17,8 +17,14 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	testUser common.UserDocument
+)
+
 func TestMain(m *testing.M) {
+	initTestData()
 	c := zap.NewProductionConfig()
+	c.OutputPaths = []string{"/dev/null"}
 	log, err := c.Build()
 	if err != nil {
 		panic(err)
@@ -28,6 +34,40 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	os.Exit(code)
+}
+
+func initTestData() {
+	testUser = common.UserDocument{
+		SteamID: "76561197969081524",
+		AccDetails: common.Player{
+			Steamid:                  "76561197969081524",
+			Communityvisibilitystate: 3,
+			Profilestate:             2,
+			Personaname:              "persona name",
+			Commentpermission:        0,
+			Profileurl:               "profile url",
+			Avatar:                   "avatar url",
+			Avatarmedium:             "medium avatar",
+			Avatarfull:               "full avatar",
+			Avatarhash:               "avatar hash",
+			Personastate:             3,
+			Realname:                 "real name",
+			Primaryclanid:            "clan ID",
+			Timecreated:              1223525546,
+			Personastateflags:        124,
+			Loccountrycode:           "IE",
+		},
+		FriendIDs: []string{"1234", "5678"},
+		GamesOwned: []common.GameInfo{
+			{
+				Name:            "CS:GO",
+				PlaytimeForever: 1337,
+				Playtime2Weeks:  50,
+				ImgIconURL:      "example url",
+				ImgLogoURL:      "example url",
+			},
+		},
+	}
 }
 
 func TestPutFriendsIntoJobsQueue(t *testing.T) {
@@ -313,4 +353,76 @@ func TestInitWorkerConfig(t *testing.T) {
 	workerConfig := InitWorkerConfig()
 
 	assert.Equal(t, expectedWorkerAmount, workerConfig.WorkerAmount)
+}
+
+func TestCrawlUser(t *testing.T) {
+	mockController := controller.MockCntrInterface{}
+	mockController.On("PublishToJobsQueue", mock.Anything).Return(nil)
+
+	CrawlUser(&mockController, "testSteamID", 4)
+}
+
+func TestCrawlUserWhenErrorIsReturnedPublishingJobToQueue(t *testing.T) {
+	mockController := controller.MockCntrInterface{}
+	mockController.On("PublishToJobsQueue", mock.Anything).Return(errors.New("test error"))
+
+	CrawlUser(&mockController, "testSteamID", 4)
+}
+
+func TestGetFriendsWhenFriendIsFoundFromDatastore(t *testing.T) {
+	mockController := controller.MockCntrInterface{}
+	mockController.On("GetUserFromDataStore", mock.AnythingOfType("string")).Return(testUser, nil)
+
+	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.SteamID)
+
+	mockController.AssertNotCalled(t, "CallGetFriends")
+
+	assert.True(t, didExistInDatastore)
+	assert.Equal(t, testUser.FriendIDs, friends)
+	assert.Nil(t, err)
+}
+
+func TestGetFriendsWhenFriendWhenAnErrorIsReturnedFromDatastoreTheSteamAPIIsUsed(t *testing.T) {
+	mockController := controller.MockCntrInterface{}
+	noUserFound := common.UserDocument{}
+	mockController.On("GetUserFromDataStore", mock.AnythingOfType("string")).Return(noUserFound, errors.New("test error"))
+	mockController.On("CallGetFriends", mock.AnythingOfType("string")).Return(testUser.FriendIDs, nil)
+
+	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.SteamID)
+
+	mockController.AssertNumberOfCalls(t, "GetUserFromDataStore", 1)
+	mockController.AssertNumberOfCalls(t, "CallGetFriends", 1)
+
+	assert.False(t, didExistInDatastore)
+	assert.Equal(t, testUser.FriendIDs, friends)
+	assert.Nil(t, err)
+}
+func TestGetFriendsWhenFriendIsNotFoundFromDatastoreAndSteamAPIIsCalled(t *testing.T) {
+	mockController := controller.MockCntrInterface{}
+	noUserFound := common.UserDocument{}
+	mockController.On("GetUserFromDataStore", mock.AnythingOfType("string")).Return(noUserFound, nil)
+	mockController.On("CallGetFriends", mock.AnythingOfType("string")).Return(noUserFound.FriendIDs, nil)
+
+	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.SteamID)
+
+	mockController.AssertNumberOfCalls(t, "CallGetFriends", 1)
+
+	assert.False(t, didExistInDatastore)
+	assert.Equal(t, noUserFound.FriendIDs, friends)
+	assert.Nil(t, err)
+}
+
+func TestGetFriendsWhenFriendIsNotFoundFromDatastoreAndNoUserIsFoundInSteamAPI(t *testing.T) {
+	mockController := controller.MockCntrInterface{}
+	noUserFound := common.UserDocument{}
+	mockController.On("GetUserFromDataStore", mock.AnythingOfType("string")).Return(noUserFound, nil)
+	mockController.On("CallGetFriends", mock.AnythingOfType("string")).Return(noUserFound.FriendIDs, errors.New("no users found error"))
+
+	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.SteamID)
+
+	mockController.AssertNumberOfCalls(t, "CallGetFriends", 1)
+
+	assert.False(t, didExistInDatastore)
+	assert.Equal(t, []string{}, friends)
+	assert.NotNil(t, err)
 }

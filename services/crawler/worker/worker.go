@@ -101,8 +101,9 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	configuration.Logger.Info("saved user to DB")
 }
 
-// GetFriends gets the friendslist for a given user through either the steam web API
-// or cache
+// GetFriends gets the friendslist for a given user through either datastore
+// or the steam web API.
+// 		userWasFoundInDB, friendIDs, err := GetFriends(cntr, steamID)
 func GetFriends(cntr controller.CntrInterface, steamID string) (bool, []string, error) {
 	// First call the db
 	userWasFoundInDB := false

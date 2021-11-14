@@ -26,7 +26,7 @@ func SaveUserToDB(cntr controller.CntrInterface, userDocument common.UserDocumen
 func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveUserDTO) error {
 	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
 
-	if saveUserDTO.CurrentLevel < saveUserDTO.MaxLevel {
+	if (saveUserDTO.CurrentLevel < saveUserDTO.MaxLevel) || (saveUserDTO.CurrentLevel == 1 && saveUserDTO.MaxLevel == 1) {
 		// Increment the users crawled counter by one and add len(friends) to
 		// totaluserstocrawl as they need to be crawled
 		docExisted, err := cntr.UpdateCrawlingStatus(context.TODO(), crawlingStatsCollection, saveUserDTO, len(saveUserDTO.User.FriendIDs), 1)
@@ -62,7 +62,7 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 			return err
 		}
 		if !docExisted {
-			return errors.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", saveUserDTO)
+			return errors.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", saveUserDTO.User.SteamID)
 		}
 	}
 

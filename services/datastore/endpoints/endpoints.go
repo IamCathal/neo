@@ -143,6 +143,7 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 		util.SendBasicInvalidResponse(w, r, "cannot save user", vars, http.StatusBadRequest)
 		return
 	}
+	configuration.Logger.Sugar().Infof("successfully saved user %s to db", saveUserDTO.User.SteamID)
 
 	response := struct {
 		Status  string `json:"status"`
@@ -187,7 +188,6 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 		"success",
 		user,
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

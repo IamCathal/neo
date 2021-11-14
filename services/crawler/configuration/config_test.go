@@ -3,6 +3,9 @@ package configuration
 import (
 	"os"
 	"testing"
+
+	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"gotest.tools/assert"
 )
 
 func TestMain(m *testing.M) {
@@ -10,6 +13,12 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestInitConfigSetsAValidLogger(t *testing.T) {
+func TestInitAndSetWorkerConfig(t *testing.T) {
+	os.Setenv("WORKER_AMOUNT", "8")
+	expectedWorkerConfig := datastructures.WorkerConfig{
+		WorkerAmount: 8,
+	}
+	InitAndSetWorkerConfig()
 
+	assert.Equal(t, expectedWorkerConfig, WorkerConfig)
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/joho/godotenv"
-	"github.com/neosteamfriendgraphing/common/util"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 )
@@ -33,12 +33,13 @@ func InitConfig() error {
 	}
 
 	InitAndSetWorkerConfig()
-	logConfig, err := LoadLoggingConfig()
+	logConfig, err := commonUtil.LoadLoggingConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	InitAndSetLogger(logConfig)
+	logger := commonUtil.InitLogger(logConfig)
+	Logger = logger
 	InitRabbitMQConnection()
 
 	return nil
@@ -51,39 +52,6 @@ func InitAndSetWorkerConfig() {
 	workerConfig.WorkerAmount = workerAmountFromEnv
 
 	WorkerConfig = workerConfig
-}
-
-func LoadLoggingConfig() (datastructures.LoggingFields, error) {
-	logFieldsConfig := datastructures.LoggingFields{
-		NodeName: os.Getenv("NODE_NAME"),
-		NodeDC:   os.Getenv("NODE_DC"),
-		LogPaths: []string{"stdout", os.Getenv("LOG_PATH")},
-		NodeIPV4: util.GetLocalIPAddress(),
-	}
-	if logFieldsConfig.NodeName == "" || logFieldsConfig.NodeDC == "" ||
-		logFieldsConfig.LogPaths[1] == "" || logFieldsConfig.NodeIPV4 == "" {
-
-		return datastructures.LoggingFields{}, fmt.Errorf("one or more required environment variables are not set: %v", logFieldsConfig)
-	}
-	return logFieldsConfig, nil
-}
-
-func InitAndSetLogger(logFieldsConfig datastructures.LoggingFields) {
-	os.OpenFile(logFieldsConfig.LogPaths[1], os.O_RDONLY|os.O_CREATE, 0666)
-	c := zap.NewProductionConfig()
-	c.OutputPaths = logFieldsConfig.LogPaths
-
-	globalLogFields := make(map[string]interface{})
-	globalLogFields["nodeName"] = logFieldsConfig.NodeName
-	globalLogFields["nodeDC"] = logFieldsConfig.NodeDC
-	globalLogFields["nodeIPV4"] = logFieldsConfig.NodeIPV4
-	c.InitialFields = globalLogFields
-
-	log, err := c.Build()
-	if err != nil {
-		panic(err)
-	}
-	Logger = log
 }
 
 func InitRabbitMQConnection() {

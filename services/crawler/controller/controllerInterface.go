@@ -10,7 +10,6 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
-	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
@@ -147,7 +146,7 @@ func (control Cntr) SaveFriendsListToDataStore(saveUser dtos.SaveUserDTO) (bool,
 	if err != nil {
 		return false, err
 	}
-	APIRes := datastructures.GetUserDTO{}
+	APIRes := dtos.GetUserDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
 		return false, err
@@ -181,7 +180,7 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 		return common.UserDocument{}, err
 	}
 
-	userDoc := datastructures.GetUserDTO{}
+	userDoc := dtos.GetUserDTO{}
 	err = json.Unmarshal(body, &userDoc)
 	if err != nil {
 		return common.UserDocument{}, err

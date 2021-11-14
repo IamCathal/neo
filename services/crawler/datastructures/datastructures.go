@@ -2,8 +2,6 @@ package datastructures
 
 import (
 	"time"
-
-	"github.com/neosteamfriendgraphing/common"
 )
 
 type UptimeResponse struct {
@@ -44,11 +42,4 @@ type APIKeysInUse struct {
 type APIKey struct {
 	Key      string
 	LastUsed time.Time
-}
-
-// Temp DTO
-
-type GetUserDTO struct {
-	Status string              `json:"status"`
-	User   common.UserDocument `json:"user"`
 }

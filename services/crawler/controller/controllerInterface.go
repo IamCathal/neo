@@ -27,24 +27,14 @@ type CntrInterface interface {
 	PublishToJobsQueue(jobJSON []byte) error
 	ConsumeFromJobsQueue() (<-chan amqp.Delivery, error)
 	// Datastore related functions
-	SaveFriendsListToDataStore(dtos.SaveUserDTO) (bool, error)
+	SaveUserToDataStore(dtos.SaveUserDTO) (bool, error)
 	GetUserFromDataStore(steamID string) (common.UserDocument, error)
 }
 
+// CallGetFriends calls the steam web API to retrieve a list of
+// friends (steam IDs) for a given user.
+// 		friendIDs, err := CallGetFriends(steamID)
 func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
-	if len(steamID) > 25 {
-		panic("GREATER THAN 25 wtf")
-	}
-	// // Check if DB has this user
-	// friends, err := util.GetFriendsFromDatastore(steamID)
-	// if err != nil {
-	// 	return datastructures.Friendslist{}, err
-	// }
-	// if len(friendsList.Friends) > 0 {
-	// 	return friends.FriendsList, nil
-	// }
-
-	// Call the steam web API
 	friendsListObj := common.UserDetails{}
 	apiKey := apikeymanager.GetSteamAPIKey()
 	fmt.Println("get friends list")
@@ -71,6 +61,10 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	return friendIDs, nil
 }
 
+// CallGetPlayerSummaries calls the steam web API to retrieve player summaries for a list
+// of steamIDs. A maximum of 100 steamIDs can be handled and must be encoded like this:
+// steamID5641,steamID245,steamID43,steamID5747
+//		playerSummaries, err := CallGetPlayerSummaries(steamIDList)
 func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.Player, error) {
 	allPlayerSummaries := common.SteamAPIResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
@@ -87,6 +81,8 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 	return allPlayerSummaries.Response.Players, nil
 }
 
+// CallGetOwnedGames calls the steam web api to retrieve all of a user's owned games
+//		ownedGamesResponse, err := CallGetOwnedGames(steamID)
 func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error) {
 	apiResponse := common.GamesOwnedSteamResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
@@ -102,6 +98,8 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 	return apiResponse.Response, nil
 }
 
+// PublishToJobsQueue publishes a job to the rabbitMQ queue
+//		err := PublishToJobsQueue(job)
 func (control Cntr) PublishToJobsQueue(jobJSON []byte) error {
 	return configuration.Channel.Publish(
 		"",                       // exchange
@@ -114,6 +112,13 @@ func (control Cntr) PublishToJobsQueue(jobJSON []byte) error {
 		})
 }
 
+// ConsumeFromJobsQueue consumns a job from the rabbitMQ queue
+//		msgs, err := ConsumeFromJobsQueue()
+//		...
+//		for job := range msgs {
+//			newJob := datastructures.Job{}
+//			err := json.Unmarshal(d.Body, &newJob)
+//		}
 func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
 	return configuration.Channel.Consume(
 		configuration.Queue.Name, // queue
@@ -126,7 +131,9 @@ func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
 	)
 }
 
-func (control Cntr) SaveFriendsListToDataStore(saveUser dtos.SaveUserDTO) (bool, error) {
+// SaveUserToDataStore sends a user to the datastore service to be saved
+// 		userWasSaved, err := SaveUserToDataStore(user)
+func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error) {
 	targetURL := fmt.Sprintf("%s/saveuser", os.Getenv("DATASTORE_URL"))
 	jsonObj, err := json.Marshal(saveUser)
 	if err != nil {
@@ -159,6 +166,8 @@ func (control Cntr) SaveFriendsListToDataStore(saveUser dtos.SaveUserDTO) (bool,
 	return false, fmt.Errorf("error saving user: %+v", APIRes)
 }
 
+// GetUserFromDataStore gets a user from the datastore service
+// 		userFromDataStore, err := GetUserFromDataStore(steamID)
 func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, error) {
 	targetURL := fmt.Sprintf("%s/getuser/%s", os.Getenv("DATASTORE_URL"), steamID)
 	req, err := http.NewRequest("GET", targetURL, nil)

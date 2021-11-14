@@ -90,7 +90,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 			GamesOwned: gamesOwnedForCurrentUser,
 		},
 	}
-	success, err := cntr.SaveFriendsListToDataStore(saveUser)
+	success, err := cntr.SaveUserToDataStore(saveUser)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -31,7 +31,9 @@ func InitConfig() error {
 	if err := godotenv.Load(); err != nil {
 		return err
 	}
-
+	commonUtil.EnsureAllEnvVarsAreSet("RABBITMQ_PASSWORD", "RABBITMQ_USER",
+		"RABBITMQ_URL", "DATASTORE_URL", "WORKER_AMOUNT", "STEAM_API_KEYS",
+		"KEY_SLEEP_TIME")
 	InitAndSetWorkerConfig()
 	logConfig, err := commonUtil.LoadLoggingConfig()
 	if err != nil {
@@ -55,17 +57,6 @@ func InitAndSetWorkerConfig() {
 }
 
 func InitRabbitMQConnection() {
-	if os.Getenv("RABBITMQ_PASSWORD") == "" ||
-		os.Getenv("RABBITMQ_USER") == "" ||
-		os.Getenv("RABBITMQ_URL") == "" {
-		logMsg := "one or more env vars for connecting to rabbitMQ are not set\n"
-		logMsg += fmt.Sprintf("RABBITMQ_PASSWORD is empty: %t", os.Getenv("RABBITMQ_PASSWORD") == "")
-		logMsg += fmt.Sprintf("RABBITMQ_USER is empty: %t", os.Getenv("RABBITMQ_USER") == "")
-		logMsg += fmt.Sprintf("RABBITMQ_URL is empty: %t", os.Getenv("RABBITMQ_URL") == "")
-		Logger.Fatal(logMsg)
-		log.Fatal(logMsg)
-	}
-
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s", os.Getenv("RABBITMQ_USER"), os.Getenv("RABBITMQ_PASSWORD"), os.Getenv("RABBITMQ_URL")))
 	if err != nil {
 		log.Fatal(err)

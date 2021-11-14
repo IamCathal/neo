@@ -141,8 +141,8 @@ func (_m *MockCntrInterface) PublishToJobsQueue(jobJSON []byte) error {
 	return r0
 }
 
-// SaveFriendsListToDataStore provides a mock function with given fields: _a0
-func (_m *MockCntrInterface) SaveFriendsListToDataStore(_a0 dtos.SaveUserDTO) (bool, error) {
+// SaveUserToDataStore provides a mock function with given fields: _a0
+func (_m *MockCntrInterface) SaveUserToDataStore(_a0 dtos.SaveUserDTO) (bool, error) {
 	ret := _m.Called(_a0)
 
 	var r0 bool

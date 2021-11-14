@@ -154,7 +154,7 @@ func TestSaveCrawlingStatsToDBReturnsAnErrorWhenFailsToIncrementUsersCrawledForU
 	configuration.DBClient = &mongo.Client{}
 	maxLevelTestSaveUserDTO := testSaveUserDTO
 	maxLevelTestSaveUserDTO.CurrentLevel = maxLevelTestSaveUserDTO.MaxLevel
-	expectedError := fmt.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", maxLevelTestSaveUserDTO)
+	expectedError := fmt.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", maxLevelTestSaveUserDTO.User.SteamID)
 
 	// Return document does not exist when trying to update it
 	mockController.On("UpdateCrawlingStatus",

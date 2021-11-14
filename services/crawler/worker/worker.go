@@ -106,7 +106,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 func GetFriends(cntr controller.CntrInterface, steamID string) (bool, []string, error) {
 	// First call the db
 	userWasFoundInDB := false
-	userFromDB, err := util.GetUserFromDatastore(steamID)
+	userFromDB, err := cntr.GetUserFromDataStore(steamID)
 	if err != nil {
 		configuration.Logger.Sugar().Infof("error getting user in DB: %+v", err)
 	}

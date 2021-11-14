@@ -29,6 +29,7 @@ type CntrInterface interface {
 	ConsumeFromJobsQueue() (<-chan amqp.Delivery, error)
 	// Datastore related functions
 	SaveFriendsListToDataStore(dtos.SaveUserDTO) (bool, error)
+	GetUserFromDataStore(steamID string) (common.UserDocument, error)
 }
 
 func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
@@ -157,4 +158,34 @@ func (control Cntr) SaveFriendsListToDataStore(saveUser dtos.SaveUserDTO) (bool,
 	}
 
 	return false, fmt.Errorf("error saving user: %+v", APIRes)
+}
+
+func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, error) {
+	targetURL := fmt.Sprintf("%s/getuser/%s", os.Getenv("DATASTORE_URL"), steamID)
+	req, err := http.NewRequest("GET", targetURL, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authentication", "something")
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return common.UserDocument{}, err
+	}
+	// If no user exists in the DB (HTTP 404)
+	if res.StatusCode == http.StatusNotFound {
+		return common.UserDocument{}, nil
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return common.UserDocument{}, err
+	}
+
+	userDoc := datastructures.GetUserDTO{}
+	err = json.Unmarshal(body, &userDoc)
+	if err != nil {
+		return common.UserDocument{}, err
+	}
+
+	return userDoc.User, nil
 }

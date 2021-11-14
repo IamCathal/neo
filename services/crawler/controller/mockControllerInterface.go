@@ -106,6 +106,27 @@ func (_m *MockCntrInterface) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error
 	return r0, r1
 }
 
+// GetUserFromDataStore provides a mock function with given fields: steamID
+func (_m *MockCntrInterface) GetUserFromDataStore(steamID string) (common.UserDocument, error) {
+	ret := _m.Called(steamID)
+
+	var r0 common.UserDocument
+	if rf, ok := ret.Get(0).(func(string) common.UserDocument); ok {
+		r0 = rf(steamID)
+	} else {
+		r0 = ret.Get(0).(common.UserDocument)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(steamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PublishToJobsQueue provides a mock function with given fields: jobJSON
 func (_m *MockCntrInterface) PublishToJobsQueue(jobJSON []byte) error {
 	ret := _m.Called(jobJSON)

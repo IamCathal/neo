@@ -13,6 +13,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/endpoints"
 	"github.com/iamcathal/neo/services/crawler/statsmonitoring"
 	"github.com/iamcathal/neo/services/crawler/worker"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 )
 
 func main() {
@@ -38,6 +39,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-	configuration.Logger.Info(fmt.Sprintf("crawler start up and serving requests on %s:%s", configuration.GetLocalIPAddress(), os.Getenv("API_PORT")))
+	configuration.Logger.Info(fmt.Sprintf("crawler start up and serving requests on %s:%s", commonUtil.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())
 }

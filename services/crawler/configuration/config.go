@@ -9,6 +9,7 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/joho/godotenv"
+	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
 )
@@ -57,7 +58,7 @@ func LoadLoggingConfig() (datastructures.LoggingFields, error) {
 		NodeName: os.Getenv("NODE_NAME"),
 		NodeDC:   os.Getenv("NODE_DC"),
 		LogPaths: []string{"stdout", os.Getenv("LOG_PATH")},
-		NodeIPV4: GetLocalIPAddress(),
+		NodeIPV4: util.GetLocalIPAddress(),
 	}
 	if logFieldsConfig.NodeName == "" || logFieldsConfig.NodeDC == "" ||
 		logFieldsConfig.LogPaths[1] == "" || logFieldsConfig.NodeIPV4 == "" {

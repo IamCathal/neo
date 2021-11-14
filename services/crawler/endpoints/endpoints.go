@@ -96,7 +96,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		configuration.Logger.Info("served content",
 			zap.String("requestID", vars["requestID"]),
 			zap.Int("status", wrapped.status),
-			zap.Int64("duration", configuration.GetCurrentTimeInMs()-requestStartTime),
+			zap.Int64("duration", commonUtil.GetCurrentTimeInMs()-requestStartTime),
 			zap.String("path", r.URL.EscapedPath()),
 		)
 	})

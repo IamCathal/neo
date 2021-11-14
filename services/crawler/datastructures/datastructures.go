@@ -46,30 +46,9 @@ type APIKey struct {
 	LastUsed time.Time
 }
 
-// Datastore service DTOs
+// Temp DTO
 
-type FriendsFromDB struct {
-	Exists      bool               `json:"exists"`
-	FriendsList common.Friendslist `json:"friends"`
-}
-
-type APIResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-}
-
-type UserDocument struct {
-	SteamID            string        `json:"steamid"`
-	AccDetails         common.Player `json:"accDetails"`
-	FriendIDs          []string      `json:"friends"`
-	AmountOfGamesOwned int           `json:"amountOfGamesOwned"`
-	GamesOwned         []GameInfo    `json:"gamesOwned"`
-}
-
-type GameInfo struct {
-	Name            string `json:"name"`
-	PlaytimeForever int    `json:"playtimeForever"`
-	Playtime2Weeks  int    `json:"playtime2Weeks"`
-	ImgIconURL      string `json:"imgIconUrl"`
-	ImgLogoURL      string `json:"imgLogoUrl"`
+type GetUserDTO struct {
+	Status string              `json:"status"`
+	User   common.UserDocument `json:"user"`
 }

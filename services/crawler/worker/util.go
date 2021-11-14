@@ -74,8 +74,8 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 	return nil
 }
 
-func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]datastructures.GameInfo, error) {
-	gamesInfo := []datastructures.GameInfo{}
+func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]common.GameInfo, error) {
+	gamesInfo := []common.GameInfo{}
 	ownedGamesResponse, err := cntr.CallGetOwnedGames(steamID)
 	if err != nil {
 		return gamesInfo, err
@@ -85,7 +85,7 @@ func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]datastructu
 		ImgIconURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg", game.Appid, game.ImgIconURL)
 		ImgLogoURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg", game.Appid, game.ImgLogoURL)
 
-		currentGame := datastructures.GameInfo{
+		currentGame := common.GameInfo{
 			Name:            game.Name,
 			PlaytimeForever: game.PlaytimeForever,
 			Playtime2Weeks:  game.Playtime2Weeks,
@@ -99,11 +99,10 @@ func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]datastructu
 	return gamesInfo, nil
 }
 
-func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friends common.Friendslist) ([]common.Player, error) {
+func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friendIDs []string) ([]common.Player, error) {
 	// Only 100 steamIDs can be queried per call
-	steamIDs := extractSteamIDsfromFriendsList(friends)
-	stacksOfSteamIDs := breakIntoStacksOf100OrLessSteamIDs(steamIDs)
-	configuration.Logger.Info(fmt.Sprintf("%s has %d private and public friends", job.CurrentTargetSteamID, len(steamIDs)))
+	stacksOfSteamIDs := breakIntoStacksOf100OrLessSteamIDs(friendIDs)
+	configuration.Logger.Info(fmt.Sprintf("%s has %d private and public friends", job.CurrentTargetSteamID, len(friendIDs)))
 
 	allPlayerSummaries := []common.Player{}
 	for i := 0; i < len(stacksOfSteamIDs); i++ {

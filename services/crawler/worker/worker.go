@@ -8,7 +8,9 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 )
 
 var (
@@ -18,16 +20,31 @@ var (
 // Worker crawls the steam API to get data from steam for a given user
 // e.g account details and details of a user's friend
 func Worker(cntr controller.CntrInterface, job datastructures.Job) {
-	friendsList, err := GetFriends(cntr, job.CurrentTargetSteamID)
+	userWasFoundInDB, friendsList, err := GetFriends(cntr, job.CurrentTargetSteamID)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if userWasFoundInDB {
+		friendsNeedCrawling := util.JobIsNotLevelOneAndNotMax(job)
+		// If the job is not at max level or has a max level of one, add
+		// friends to the queue for crawling
+		if friendsNeedCrawling {
+			err = putFriendsIntoQueue(cntr, job, friendsList)
+			if err != nil {
+				configuration.Logger.Fatal(fmt.Sprintf("failed publish friends from steamID: %s to queue: %v", job.CurrentTargetSteamID, err.Error()))
+				log.Fatal(err)
+			}
+		}
+		return
+	}
 
-	playerSummaryForCurrentUser, err := cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
+	// User was never crawled before
+	playerSummaries, err := cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
 	if err != nil {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
 		log.Fatal(err)
 	}
+	playerSummaryForCurrentUser := playerSummaries[0]
 
 	gamesOwnedForCurrentUser, err := getGamesOwned(cntr, job.CurrentTargetSteamID)
 	if err != nil {
@@ -54,54 +71,60 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	// if !found {
 	// 	log.Fatal("players own summary not found in lookup")
 	// }
-
-	// Print locally just for convenience
-	// userDocument := datastructures.UserDocument{
-	// 	SteamID:    job.CurrentTargetSteamID,
-	// 	AccDetails: playerSummary[0],
-	// 	FriendIDs:  extractSteamIDsFromPlayersList(friendPlayerSummaries),
-	// }
-	// yuppa, err := json.Marshal(userDocument)
-	// if err != nil {
-	// 	configuration.Logger.Fatal(err.Error())
-	// 	panic(err)
-	// }
-	// fmt.Printf("\n\n\nThe data: \n %s\n\n", yuppa)
 	logMsg := fmt.Sprintf("Got data for [%s][%s][%s][%d friends][%d games]",
-		playerSummaryForCurrentUser[0].Steamid, playerSummaryForCurrentUser[0].Personaname, playerSummaryForCurrentUser[0].Loccountrycode,
+		playerSummaryForCurrentUser.Steamid, playerSummaryForCurrentUser.Personaname, playerSummaryForCurrentUser.Loccountrycode,
 		len(friendPlayerSummaries), len(gamesOwnedForCurrentUser))
 	configuration.Logger.Info(logMsg)
 
-	// Get game details for target user
-
 	// Save game details to DB
 
-	// // Save friendslist to DB
-	// userIDWithFriendsList := datastructures.UserDetails{
-	// 	SteamID: job.CurrentTargetSteamID,
-	// 	Friends: friendsList,
-	// }
-	// success, err := cntr.SaveFriendsListToDataStore(userIDWithFriendsList)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// if !success {
-
-	// }
+	// // Save user to DB
+	saveUser := dtos.SaveUserDTO{
+		OriginalCrawlTarget: job.OriginalTargetSteamID,
+		CurrentLevel:        job.CurrentLevel,
+		MaxLevel:            job.MaxLevel,
+		User: common.UserDocument{
+			SteamID:    job.CurrentTargetSteamID,
+			AccDetails: playerSummaryForCurrentUser,
+			FriendIDs:  friendsList,
+			GamesOwned: gamesOwnedForCurrentUser,
+		},
+	}
+	success, err := cntr.SaveFriendsListToDataStore(saveUser)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !success {
+		configuration.Logger.Sugar().Fatalf("failed to save user to DB: %+v", err)
+		log.Fatal(err)
+	}
+	configuration.Logger.Info("saved user to DB")
 }
 
 // GetFriends gets the friendslist for a given user through either the steam web API
 // or cache
-func GetFriends(cntr controller.CntrInterface, steamID string) (common.Friendslist, error) {
+func GetFriends(cntr controller.CntrInterface, steamID string) (bool, []string, error) {
 	// First call the db
+	userWasFoundInDB := false
+	userFromDB, err := util.GetUserFromDatastore(steamID)
+	if err != nil {
+		configuration.Logger.Sugar().Infof("error getting user in DB: %+v", err)
+	}
+	// TODO implement proper account exist check
+	if userFromDB.SteamID == "" {
+		configuration.Logger.Sugar().Infof("user %s was not found in DB", steamID)
+	} else {
+		userWasFoundInDB = true
+		configuration.Logger.Sugar().Infof("returning user retrieved from DB: %+v", userFromDB.SteamID)
+		return userWasFoundInDB, userFromDB.FriendIDs, nil
+	}
 
+	// User was not found in DB, call the API
 	friendsList, err := cntr.CallGetFriends(steamID)
 	if err != nil {
-		return common.Friendslist{}, err
+		return userWasFoundInDB, []string{}, err
 	}
-	// fmt.Println("Returned obj:")
-	// fmt.Printf("%+v\n\n", friendsList)
-	return friendsList, nil
+	return userWasFoundInDB, friendsList, nil
 }
 
 // ControlFunc manages workers

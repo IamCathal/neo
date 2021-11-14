@@ -12,6 +12,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
 )
@@ -20,19 +21,17 @@ type Cntr struct{}
 
 type CntrInterface interface {
 	// Steam web API related functions
-	CallGetFriends(steamID string) (common.Friendslist, error)
+	CallGetFriends(steamID string) ([]string, error)
 	CallGetPlayerSummaries(steamIDList string) ([]common.Player, error)
 	CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error)
 	// RabbitMQ related functions
 	PublishToJobsQueue(jobJSON []byte) error
 	ConsumeFromJobsQueue() (<-chan amqp.Delivery, error)
 	// Datastore related functions
-	SaveFriendsListToDataStore(common.UserDetails) (bool, error)
-	// HasUserBeenCrawledBefore(steamID int64) (bool, error)
+	SaveFriendsListToDataStore(dtos.SaveUserDTO) (bool, error)
 }
 
-func (control Cntr) CallGetFriends(steamID string) (common.Friendslist, error) {
-	friendsList := common.Friendslist{}
+func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	if len(steamID) > 25 {
 		panic("GREATER THAN 25 wtf")
 	}
@@ -53,7 +52,7 @@ func (control Cntr) CallGetFriends(steamID string) (common.Friendslist, error) {
 		apiKey, steamID)
 	res, err := commonUtil.GetAndRead(targetURL)
 	if err != nil {
-		return friendsList, err
+		return []string{}, err
 	}
 	// if valid := IsValidAPIResponseForSteamId(string(res)); !valid {
 	// 	return friendsListObj, MakeErr(fmt.Errorf("invalid steamID %s given", steamID))
@@ -62,11 +61,14 @@ func (control Cntr) CallGetFriends(steamID string) (common.Friendslist, error) {
 	// if valid := IsValidResponseForAPIKey(string(res)); !valid {
 	// 	return friendsListObj, MakeErr(fmt.Errorf("invalid api key: %s", apiKey))
 	// }
-
 	json.Unmarshal(res, &friendsListObj)
-	// fmt.Printf("The object: %+v\n\n", friendsListObj)
 
-	return friendsListObj.Friends, nil
+	friendIDs := []string{}
+	for _, friend := range friendsListObj.Friends.Friends {
+		friendIDs = append(friendIDs, friend.Steamid)
+	}
+
+	return friendIDs, nil
 }
 
 func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.Player, error) {
@@ -124,13 +126,12 @@ func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
 	)
 }
 
-func (control Cntr) SaveFriendsListToDataStore(userDetails common.UserDetails) (bool, error) {
-	targetURL := fmt.Sprintf("%s/saveUser", os.Getenv("DATASTORE_URL"))
-	jsonObj, err := json.Marshal(userDetails)
+func (control Cntr) SaveFriendsListToDataStore(saveUser dtos.SaveUserDTO) (bool, error) {
+	targetURL := fmt.Sprintf("%s/saveuser", os.Getenv("DATASTORE_URL"))
+	jsonObj, err := json.Marshal(saveUser)
 	if err != nil {
 		return false, err
 	}
-
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
@@ -145,7 +146,7 @@ func (control Cntr) SaveFriendsListToDataStore(userDetails common.UserDetails) (
 	if err != nil {
 		return false, err
 	}
-	APIRes := datastructures.APIResponse{}
+	APIRes := datastructures.GetUserDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
 		return false, err
@@ -155,5 +156,5 @@ func (control Cntr) SaveFriendsListToDataStore(userDetails common.UserDetails) (
 		return true, nil
 	}
 
-	return false, fmt.Errorf("error saving user: %s", APIRes.Message)
+	return false, fmt.Errorf("error saving user: %+v", APIRes)
 }

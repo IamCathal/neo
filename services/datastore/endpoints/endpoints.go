@@ -176,7 +176,7 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	user, err := app.GetUserFromDB(endpoints.Cntr, vars["steamid"])
 	if err == mongo.ErrNoDocuments {
 		util.SendBasicInvalidResponse(w, r, "user does not exist", vars, http.StatusNotFound)
-		LogBasicInfo("user was not found in DB", r, http.StatusBadRequest)
+		LogBasicInfo("user was not found in DB", r, http.StatusNotFound)
 		return
 	}
 

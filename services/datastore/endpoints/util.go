@@ -26,7 +26,7 @@ func LogBasicInfo(msg string, req *http.Request, statusCode int) {
 	requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
 	configuration.Logger.Info(msg,
 		zap.String("requestID", vars["requestID"]),
-		zap.Int("status", http.StatusInternalServerError),
+		zap.Int("status", statusCode),
 		zap.Int64("duration", configuration.GetCurrentTimeInMs()-requestStartTime),
 		zap.String("path", req.URL.EscapedPath()),
 	)

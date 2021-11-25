@@ -2,13 +2,14 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
-	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -40,7 +41,6 @@ func SaveUserToDB(cntr controller.CntrInterface, userDocument common.UserDocumen
 
 func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveUserDTO) error {
 	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
-
 	if (saveUserDTO.CurrentLevel < saveUserDTO.MaxLevel) || (saveUserDTO.CurrentLevel == 1 && saveUserDTO.MaxLevel == 1) {
 		// Increment the users crawled counter by one and add len(friends) to
 		// totaluserstocrawl as they need to be crawled
@@ -52,10 +52,15 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 		if !docExisted {
 			crawlingStats := common.CrawlingStatus{
 				OriginalCrawlTarget: saveUserDTO.OriginalCrawlTarget,
+				TimeStarted:         time.Now(),
+				CrawlID:             saveUserDTO.CrawlID,
 				MaxLevel:            saveUserDTO.MaxLevel,
 				TotalUsersToCrawl:   len(saveUserDTO.User.FriendIDs),
 				UsersCrawled:        0,
 			}
+			// jsonObj, _ := json.Marshal(crawlingStats)
+			// fmt.Println(string(jsonObj))
+
 			bsonObj, err := bson.Marshal(crawlingStats)
 			if err != nil {
 				return err
@@ -68,6 +73,7 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 			return nil
 		}
 	} else {
+		// fmt.Printf("%+v\n\n", saveUserDTO)
 		// Increment the users crawled counter by one
 		docExisted, err := cntr.UpdateCrawlingStatus(context.TODO(),
 			crawlingStatsCollection,
@@ -77,7 +83,12 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 			return err
 		}
 		if !docExisted {
-			return errors.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", saveUserDTO.User.AccDetails.SteamID)
+			// For when the crawling status document has been deleted but
+			// some jobs still remain in the queue that must be killed off
+			warningMsg := fmt.Sprintf("crawlID '%s' originalcrawltarget '%s' currentcrawltarget '%s' has no crawling status entry", saveUserDTO.CrawlID, saveUserDTO.OriginalCrawlTarget, saveUserDTO.User.AccDetails.SteamID)
+			configuration.Logger.Warn(warningMsg)
+			// return errors.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", saveUserDTO.User.AccDetails.SteamID)
+			return nil
 		}
 	}
 

@@ -135,12 +135,11 @@ func TestSaveCrawlingStatsToDBCallsUpdateAndThenInsertForNewUser(t *testing.T) {
 	mockController.AssertNumberOfCalls(t, "InsertOne", 1)
 }
 
-func TestSaveCrawlingStatsToDBReturnsAnErrorWhenFailsToIncrementUsersCrawledForUserOnMaxLevel(t *testing.T) {
+func TestSaveCrawlingStatsToDBReturnsAnNilWhenFailsToIncrementUsersCrawledForUserOnMaxLevel(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	configuration.DBClient = &mongo.Client{}
 	maxLevelTestSaveUserDTO := testSaveUserDTO
 	maxLevelTestSaveUserDTO.CurrentLevel = maxLevelTestSaveUserDTO.MaxLevel
-	expectedError := fmt.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", maxLevelTestSaveUserDTO.User.AccDetails.SteamID)
 
 	// Return document does not exist when trying to update it
 	mockController.On("UpdateCrawlingStatus",
@@ -160,7 +159,7 @@ func TestSaveCrawlingStatsToDBReturnsAnErrorWhenFailsToIncrementUsersCrawledForU
 
 	err := SaveCrawlingStatsToDB(mockController, maxLevelTestSaveUserDTO)
 
-	assert.EqualError(t, err, expectedError.Error())
+	assert.Nil(t, err)
 	mockController.AssertNumberOfCalls(t, "UpdateCrawlingStatus", 1)
 	mockController.AssertNotCalled(t, "InsertOne")
 }

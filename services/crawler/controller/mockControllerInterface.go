@@ -141,6 +141,27 @@ func (_m *MockCntrInterface) PublishToJobsQueue(jobJSON []byte) error {
 	return r0
 }
 
+// SaveCrawlingStatsToDataStore provides a mock function with given fields: currentLevel, crawlingStatus
+func (_m *MockCntrInterface) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error) {
+	ret := _m.Called(currentLevel, crawlingStatus)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(int, common.CrawlingStatus) bool); ok {
+		r0 = rf(currentLevel, crawlingStatus)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, common.CrawlingStatus) error); ok {
+		r1 = rf(currentLevel, crawlingStatus)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveUserToDataStore provides a mock function with given fields: _a0
 func (_m *MockCntrInterface) SaveUserToDataStore(_a0 dtos.SaveUserDTO) (bool, error) {
 	ret := _m.Called(_a0)

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
@@ -26,17 +25,32 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	if userWasFoundInDB {
-		// these friends can be presumed to be public since they're already saved
-		friendsNeedCrawling := util.JobIsNotLevelOneAndNotMax(job)
+		friendsShoudlBeCrawled := util.JobIsNotLevelOneAndNotMax(job)
 		// If the job is not at max level or has a max level of one, add
 		// friends to the queue for crawling
-		if friendsNeedCrawling {
+		if friendsShoudlBeCrawled {
 			err = putFriendsIntoQueue(cntr, job, friendsList)
 			if err != nil {
 				configuration.Logger.Fatal(fmt.Sprintf("failed publish friends from steamID: %s to queue: %v", job.CurrentTargetSteamID, err.Error()))
 				log.Fatal(err)
 			}
 		}
+
+		crawlingStatus := common.CrawlingStatus{
+			OriginalCrawlTarget: job.OriginalTargetSteamID,
+			MaxLevel:            job.MaxLevel,
+			CrawlID:             job.CrawlID,
+			TotalUsersToCrawl:   len(friendsList),
+		}
+		success, err := cntr.SaveCrawlingStatsToDataStore(job.CurrentLevel, crawlingStatus)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if !success {
+			configuration.Logger.Sugar().Fatalf("failed to save crawling stats to DB for existing user: %+v", err)
+			log.Fatal(err)
+		}
+		configuration.Logger.Info("saved crawling stats to DB for existing user")
 		return
 	}
 
@@ -103,14 +117,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		},
 		GamesOwnedFull: topTwentyOrFewerGamesSlimmedDown,
 	}
-	jsonText, err := json.Marshal(saveUser)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = os.WriteFile("./data.json", jsonText, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	success, err := cntr.SaveUserToDataStore(saveUser)
 	if err != nil {
 		log.Fatal(err)

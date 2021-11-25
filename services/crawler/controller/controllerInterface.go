@@ -10,6 +10,7 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
+	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
@@ -30,6 +31,7 @@ type CntrInterface interface {
 	// Datastore related functions
 	SaveUserToDataStore(dtos.SaveUserDTO) (bool, error)
 	GetUserFromDataStore(steamID string) (common.UserDocument, error)
+	SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error)
 }
 
 // CallGetFriends calls the steam web API to retrieve a list of
@@ -234,4 +236,58 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	}
 
 	return userDoc.User, nil
+}
+
+func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error) {
+	targetURL := fmt.Sprintf("%s/savecrawlingstats", os.Getenv("DATASTORE_URL"))
+	crawlingStatsDTO := dtos.SaveCrawlingStatsDTO{
+		CurrentLevel:   currentLevel,
+		CrawlingStatus: crawlingStatus,
+	}
+	jsonObj, err := json.Marshal(crawlingStatsDTO)
+	if err != nil {
+		return false, util.MakeErr(err)
+	}
+	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	req.Close = true
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authentication", "something")
+
+	client := &http.Client{}
+	res := &http.Response{}
+	var callErr error
+
+	maxRetryCount := 3
+	successfulRequest := false
+
+	for i := 1; i <= maxRetryCount; i++ {
+		res, callErr = client.Do(req)
+		if callErr != nil {
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, crawlingStatus.CrawlID, i)
+		} else {
+			successfulRequest = true
+			break
+		}
+	}
+	// Failed after all retries
+	if successfulRequest == false {
+		return false, util.MakeErr(callErr)
+	}
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return false, util.MakeErr(err)
+	}
+	APIRes := datastructures.BaseResponse{}
+	err = json.Unmarshal(body, &APIRes)
+	if err != nil {
+		return false, util.MakeErr(err)
+	}
+
+	if res.StatusCode == 200 {
+		return true, nil
+	}
+
+	return false, util.MakeErr(fmt.Errorf("error saving crawling stats for existing user: %+v", APIRes))
 }

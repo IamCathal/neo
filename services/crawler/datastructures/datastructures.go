@@ -44,3 +44,8 @@ type APIKey struct {
 	Key      string
 	LastUsed time.Time
 }
+
+type BaseResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}

@@ -88,6 +88,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		OriginalCrawlTarget: job.OriginalTargetSteamID,
 		CurrentLevel:        job.CurrentLevel,
 		MaxLevel:            job.MaxLevel,
+		CrawlID:             job.CrawlID,
 		User: common.UserDocument{
 			AccDetails: common.AccDetailsDocument{
 				SteamID:        playerSummaryForCurrentUser.Steamid,
@@ -174,11 +175,12 @@ func ControlFunc(cntr controller.CntrInterface) {
 	}
 }
 
-func CrawlUser(cntr controller.CntrInterface, steamID string, level int) {
+func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int) {
 	newJob := datastructures.Job{
 		JobType:               "crawl",
 		OriginalTargetSteamID: steamID,
 		CurrentTargetSteamID:  steamID,
+		CrawlID:               crawlID,
 		MaxLevel:              level,
 		CurrentLevel:          1,
 	}

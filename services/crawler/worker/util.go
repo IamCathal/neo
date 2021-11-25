@@ -54,6 +54,7 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 				OriginalTargetSteamID: currentJob.OriginalTargetSteamID,
 				CurrentTargetSteamID:  ID,
 
+				CrawlID:      currentJob.CrawlID,
 				MaxLevel:     currentJob.MaxLevel,
 				CurrentLevel: nextLevel,
 			}
@@ -234,8 +235,8 @@ func GetSlimmedDownOwnedGames(games []common.Game) []common.GameOwnedDocument {
 	slimmedDownOwnedGames := []common.GameOwnedDocument{}
 	for _, game := range games {
 		currentGame := common.GameOwnedDocument{
-			AppID:           game.Appid,
-			PlaytimeForever: game.PlaytimeForever,
+			AppID:            game.Appid,
+			Playtime_Forever: game.PlaytimeForever,
 		}
 		slimmedDownOwnedGames = append(slimmedDownOwnedGames, currentGame)
 	}

@@ -30,6 +30,7 @@ type Job struct {
 	JobType               string `json:"jobType"`
 	OriginalTargetSteamID string `json:"originalTargetSteamID"`
 	CurrentTargetSteamID  string `json:"currentTargetSteamID"`
+	CrawlID               string `json:"crawlID"`
 
 	MaxLevel     int `json:"maxLevel"`
 	CurrentLevel int `json:"currentLevel"`

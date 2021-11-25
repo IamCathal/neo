@@ -48,8 +48,8 @@ func initTestData() {
 		FriendIDs: []string{"1234", "5678"},
 		GamesOwned: []common.GameOwnedDocument{
 			{
-				AppID:           102,
-				PlaytimeForever: 1337,
+				AppID:            102,
+				Playtime_Forever: 1337,
 			},
 		},
 	}
@@ -61,6 +61,7 @@ func TestPutFriendsIntoJobsQueue(t *testing.T) {
 		JobType:               "crawl",
 		OriginalTargetSteamID: "12345",
 		CurrentTargetSteamID:  "12345",
+		CrawlID:               "2345345346546sdfdfbhfd",
 		MaxLevel:              2,
 		CurrentLevel:          1,
 	}
@@ -339,14 +340,14 @@ func TestCrawlUser(t *testing.T) {
 	mockController := controller.MockCntrInterface{}
 	mockController.On("PublishToJobsQueue", mock.Anything).Return(nil)
 
-	CrawlUser(&mockController, "testSteamID", 4)
+	CrawlUser(&mockController, "testSteamID", "testcrawlID", 4)
 }
 
 func TestCrawlUserWhenErrorIsReturnedPublishingJobToQueue(t *testing.T) {
 	mockController := controller.MockCntrInterface{}
 	mockController.On("PublishToJobsQueue", mock.Anything).Return(errors.New("test error"))
 
-	CrawlUser(&mockController, "testSteamID", 4)
+	CrawlUser(&mockController, "testSteamID", "testcrawlID", 4)
 }
 
 func TestGetFriendsWhenFriendIsFoundFromDatastore(t *testing.T) {

@@ -150,7 +150,9 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", validSteamIDs, userInput.Level), r, http.StatusOK)
 
-	worker.CrawlUser(endpoints.Cntr, validSteamIDs[0], userInput.Level)
+	// TODO make a new crawlID when crawling a second user and log it to see the connection
+	// between requestID and this new crawlID
+	worker.CrawlUser(endpoints.Cntr, validSteamIDs[0], vars["requestID"], userInput.Level)
 	// if err != nil {
 	// 	util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
 	// 	util.LogBasicErr(err, vars, r, http.StatusBadRequest)

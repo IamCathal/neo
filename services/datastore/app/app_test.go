@@ -43,34 +43,20 @@ func initTestData() {
 		CurrentLevel:        1,
 		MaxLevel:            3,
 		User: common.UserDocument{
-			SteamID: "testID",
-			AccDetails: common.Player{
-				Steamid:                  "testID",
-				Communityvisibilitystate: 3,
-				Profilestate:             2,
-				Personaname:              "persona name",
-				Commentpermission:        0,
-				Profileurl:               "profile url",
-				Avatar:                   "avatar url",
-				Avatarmedium:             "medium avatar",
-				Avatarfull:               "full avatar",
-				Avatarhash:               "avatar hash",
-				Personastate:             3,
-				Realname:                 "real name",
-				Primaryclanid:            "clan ID",
-				Timecreated:              1223525546,
-				Personastateflags:        124,
-				Loccountrycode:           "IE",
+			AccDetails: common.AccDetailsDocument{
+				SteamID:        "testID",
+				Profileurl:     "profile url",
+				Avatar:         "avatar url",
+				Timecreated:    1223525546,
+				Loccountrycode: "IE",
 			},
 			FriendIDs: []string{"1234", "5678"},
-			GamesOwned: []common.GameInfo{
-				{
-					Name:            "CS:GO",
-					PlaytimeForever: 1337,
-					Playtime2Weeks:  50,
-					ImgIconURL:      "example url",
-					ImgLogoURL:      "example url",
-				},
+		},
+		GamesOwnedFull: []common.GameInfoDocument{
+			{
+				Name:       "CS:GO",
+				ImgIconURL: "example url",
+				ImgLogoURL: "example url",
 			},
 		},
 	}
@@ -154,7 +140,7 @@ func TestSaveCrawlingStatsToDBReturnsAnErrorWhenFailsToIncrementUsersCrawledForU
 	configuration.DBClient = &mongo.Client{}
 	maxLevelTestSaveUserDTO := testSaveUserDTO
 	maxLevelTestSaveUserDTO.CurrentLevel = maxLevelTestSaveUserDTO.MaxLevel
-	expectedError := fmt.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", maxLevelTestSaveUserDTO.User.SteamID)
+	expectedError := fmt.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", maxLevelTestSaveUserDTO.User.AccDetails.SteamID)
 
 	// Return document does not exist when trying to update it
 	mockController.On("UpdateCrawlingStatus",
@@ -183,7 +169,7 @@ func TestGetUser(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(testSaveUserDTO.User, nil)
 
-	user, err := GetUserFromDB(mockController, testSaveUserDTO.User.SteamID)
+	user, err := GetUserFromDB(mockController, testSaveUserDTO.User.AccDetails.SteamID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, user, testSaveUserDTO.User)
@@ -194,7 +180,7 @@ func TestGetUserReturnsAnErrorAndEmptyUserWhenMongoReturnsAnError(t *testing.T) 
 	expectedError := fmt.Errorf("error message")
 	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, expectedError)
 
-	user, err := GetUserFromDB(mockController, testSaveUserDTO.User.SteamID)
+	user, err := GetUserFromDB(mockController, testSaveUserDTO.User.AccDetails.SteamID)
 
 	assert.EqualError(t, err, expectedError.Error())
 	assert.Equal(t, user, common.UserDocument{})

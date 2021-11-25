@@ -13,7 +13,22 @@ import (
 )
 
 func SaveUserToDB(cntr controller.CntrInterface, userDocument common.UserDocument) error {
-	bsonObj, err := bson.Marshal(userDocument)
+	gamesOwnedSlimmedDown := []common.GameOwnedDocument{}
+	for _, game := range userDocument.GamesOwned {
+		currentGame := common.GameOwnedDocument{
+			AppID:            game.AppID,
+			Playtime_Forever: game.Playtime_Forever,
+		}
+		gamesOwnedSlimmedDown = append(gamesOwnedSlimmedDown, currentGame)
+	}
+
+	UserDocument := common.UserDocument{
+		AccDetails: userDocument.AccDetails,
+		FriendIDs:  userDocument.FriendIDs,
+		GamesOwned: gamesOwnedSlimmedDown,
+	}
+
+	bsonObj, err := bson.Marshal(UserDocument)
 	if err != nil {
 		return err
 	}
@@ -62,7 +77,7 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, saveUserDTO dtos.SaveU
 			return err
 		}
 		if !docExisted {
-			return errors.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", saveUserDTO.User.SteamID)
+			return errors.Errorf("failed to increment userscrawled on last level for DTO: '%+v'", saveUserDTO.User.AccDetails.SteamID)
 		}
 	}
 

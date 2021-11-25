@@ -30,7 +30,7 @@ func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection,
 
 func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO, moreUsersToCrawl, usersCrawled int) (bool, error) {
 	updatedDoc := collection.FindOneAndUpdate(context.TODO(),
-		bson.M{"originalcrawltarget": saveUserDTO.OriginalCrawlTarget},
+		bson.M{"crawlid": saveUserDTO.CrawlID},
 		bson.D{
 			primitive.E{
 				Key: "$inc",

@@ -32,7 +32,7 @@ func InitApiKeys() {
 	if err != nil {
 		panic(err)
 	}
-	keyUsageTime = time.Duration(keyTime)
+	keyUsageTime = time.Duration(keyTime * int(time.Millisecond))
 }
 
 // GetSteamAPIKey gets a steam API key. It picks any steam API key

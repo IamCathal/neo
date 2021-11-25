@@ -18,7 +18,7 @@ Crawler instances expect the following variables to be set in .env
 | `RABBITMQ_URL` | URL (port included) of RabbitmQ instance    |
 | `DATASTORE_URL` | URL (port included) of the datastore instance    |
 | `STEAM_API_KEYS` | Comma seperated list of Steam web API keys    |
-| `KEY_SLEEP_TIME` | Minimum time elapsed in milliseconds between subsequent uses of a given API key    |
+| `KEY_USAGE_TIMER` | Minimum time elapsed in milliseconds between subsequent uses of a given API key    |
 
 #### Default
 

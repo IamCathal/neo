@@ -1,7 +1,6 @@
 package apikeymanager
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -13,7 +12,8 @@ import (
 )
 
 var (
-	keyGetLock sync.Mutex
+	keyGetLock   sync.Mutex
+	keyUsageTime time.Duration
 )
 
 // InitApiKeys initialises the structure that manages rate limitted
@@ -27,6 +27,12 @@ func InitApiKeys() {
 		}
 		configuration.UsableAPIKeys.APIKeys = append(configuration.UsableAPIKeys.APIKeys, newAPIKey)
 	}
+
+	keyTime, err := strconv.Atoi(os.Getenv("KEY_USAGE_TIMER"))
+	if err != nil {
+		panic(err)
+	}
+	keyUsageTime = time.Duration(keyTime)
 }
 
 // GetSteamAPIKey gets a steam API key. It picks any steam API key
@@ -38,16 +44,12 @@ func GetSteamAPIKey() string {
 	for {
 		for i, usableKey := range configuration.UsableAPIKeys.APIKeys {
 			timeSinceLastUsed := time.Now().Sub(usableKey.LastUsed)
-			if timeSinceLastUsed > time.Duration(1000*time.Millisecond) {
+			if timeSinceLastUsed > keyUsageTime {
 				configuration.UsableAPIKeys.APIKeys[i].LastUsed = time.Now()
 				keyGetLock.Unlock()
 				return usableKey.Key
 			}
 		}
-		sleepTimeMs, err := strconv.Atoi(os.Getenv("KEY_SLEEP_TIME"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		time.Sleep(time.Duration(sleepTimeMs) * time.Millisecond)
+		time.Sleep(time.Duration(3) * time.Millisecond)
 	}
 }

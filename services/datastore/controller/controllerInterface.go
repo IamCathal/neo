@@ -57,7 +57,7 @@ func (control Cntr) GetUser(ctx context.Context, steamID string) (common.UserDoc
 	userDoc := common.UserDocument{}
 
 	if err := userCollection.FindOne(ctx, bson.M{
-		"steamid": steamID,
+		"accdetails.steamid": steamID,
 	}).Decode(&userDoc); err != nil {
 		return common.UserDocument{}, err
 	}

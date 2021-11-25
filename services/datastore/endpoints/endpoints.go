@@ -131,19 +131,24 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 		LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
+
 	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, saveUserDTO)
 	if err != nil {
 		LogBasicErr(err, r, http.StatusBadRequest)
 		util.SendBasicInvalidResponse(w, r, "cannot save crawling stats", vars, http.StatusBadRequest)
 		return
 	}
+
 	err = app.SaveUserToDB(endpoints.Cntr, saveUserDTO.User)
 	if err != nil {
 		LogBasicErr(err, r, http.StatusBadRequest)
 		util.SendBasicInvalidResponse(w, r, "cannot save user", vars, http.StatusBadRequest)
 		return
 	}
-	configuration.Logger.Sugar().Infof("successfully saved user %s to db", saveUserDTO.User.SteamID)
+
+	// Then save the games to the game table
+
+	configuration.Logger.Sugar().Infof("successfully saved user %s to db", saveUserDTO.User.AccDetails.SteamID)
 
 	response := struct {
 		Status  string `json:"status"`

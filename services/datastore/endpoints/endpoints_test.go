@@ -111,9 +111,7 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
 		mock.Anything,
-		testSaveUserDTO,
-		len(testSaveUserDTO.User.FriendIDs),
-		1).Return(true, nil)
+		mock.Anything).Return(true, nil)
 
 	insertResult := mongo.InsertOneResult{}
 	mockController.On("InsertOne",
@@ -167,9 +165,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
 		mock.Anything,
-		testSaveUserDTO,
-		len(testSaveUserDTO.User.FriendIDs),
-		1).Return(false, errors.New("random error from UpdateCrawlingStatus"))
+		mock.Anything).Return(false, errors.New("random error from UpdateCrawlingStatus"))
 
 	expectedResponse := struct {
 		Error string `json:"error"`
@@ -215,9 +211,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
 		mock.Anything,
-		testSaveUserDTO,
-		len(testSaveUserDTO.User.FriendIDs),
-		1).Return(true, nil)
+		mock.Anything).Return(true, nil)
 
 	insertResult := mongo.InsertOneResult{}
 	mockController.On("InsertOne",
@@ -272,9 +266,7 @@ func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
 		mock.Anything,
-		maxLeveltestUserDTO,
-		0,
-		1).Return(true, nil)
+		mock.Anything).Return(true, nil)
 
 	singleResult := mongo.InsertOneResult{}
 	mockController.On("InsertOne",

@@ -7,8 +7,6 @@ import (
 
 	common "github.com/neosteamfriendgraphing/common"
 
-	dtos "github.com/neosteamfriendgraphing/common/dtos"
-
 	mock "github.com/stretchr/testify/mock"
 
 	mongo "go.mongodb.org/mongo-driver/mongo"
@@ -63,20 +61,20 @@ func (_m *MockCntrInterface) InsertOne(ctx context.Context, collection *mongo.Co
 	return r0, r1
 }
 
-// UpdateCrawlingStatus provides a mock function with given fields: ctx, collection, saveUserDTO, moreUsersToCrawl, usersCrawled
-func (_m *MockCntrInterface) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO, moreUsersToCrawl int, usersCrawled int) (bool, error) {
-	ret := _m.Called(ctx, collection, saveUserDTO, moreUsersToCrawl, usersCrawled)
+// UpdateCrawlingStatus provides a mock function with given fields: ctx, collection, crawlingStatus
+func (_m *MockCntrInterface) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error) {
+	ret := _m.Called(ctx, collection, crawlingStatus)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, dtos.SaveUserDTO, int, int) bool); ok {
-		r0 = rf(ctx, collection, saveUserDTO, moreUsersToCrawl, usersCrawled)
+	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, common.CrawlingStatus) bool); ok {
+		r0 = rf(ctx, collection, crawlingStatus)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, dtos.SaveUserDTO, int, int) error); ok {
-		r1 = rf(ctx, collection, saveUserDTO, moreUsersToCrawl, usersCrawled)
+	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, common.CrawlingStatus) error); ok {
+		r1 = rf(ctx, collection, crawlingStatus)
 	} else {
 		r1 = ret.Error(1)
 	}

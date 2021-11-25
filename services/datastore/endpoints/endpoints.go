@@ -38,6 +38,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/saveuser", endpoints.SaveUser).Methods("POST")
 	r.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
+	r.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -132,7 +133,13 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, saveUserDTO)
+	crawlingStats := common.CrawlingStatus{
+		CrawlID:             saveUserDTO.CrawlID,
+		OriginalCrawlTarget: saveUserDTO.OriginalCrawlTarget,
+		MaxLevel:            saveUserDTO.MaxLevel,
+		TotalUsersToCrawl:   len(saveUserDTO.User.FriendIDs),
+	}
+	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, saveUserDTO.CurrentLevel, crawlingStats)
 	if err != nil {
 		LogBasicErr(err, r, http.StatusBadRequest)
 		util.SendBasicInvalidResponse(w, r, "cannot save crawling stats", vars, http.StatusBadRequest)
@@ -158,6 +165,36 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 		"very good",
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) SaveCrawlingStatsToDB(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	crawlingStatus := dtos.SaveCrawlingStatsDTO{}
+
+	err := json.NewDecoder(r.Body).Decode(&crawlingStatus)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		LogBasicErr(err, r, http.StatusBadRequest)
+		return
+	}
+
+	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, crawlingStatus.CurrentLevel, crawlingStatus.CrawlingStatus)
+	if err != nil {
+		LogBasicErr(err, r, http.StatusBadRequest)
+		util.SendBasicInvalidResponse(w, r, "cannot save crawling stats", vars, http.StatusBadRequest)
+		return
+	}
+
+	response := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"very good",
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

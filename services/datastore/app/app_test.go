@@ -98,12 +98,16 @@ func TestSaveCrawlingStatsToDBForExistingUserAtMaxLevelOnlyCallsUpdate(t *testin
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
 		mock.Anything,
-		maxLevelTestSaveUserDTO,
-		mock.AnythingOfType("int"),
-		mock.AnythingOfType("int")).Return(true, nil)
+		mock.Anything).Return(true, nil)
 	configuration.DBClient = &mongo.Client{}
 
-	err := SaveCrawlingStatsToDB(mockController, maxLevelTestSaveUserDTO)
+	crawlingStatus := common.CrawlingStatus{
+		OriginalCrawlTarget: maxLevelTestSaveUserDTO.User.AccDetails.SteamID,
+		MaxLevel:            maxLevelTestSaveUserDTO.MaxLevel,
+		CrawlID:             maxLevelTestSaveUserDTO.CrawlID,
+		TotalUsersToCrawl:   len(maxLevelTestSaveUserDTO.User.FriendIDs),
+	}
+	err := SaveCrawlingStatsToDB(mockController, maxLevelTestSaveUserDTO.MaxLevel, crawlingStatus)
 
 	assert.Nil(t, err)
 	mockController.AssertNumberOfCalls(t, "UpdateCrawlingStatus", 1)
@@ -118,9 +122,7 @@ func TestSaveCrawlingStatsToDBCallsUpdateAndThenInsertForNewUser(t *testing.T) {
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
 		mock.Anything,
-		testSaveUserDTO,
-		mock.AnythingOfType("int"),
-		mock.AnythingOfType("int")).Return(false, nil)
+		mock.Anything).Return(false, nil)
 
 	// Return valid for insertion of new record
 	mockController.On("InsertOne",
@@ -128,14 +130,20 @@ func TestSaveCrawlingStatsToDBCallsUpdateAndThenInsertForNewUser(t *testing.T) {
 		mock.Anything,
 		mock.Anything).Return(nil, nil)
 
-	err := SaveCrawlingStatsToDB(mockController, testSaveUserDTO)
+	crawlingStatus := common.CrawlingStatus{
+		OriginalCrawlTarget: testSaveUserDTO.User.AccDetails.SteamID,
+		MaxLevel:            testSaveUserDTO.MaxLevel,
+		CrawlID:             testSaveUserDTO.CrawlID,
+		TotalUsersToCrawl:   len(testSaveUserDTO.User.FriendIDs),
+	}
+	err := SaveCrawlingStatsToDB(mockController, 1, crawlingStatus)
 
 	assert.Nil(t, err)
 	mockController.AssertNumberOfCalls(t, "UpdateCrawlingStatus", 1)
 	mockController.AssertNumberOfCalls(t, "InsertOne", 1)
 }
 
-func TestSaveCrawlingStatsToDBReturnsAnNilWhenFailsToIncrementUsersCrawledForUserOnMaxLevel(t *testing.T) {
+func TestSaveCrawlingStatsToDBReturnsNilWhenFailsToIncrementUsersCrawledForUserOnMaxLevel(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	configuration.DBClient = &mongo.Client{}
 	maxLevelTestSaveUserDTO := testSaveUserDTO
@@ -145,9 +153,7 @@ func TestSaveCrawlingStatsToDBReturnsAnNilWhenFailsToIncrementUsersCrawledForUse
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
 		mock.Anything,
-		maxLevelTestSaveUserDTO,
-		mock.AnythingOfType("int"),
-		mock.AnythingOfType("int")).Return(false, nil).Once()
+		mock.Anything).Return(false, nil).Once()
 
 	// Return an error when this max level user cannot be updated
 	mockController.On("UpdateCrawlingStatus",
@@ -157,7 +163,13 @@ func TestSaveCrawlingStatsToDBReturnsAnNilWhenFailsToIncrementUsersCrawledForUse
 		mock.AnythingOfType("int"),
 		mock.AnythingOfType("int")).Return(false, nil).Once()
 
-	err := SaveCrawlingStatsToDB(mockController, maxLevelTestSaveUserDTO)
+	crawlingStatus := common.CrawlingStatus{
+		OriginalCrawlTarget: testSaveUserDTO.User.AccDetails.SteamID,
+		MaxLevel:            testSaveUserDTO.MaxLevel,
+		CrawlID:             testSaveUserDTO.CrawlID,
+		TotalUsersToCrawl:   len(testSaveUserDTO.User.FriendIDs),
+	}
+	err := SaveCrawlingStatsToDB(mockController, testSaveUserDTO.MaxLevel, crawlingStatus)
 
 	assert.Nil(t, err)
 	mockController.AssertNumberOfCalls(t, "UpdateCrawlingStatus", 1)

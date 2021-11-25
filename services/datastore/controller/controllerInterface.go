@@ -6,7 +6,6 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/neosteamfriendgraphing/common"
-	"github.com/neosteamfriendgraphing/common/dtos"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,7 +15,7 @@ type Cntr struct{}
 
 type CntrInterface interface {
 	InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error)
-	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO, moreUsersToCrawl, usersCrawled int) (bool, error)
+	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error)
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
 }
 
@@ -28,15 +27,15 @@ func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection,
 	return insertionResult, nil
 }
 
-func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, saveUserDTO dtos.SaveUserDTO, moreUsersToCrawl, usersCrawled int) (bool, error) {
+func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error) {
 	updatedDoc := collection.FindOneAndUpdate(context.TODO(),
-		bson.M{"crawlid": saveUserDTO.CrawlID},
+		bson.M{"crawlid": crawlingStatus.CrawlID},
 		bson.D{
 			primitive.E{
 				Key: "$inc",
 				Value: bson.D{
-					primitive.E{Key: "totaluserstocrawl", Value: moreUsersToCrawl},
-					primitive.E{Key: "userscrawled", Value: usersCrawled},
+					primitive.E{Key: "totaluserstocrawl", Value: crawlingStatus.TotalUsersToCrawl},
+					primitive.E{Key: "userscrawled", Value: 1},
 				},
 			},
 		})

@@ -3,7 +3,10 @@ package util
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/iamcathal/neo/services/crawler/configuration"
@@ -47,4 +50,13 @@ func LogBasicFatal(err error, req *http.Request, statusCode int) {
 
 func JobIsNotLevelOneAndNotMax(job datastructures.Job) bool {
 	return (job.MaxLevel != 1) || (job.CurrentLevel < job.MaxLevel)
+}
+
+// MakeErr creates an erorr with a trace to where this function was
+// called from
+// 		errorWithLineTrace := MakeErr(err, "heres an error that was thrown")
+func MakeErr(err error, msg ...string) error {
+	_, file, line, _ := runtime.Caller(1)
+	path, _ := os.Getwd()
+	return fmt.Errorf("%s:%d %s %s", strings.TrimPrefix(file, path), line, msg, err)
 }

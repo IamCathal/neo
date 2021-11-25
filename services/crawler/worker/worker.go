@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
@@ -25,6 +26,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	if userWasFoundInDB {
+		// these friends can be presumed to be public since they're already saved
 		friendsNeedCrawling := util.JobIsNotLevelOneAndNotMax(job)
 		// If the job is not at max level or has a max level of one, add
 		// friends to the queue for crawling
@@ -46,11 +48,14 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	}
 	playerSummaryForCurrentUser := playerSummaries[0]
 
-	gamesOwnedForCurrentUser, err := getGamesOwned(cntr, job.CurrentTargetSteamID)
+	allGamesOwnedForCurrentUser, err := getGamesOwned(cntr, job.CurrentTargetSteamID)
 	if err != nil {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
 		log.Fatal(err)
 	}
+	topTwentyOrFewerTopPlayedGames := getTopTwentyOrFewerGames(allGamesOwnedForCurrentUser)
+	topTwentyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topTwentyOrFewerTopPlayedGames)
+	topTwentyOrFewerGamesSlimmedDown := GetSlimmedDownGames(topTwentyOrFewerTopPlayedGames)
 
 	friendPlayerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
 	if err != nil {
@@ -73,7 +78,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	// }
 	logMsg := fmt.Sprintf("Got data for [%s][%s][%s][%d friends][%d games]",
 		playerSummaryForCurrentUser.Steamid, playerSummaryForCurrentUser.Personaname, playerSummaryForCurrentUser.Loccountrycode,
-		len(friendPlayerSummaries), len(gamesOwnedForCurrentUser))
+		len(friendPlayerSummaries), len(topTwentyOrFewerTopPlayedGames))
 	configuration.Logger.Info(logMsg)
 
 	// Save game details to DB
@@ -84,11 +89,26 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		CurrentLevel:        job.CurrentLevel,
 		MaxLevel:            job.MaxLevel,
 		User: common.UserDocument{
-			SteamID:    job.CurrentTargetSteamID,
-			AccDetails: playerSummaryForCurrentUser,
-			FriendIDs:  friendsList,
-			GamesOwned: gamesOwnedForCurrentUser,
+			AccDetails: common.AccDetailsDocument{
+				SteamID:        playerSummaryForCurrentUser.Steamid,
+				Personaname:    playerSummaryForCurrentUser.Personaname,
+				Profileurl:     playerSummaryForCurrentUser.Profileurl,
+				Avatar:         playerSummaryForCurrentUser.Avatar,
+				Timecreated:    playerSummaryForCurrentUser.Timecreated,
+				Loccountrycode: playerSummaryForCurrentUser.Loccountrycode,
+			},
+			FriendIDs:  friendPlayerSummarySteamIDs,
+			GamesOwned: topTwentyOrFewerGamesOwnedSlimmedDown,
 		},
+		GamesOwnedFull: topTwentyOrFewerGamesSlimmedDown,
+	}
+	jsonText, err := json.Marshal(saveUser)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.WriteFile("./data.json", jsonText, 0644)
+	if err != nil {
+		log.Fatal(err)
 	}
 	success, err := cntr.SaveUserToDataStore(saveUser)
 	if err != nil {
@@ -112,11 +132,11 @@ func GetFriends(cntr controller.CntrInterface, steamID string) (bool, []string, 
 		configuration.Logger.Sugar().Infof("error getting user in DB: %+v", err)
 	}
 	// TODO implement proper account exist check
-	if userFromDB.SteamID == "" {
+	if userFromDB.AccDetails.SteamID == "" {
 		configuration.Logger.Sugar().Infof("user %s was not found in DB", steamID)
 	} else {
 		userWasFoundInDB = true
-		configuration.Logger.Sugar().Infof("returning user retrieved from DB: %+v", userFromDB.SteamID)
+		configuration.Logger.Sugar().Infof("returning user retrieved from DB: %+v", userFromDB.AccDetails.SteamID)
 		return userWasFoundInDB, userFromDB.FriendIDs, nil
 	}
 

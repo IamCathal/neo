@@ -2,7 +2,6 @@ package worker
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -38,33 +37,19 @@ func TestMain(m *testing.M) {
 
 func initTestData() {
 	testUser = common.UserDocument{
-		SteamID: "76561197969081524",
-		AccDetails: common.Player{
-			Steamid:                  "76561197969081524",
-			Communityvisibilitystate: 3,
-			Profilestate:             2,
-			Personaname:              "persona name",
-			Commentpermission:        0,
-			Profileurl:               "profile url",
-			Avatar:                   "avatar url",
-			Avatarmedium:             "medium avatar",
-			Avatarfull:               "full avatar",
-			Avatarhash:               "avatar hash",
-			Personastate:             3,
-			Realname:                 "real name",
-			Primaryclanid:            "clan ID",
-			Timecreated:              1223525546,
-			Personastateflags:        124,
-			Loccountrycode:           "IE",
+		AccDetails: common.AccDetailsDocument{
+			SteamID:        "76561197969081524",
+			Personaname:    "persona name",
+			Profileurl:     "profile url",
+			Avatar:         "avatar url",
+			Timecreated:    1223525546,
+			Loccountrycode: "IE",
 		},
 		FriendIDs: []string{"1234", "5678"},
-		GamesOwned: []common.GameInfo{
+		GamesOwned: []common.GameOwnedDocument{
 			{
-				Name:            "CS:GO",
+				AppID:           102,
 				PlaytimeForever: 1337,
-				Playtime2Weeks:  50,
-				ImgIconURL:      "example url",
-				ImgLogoURL:      "example url",
 			},
 		},
 	}
@@ -114,14 +99,9 @@ func TestGetOwnedGamesReturnsAValidResponse(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	expectedFirstGameIconURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg",
-		gameID, gameIconHash)
-	expectedFirstGameLogoURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg",
-		gameID, gameLogoHash)
-
 	assert.Len(t, gamesOwnedForCurrentUser, 1)
-	assert.Equal(t, expectedFirstGameIconURL, gamesOwnedForCurrentUser[0].ImgIconURL)
-	assert.Equal(t, expectedFirstGameLogoURL, gamesOwnedForCurrentUser[0].ImgLogoURL)
+	assert.Equal(t, gameIconHash, gamesOwnedForCurrentUser[0].ImgIconURL)
+	assert.Equal(t, gameLogoHash, gamesOwnedForCurrentUser[0].ImgLogoURL)
 }
 
 func TestGetOwnedGamesEmptyWhenNoGamesFound(t *testing.T) {
@@ -373,7 +353,7 @@ func TestGetFriendsWhenFriendIsFoundFromDatastore(t *testing.T) {
 	mockController := controller.MockCntrInterface{}
 	mockController.On("GetUserFromDataStore", mock.AnythingOfType("string")).Return(testUser, nil)
 
-	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.SteamID)
+	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.AccDetails.SteamID)
 
 	mockController.AssertNotCalled(t, "CallGetFriends")
 
@@ -388,7 +368,7 @@ func TestGetFriendsWhenFriendWhenAnErrorIsReturnedFromDatastoreTheSteamAPIIsUsed
 	mockController.On("GetUserFromDataStore", mock.AnythingOfType("string")).Return(noUserFound, errors.New("test error"))
 	mockController.On("CallGetFriends", mock.AnythingOfType("string")).Return(testUser.FriendIDs, nil)
 
-	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.SteamID)
+	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.AccDetails.SteamID)
 
 	mockController.AssertNumberOfCalls(t, "GetUserFromDataStore", 1)
 	mockController.AssertNumberOfCalls(t, "CallGetFriends", 1)
@@ -403,7 +383,7 @@ func TestGetFriendsWhenFriendIsNotFoundFromDatastoreAndSteamAPIIsCalled(t *testi
 	mockController.On("GetUserFromDataStore", mock.AnythingOfType("string")).Return(noUserFound, nil)
 	mockController.On("CallGetFriends", mock.AnythingOfType("string")).Return(noUserFound.FriendIDs, nil)
 
-	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.SteamID)
+	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.AccDetails.SteamID)
 
 	mockController.AssertNumberOfCalls(t, "CallGetFriends", 1)
 
@@ -418,11 +398,46 @@ func TestGetFriendsWhenFriendIsNotFoundFromDatastoreAndNoUserIsFoundInSteamAPI(t
 	mockController.On("GetUserFromDataStore", mock.AnythingOfType("string")).Return(noUserFound, nil)
 	mockController.On("CallGetFriends", mock.AnythingOfType("string")).Return(noUserFound.FriendIDs, errors.New("no users found error"))
 
-	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.SteamID)
+	didExistInDatastore, friends, err := GetFriends(&mockController, testUser.AccDetails.SteamID)
 
 	mockController.AssertNumberOfCalls(t, "CallGetFriends", 1)
 
 	assert.False(t, didExistInDatastore)
 	assert.Equal(t, []string{}, friends)
 	assert.NotNil(t, err)
+}
+
+func TestGetTopTwentyOrFewerGames(t *testing.T) {
+	expectedFirstGame := "CS Source"
+	expectedSecondGame := "CS:GO"
+	gamesList := []common.Game{
+		{
+			Name:            "CS:GO",
+			PlaytimeForever: 1337,
+		},
+		{
+			Name:            expectedFirstGame,
+			PlaytimeForever: 199999,
+		},
+	}
+
+	sortedGames := getTopTwentyOrFewerGames(gamesList)
+
+	assert.Equal(t, expectedFirstGame, sortedGames[0].Name)
+	assert.Equal(t, expectedSecondGame, sortedGames[1].Name)
+	assert.Len(t, sortedGames, 2)
+}
+
+func TestGetTopTwentyOrFewerGamesOnlyReturnsTwentyOrFewerGames(t *testing.T) {
+	gamesList := []common.Game{}
+	for i := 0; i < 22; i++ {
+		gamesList = append(gamesList, common.Game{
+			Appid:           i,
+			PlaytimeForever: i,
+		})
+	}
+
+	sortedGames := getTopTwentyOrFewerGames(gamesList)
+
+	assert.Len(t, sortedGames, 20)
 }

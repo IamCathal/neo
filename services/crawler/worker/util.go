@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
@@ -74,29 +75,26 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 	return nil
 }
 
-func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]common.GameInfo, error) {
-	gamesInfo := []common.GameInfo{}
+func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]common.Game, error) {
+	gamesInfo := []common.Game{}
 	ownedGamesResponse, err := cntr.CallGetOwnedGames(steamID)
 	if err != nil {
 		return gamesInfo, err
 	}
+	// for _, game := range ownedGamesResponse.Games {
 
-	for _, game := range ownedGamesResponse.Games {
-		ImgIconURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg", game.Appid, game.ImgIconURL)
-		ImgLogoURL := fmt.Sprintf("http://media.steampowered.com/steamcommunity/public/images/apps/%d/%s.jpg", game.Appid, game.ImgLogoURL)
+	// 	// Filter out some fields which will never be used
+	// 	currentGame := common.GameInfoDocument{
+	// 		AppID:           game.Appid,
+	// 		Name:            game.Name,
+	// 		PlaytimeForever: game.PlaytimeForever,
+	// 		ImgIconURL:      game.ImgIconURL,
+	// 		ImgLogoURL:      game.ImgLogoURL,
+	// 	}
 
-		currentGame := common.GameInfo{
-			Name:            game.Name,
-			PlaytimeForever: game.PlaytimeForever,
-			Playtime2Weeks:  game.Playtime2Weeks,
-			ImgIconURL:      ImgIconURL,
-			ImgLogoURL:      ImgLogoURL,
-		}
-
-		gamesInfo = append(gamesInfo, currentGame)
-	}
-
-	return gamesInfo, nil
+	// 	gamesInfo = append(gamesInfo, currentGame)
+	// }
+	return ownedGamesResponse.Games, nil
 }
 
 func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friendIDs []string) ([]common.Player, error) {
@@ -213,6 +211,47 @@ func getUsersProfileSummaryFromSlice(steamID string, playerSummaries []common.Pl
 	return false, common.Player{}
 }
 
-// func HasUserBeenCrawledBeforeAtThisLevel(steamID int64, level int) (bool, error) {
+// getTopTwentyOrFewerGames gets the top twenty games ordered by playtime_forever.
+// If there are less than twenty games then all of them are returned in sorted
+// sorted order
+func getTopTwentyOrFewerGames(allGames []common.Game) []common.Game {
+	if len(allGames) == 0 {
+		return []common.Game{}
+	}
+	gamesRankedByPlayTime := allGames
+	sort.Slice(gamesRankedByPlayTime, func(i, j int) bool {
+		return allGames[i].PlaytimeForever > allGames[j].PlaytimeForever
+	})
 
-// }
+	if len(allGames) >= 20 {
+		return gamesRankedByPlayTime[:20]
+	}
+
+	return gamesRankedByPlayTime
+}
+
+func GetSlimmedDownOwnedGames(games []common.Game) []common.GameOwnedDocument {
+	slimmedDownOwnedGames := []common.GameOwnedDocument{}
+	for _, game := range games {
+		currentGame := common.GameOwnedDocument{
+			AppID:           game.Appid,
+			PlaytimeForever: game.PlaytimeForever,
+		}
+		slimmedDownOwnedGames = append(slimmedDownOwnedGames, currentGame)
+	}
+	return slimmedDownOwnedGames
+}
+
+func GetSlimmedDownGames(games []common.Game) []common.GameInfoDocument {
+	slimmedDownGames := []common.GameInfoDocument{}
+	for _, game := range games {
+		currentGame := common.GameInfoDocument{
+			AppID:      game.Appid,
+			Name:       game.Name,
+			ImgIconURL: game.ImgIconURL,
+			ImgLogoURL: game.ImgLogoURL,
+		}
+		slimmedDownGames = append(slimmedDownGames, currentGame)
+	}
+	return slimmedDownGames
+}

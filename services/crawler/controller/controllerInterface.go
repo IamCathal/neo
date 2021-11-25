@@ -10,6 +10,7 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
+	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
@@ -78,6 +79,10 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 	}
 	json.Unmarshal(res, &allPlayerSummaries)
 
+	// Check if empty
+	if len(allPlayerSummaries.Response.Players) == 0 {
+		configuration.Logger.Sugar().Infof("empty player summary for %s: %+v", targetURL, allPlayerSummaries.Response.Players)
+	}
 	return allPlayerSummaries.Response.Players, nil
 }
 
@@ -137,33 +142,50 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 	targetURL := fmt.Sprintf("%s/saveuser", os.Getenv("DATASTORE_URL"))
 	jsonObj, err := json.Marshal(saveUser)
 	if err != nil {
-		return false, err
+		return false, util.MakeErr(err)
 	}
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
 
 	client := &http.Client{}
-	res, err := client.Do(req)
-	if err != nil {
-		return false, err
+	res := &http.Response{}
+	var callErr error
+
+	maxRetryCount := 3
+	successfulRequest := false
+
+	for i := 1; i <= maxRetryCount; i++ {
+		res, callErr = client.Do(req)
+		if callErr != nil {
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, saveUser.User.AccDetails.SteamID, i)
+		} else {
+			successfulRequest = true
+			break
+		}
 	}
+	// Failed after all retries
+	if successfulRequest == false {
+		return false, util.MakeErr(callErr)
+	}
+
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, err
+		return false, util.MakeErr(err)
 	}
 	APIRes := dtos.GetUserDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return false, err
+		return false, util.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return true, nil
 	}
 
-	return false, fmt.Errorf("error saving user: %+v", APIRes)
+	return false, util.MakeErr(fmt.Errorf("error saving user: %+v", APIRes))
 }
 
 // GetUserFromDataStore gets a user from the datastore service
@@ -171,14 +193,30 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, error) {
 	targetURL := fmt.Sprintf("%s/getuser/%s", os.Getenv("DATASTORE_URL"), steamID)
 	req, err := http.NewRequest("GET", targetURL, nil)
+	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
 
 	client := &http.Client{}
-	res, err := client.Do(req)
-	if err != nil {
-		return common.UserDocument{}, err
+	res := &http.Response{}
+	var callErr error
+	maxRetryCount := 3
+	successfulRequest := false
+
+	for i := 1; i <= maxRetryCount; i++ {
+		res, callErr = client.Do(req)
+		if callErr != nil {
+			configuration.Logger.Sugar().Infof("failed to call %s %d times", targetURL, i)
+		} else {
+			successfulRequest = true
+			break
+		}
 	}
+	// Failed after all retries
+	if successfulRequest == false {
+		return common.UserDocument{}, util.MakeErr(callErr)
+	}
+
 	// If no user exists in the DB (HTTP 404)
 	if res.StatusCode == http.StatusNotFound {
 		return common.UserDocument{}, nil
@@ -186,13 +224,13 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return common.UserDocument{}, err
+		return common.UserDocument{}, util.MakeErr(err)
 	}
 
 	userDoc := dtos.GetUserDTO{}
 	err = json.Unmarshal(body, &userDoc)
 	if err != nil {
-		return common.UserDocument{}, err
+		return common.UserDocument{}, util.MakeErr(err)
 	}
 
 	return userDoc.User, nil

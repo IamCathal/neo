@@ -40,41 +40,25 @@ func TestMain(m *testing.M) {
 	}
 	configuration.Logger = logger
 
-	rand.Seed(time.Now().UnixNano())
-
 	code := m.Run()
 	os.Exit(code)
 }
 
 func initTestData() {
 	testUser = common.UserDocument{
-		SteamID: "76561197969081524",
-		AccDetails: common.Player{
-			Steamid:                  "76561197969081524",
-			Communityvisibilitystate: 3,
-			Profilestate:             2,
-			Personaname:              "persona name",
-			Commentpermission:        0,
-			Profileurl:               "profile url",
-			Avatar:                   "avatar url",
-			Avatarmedium:             "medium avatar",
-			Avatarfull:               "full avatar",
-			Avatarhash:               "avatar hash",
-			Personastate:             3,
-			Realname:                 "real name",
-			Primaryclanid:            "clan ID",
-			Timecreated:              1223525546,
-			Personastateflags:        124,
-			Loccountrycode:           "IE",
+		AccDetails: common.AccDetailsDocument{
+			SteamID:        "76561197969081524",
+			Personaname:    "persona name",
+			Profileurl:     "profile url",
+			Avatar:         "avatar url",
+			Timecreated:    1223525546,
+			Loccountrycode: "IE",
 		},
 		FriendIDs: []string{"1234", "5678"},
-		GamesOwned: []common.GameInfo{
+		GamesOwned: []common.GameOwnedDocument{
 			{
-				Name:            "CS:GO",
-				PlaytimeForever: 1337,
-				Playtime2Weeks:  50,
-				ImgIconURL:      "example url",
-				ImgLogoURL:      "example url",
+				AppID:            102,
+				Playtime_Forever: 1337,
 			},
 		},
 	}
@@ -113,6 +97,7 @@ func TestGetAPIStatus(t *testing.T) {
 func TestSaveUserWithExistingUser(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	configuration.DBClient = &mongo.Client{}
+	rand.Seed(time.Now().UnixNano())
 	randomPort := rand.Intn(48150) + 1024
 
 	// Start a server with this test's mock controller
@@ -168,6 +153,7 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	configuration.DBClient = &mongo.Client{}
+	rand.Seed(time.Now().UnixNano())
 	randomPort := rand.Intn(48150) + 1024
 
 	// Start a server with this test's mock controller
@@ -215,6 +201,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	configuration.DBClient = &mongo.Client{}
+	rand.Seed(time.Now().UnixNano())
 	randomPort := rand.Intn(48150) + 1024
 
 	// Start a server with this test's mock controller
@@ -268,6 +255,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	configuration.DBClient = &mongo.Client{}
+	rand.Seed(time.Now().UnixNano())
 	randomPort := rand.Intn(48150) + 1024
 
 	maxLeveltestUserDTO := testSaveUserDTO
@@ -328,6 +316,7 @@ func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
+	rand.Seed(time.Now().UnixNano())
 	randomPort := rand.Intn(48150) + 1024
 
 	// Start a server with this test's mock controller
@@ -351,7 +340,7 @@ func TestGetUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", randomPort, testUser.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", randomPort, testUser.AccDetails.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -361,6 +350,7 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
+	rand.Seed(time.Now().UnixNano())
 	randomPort := rand.Intn(48150) + 1024
 
 	// Start a server with this test's mock controller
@@ -383,7 +373,7 @@ func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", randomPort, testUser.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", randomPort, testUser.AccDetails.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}

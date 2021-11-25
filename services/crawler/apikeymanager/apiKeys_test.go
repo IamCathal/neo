@@ -1,7 +1,6 @@
 package apikeymanager
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -17,6 +16,7 @@ func TestMain(m *testing.M) {
 
 func TestThatValidAPIKeysCanBeExtractedFromEnvFile(t *testing.T) {
 	os.Setenv("STEAM_API_KEYS", "Quick,Brown,Fox,Ran")
+	os.Setenv("KEY_USAGE_TIMER", "1916")
 
 	InitApiKeys()
 	expectedAPIKeys := []string{"Quick", "Brown", "Fox", "Ran"}
@@ -31,7 +31,7 @@ func TestThatValidAPIKeysCanBeExtractedFromEnvFile(t *testing.T) {
 func TestGetSteamAPIKeyThrottlesRequests(t *testing.T) {
 	keySleepTime := 15
 	os.Setenv("STEAM_API_KEYS", "Quick,Brown,Fox,Ran")
-	os.Setenv("KEY_SLEEP_TIME", fmt.Sprint(keySleepTime))
+	os.Setenv("KEY_USAGE_TIMER", "1916")
 	InitApiKeys()
 
 	startTime := time.Now()

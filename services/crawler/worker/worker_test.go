@@ -17,7 +17,9 @@ import (
 )
 
 var (
-	testUser common.UserDocument
+	testUser       common.UserDocument
+	testPlayerList []common.Player
+	testGamesList  []common.Game
 )
 
 func TestMain(m *testing.M) {
@@ -51,6 +53,41 @@ func initTestData() {
 				AppID:            102,
 				Playtime_Forever: 1337,
 			},
+		},
+	}
+	testPlayerList = []common.Player{
+		{
+			Steamid:                  "213023525435",
+			Realname:                 "Buzz Mc Donell",
+			Communityvisibilitystate: 2,
+		},
+		{
+			Steamid:                  "54290543656",
+			Realname:                 "Eddie Durcan",
+			Communityvisibilitystate: 3,
+		},
+		{
+			Steamid:                  "5647568578975",
+			Realname:                 "The Boogenhagen",
+			Communityvisibilitystate: 1,
+		},
+	}
+	testGamesList = []common.Game{
+		{
+			Appid:           120,
+			Name:            "CS:GO",
+			PlaytimeForever: 1377,
+			Playtime2Weeks:  15,
+			ImgIconURL:      "iconHash",
+			ImgLogoURL:      "logoHash",
+		},
+		{
+			Appid:           156,
+			Name:            "Outer Worlds",
+			PlaytimeForever: 1200,
+			Playtime2Weeks:  11,
+			ImgIconURL:      "iconHash",
+			ImgLogoURL:      "logoHash",
 		},
 	}
 }
@@ -441,4 +478,120 @@ func TestGetTopTwentyOrFewerGamesOnlyReturnsTwentyOrFewerGames(t *testing.T) {
 	sortedGames := getTopTwentyOrFewerGames(gamesList)
 
 	assert.Len(t, sortedGames, 20)
+}
+
+func TestGetTopTwentyOrFewerGamesOnlyReturnsNothingWhenNoGamesAreGiven(t *testing.T) {
+	gamesList := []common.Game{}
+
+	sortedGames := getTopTwentyOrFewerGames(gamesList)
+
+	assert.Len(t, sortedGames, 0)
+}
+
+func TestGetPlayerSummariesReturnsOnlyPublicProfiles(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	expectedPublicProfile := common.Player{
+		Steamid:                  "54290543656",
+		Realname:                 "Eddie Durcan",
+		Communityvisibilitystate: 3,
+	}
+	examplePlayers := []common.Player{
+		{
+			Steamid:                  "213023525435",
+			Realname:                 "Buzz Mc Donell",
+			Communityvisibilitystate: 2,
+		},
+		expectedPublicProfile,
+		{
+			Steamid:                  "5647568578975",
+			Realname:                 "The Boogenhagen",
+			Communityvisibilitystate: 1,
+		},
+	}
+	currentJob := datastructures.Job{
+		JobType:               "crawl",
+		OriginalTargetSteamID: "12345",
+		CurrentTargetSteamID:  "12345",
+		CrawlID:               "2345345346546sdfdfbhfd",
+		MaxLevel:              1,
+		CurrentLevel:          1,
+	}
+
+	mockController.On("CallGetPlayerSummaries", mock.AnythingOfType("string")).Return(examplePlayers, nil)
+
+	playerSummaries, err := getPlayerSummaries(mockController, currentJob, []string{"testid1,testid2,testid3"})
+
+	mockController.AssertNumberOfCalls(t, "CallGetPlayerSummaries", 1)
+	assert.Equal(t, []common.Player{expectedPublicProfile}, playerSummaries)
+	assert.Nil(t, err)
+}
+
+func TestGetPlayerSummariesReturnsNothingWhenGetPlayerSummariesReturnsAnError(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	currentJob := datastructures.Job{
+		JobType:               "crawl",
+		OriginalTargetSteamID: "12345",
+		CurrentTargetSteamID:  "12345",
+		CrawlID:               "2345345346546sdfdfbhfd",
+		MaxLevel:              1,
+		CurrentLevel:          1,
+	}
+	expectedError := errors.New("hello world")
+	mockController.On("CallGetPlayerSummaries", mock.AnythingOfType("string")).Return([]common.Player{}, expectedError)
+
+	playerSummaries, err := getPlayerSummaries(mockController, currentJob, []string{"testid1,testid2,testid3"})
+
+	mockController.AssertNumberOfCalls(t, "CallGetPlayerSummaries", 1)
+	assert.Equal(t, []common.Player{}, playerSummaries)
+	assert.EqualError(t, expectedError, err.Error())
+}
+
+func TestExtractSteamIDsFromPlayersList(t *testing.T) {
+	expectedIDs := []string{}
+	for _, player := range testPlayerList {
+		expectedIDs = append(expectedIDs, player.Steamid)
+	}
+
+	extractedIDs := extractSteamIDsFromPlayersList(testPlayerList)
+
+	assert.Equal(t, expectedIDs, extractedIDs)
+}
+
+func TestGetSlimmedDownOwnedGames(t *testing.T) {
+	expectedSlimmedDownOwnedGames := []common.GameOwnedDocument{
+		{
+			AppID:            120,
+			Playtime_Forever: 1377,
+		},
+		{
+			AppID:            156,
+			Playtime_Forever: 1200,
+		},
+	}
+
+	slimmedDownGames := GetSlimmedDownOwnedGames(testGamesList)
+
+	assert.Equal(t, expectedSlimmedDownOwnedGames, slimmedDownGames)
+}
+
+func TestGetSlimmedDownGames(t *testing.T) {
+	expectedSlimmedDownGames := []common.GameInfoDocument{
+		{
+			AppID:      120,
+			Name:       "CS:GO",
+			ImgIconURL: "iconHash",
+			ImgLogoURL: "logoHash",
+		},
+		{
+			AppID:      156,
+			Name:       "Outer Worlds",
+			ImgIconURL: "iconHash",
+			ImgLogoURL: "logoHash",
+		},
+	}
+
+	slimmedDownGames := GetSlimmedDownGames(testGamesList)
+
+	assert.Equal(t, expectedSlimmedDownGames, slimmedDownGames)
 }

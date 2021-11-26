@@ -101,7 +101,6 @@ func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]common.Game
 func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friendIDs []string) ([]common.Player, error) {
 	// Only 100 steamIDs can be queried per call
 	stacksOfSteamIDs := breakIntoStacksOf100OrLessSteamIDs(friendIDs)
-	configuration.Logger.Info(fmt.Sprintf("%s has %d private and public friends", job.CurrentTargetSteamID, len(friendIDs)))
 
 	allPlayerSummaries := []common.Player{}
 	for i := 0; i < len(stacksOfSteamIDs); i++ {
@@ -113,7 +112,6 @@ func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, f
 	}
 
 	onlyPublicProfiles := getPublicProfiles(allPlayerSummaries)
-	configuration.Logger.Info(fmt.Sprintf("%d/%d public profiles from user %s", len(onlyPublicProfiles), len(allPlayerSummaries), job.CurrentTargetSteamID))
 	return onlyPublicProfiles, nil
 }
 

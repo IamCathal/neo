@@ -13,7 +13,6 @@ import (
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
-	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
 )
 
@@ -39,10 +38,10 @@ type CntrInterface interface {
 func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	friendsListObj := common.UserDetails{}
 	apiKey := apikeymanager.GetSteamAPIKey()
-	fmt.Println("get friends list")
+	// fmt.Println("get friends list")
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
 		apiKey, steamID)
-	res, err := commonUtil.GetAndRead(targetURL)
+	res, err := MakeNetworkGETRequest(targetURL)
 	if err != nil {
 		return []string{}, err
 	}
@@ -70,11 +69,11 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.Player, error) {
 	allPlayerSummaries := common.SteamAPIResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
-	fmt.Println("get player summary")
+	// fmt.Println("get player summary")
 
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
 		apiKey, steamIDStringList)
-	res, err := commonUtil.GetAndRead(targetURL)
+	res, err := MakeNetworkGETRequest(targetURL)
 	if err != nil {
 		return []common.Player{}, err
 	}
@@ -92,11 +91,11 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error) {
 	apiResponse := common.GamesOwnedSteamResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
-	fmt.Println("get owned games")
+	// fmt.Println("get owned games")
 
 	targetURL := fmt.Sprintf("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json&include_appinfo=true&include_played_free_games=true",
 		apiKey, steamID)
-	res, err := commonUtil.GetAndRead(targetURL)
+	res, err := MakeNetworkGETRequest(targetURL)
 	if err != nil {
 		return common.GamesOwnedResponse{}, err
 	}

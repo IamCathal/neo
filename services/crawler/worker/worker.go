@@ -50,7 +50,6 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 			configuration.Logger.Sugar().Fatalf("failed to save crawling stats to DB for existing user: %+v", err)
 			log.Fatal(err)
 		}
-		configuration.Logger.Info("saved crawling stats to DB for existing user")
 		return
 	}
 
@@ -90,9 +89,11 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	// if !found {
 	// 	log.Fatal("players own summary not found in lookup")
 	// }
-	logMsg := fmt.Sprintf("Got data for [%s][%s][%s][%d friends][%d games]",
+	privateFriendCount := len(friendsList) - len(friendPlayerSummaries)
+	publicFriendCount := len(friendsList) - privateFriendCount
+	logMsg := fmt.Sprintf("Got data for [%s][%s][%s][%d public %d private friends][%d games]",
 		playerSummaryForCurrentUser.Steamid, playerSummaryForCurrentUser.Personaname, playerSummaryForCurrentUser.Loccountrycode,
-		len(friendPlayerSummaries), len(topTwentyOrFewerTopPlayedGames))
+		publicFriendCount, privateFriendCount, len(topTwentyOrFewerTopPlayedGames))
 	configuration.Logger.Info(logMsg)
 
 	// Save game details to DB
@@ -126,7 +127,6 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		configuration.Logger.Sugar().Fatalf("failed to save user to DB: %+v", err)
 		log.Fatal(err)
 	}
-	configuration.Logger.Info("saved user to DB")
 }
 
 // GetFriends gets the friendslist for a given user through either datastore
@@ -173,7 +173,7 @@ func ControlFunc(cntr controller.CntrInterface) {
 				log.Fatal(err)
 			}
 
-			logMsg := fmt.Sprintf("Received job: original: %s, current: %s, max level: %d, currlevel: %d", newJob.OriginalTargetSteamID, newJob.CurrentTargetSteamID, newJob.MaxLevel, newJob.CurrentLevel)
+			logMsg := fmt.Sprintf("Received job: %+v", newJob)
 			configuration.Logger.Info(logMsg)
 
 			Worker(cntr, newJob)

@@ -9,6 +9,8 @@ services:
       - "8086:8086"
       - "8090:8090"
       - "2003:2003"
+    volumes:
+      - influxdb-storage:/var/lib/influxdb
     env_file:
       - 'influxdb/env.influxdb'
 
@@ -19,6 +21,8 @@ services:
         GF_INSTALL_IMAGE_RENDERER_PLUGIN: "true"
     image: grafana/grafana:latest
     container_name: grafana
+    volumes:
+      - grafana-storage:/var/lib/grafana
     ports:
       - "3000:3000"
     env_file:
@@ -26,3 +30,7 @@ services:
     user: "0"
     links:
       - influxdb
+
+volumes:
+  grafana-storage:
+  influxdb-storage:

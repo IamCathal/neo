@@ -29,7 +29,7 @@ Datastore expects the following variables to be set in .env
 | `LOG_PATH`   | Where to write logs to        |
 | `NODE_NAME`   | Unique name for this instance      |
 | `SYSTEM_STATS_BUCKET`   | Bucket name for system stats metrics        |
-| `SYSTEM_STATS_BUCKET_TOKEN`   | Bucket token for system stats metrics        |
+| `BUCKET_TOKEN`   | Read and write token for influxDB buckets    |
 | `ORG`   | Org name for grafana        |
 | `INFLUXDB_URL`   | Full URL for connecting to influxDB        |
 

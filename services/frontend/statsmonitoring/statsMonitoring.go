@@ -64,7 +64,7 @@ func CollectAndShipStats() {
 	go getCPUUsagePercentage(&cpuUsagePercentage)
 	go GetCurrentRAMUsage(&RAMUsedCurrently)
 
-	client := influxdb2.NewClient(os.Getenv("INFLUXDB_URL"), os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"))
+	client := influxdb2.NewClient(os.Getenv("INFLUXDB_URL"), os.Getenv("BUCKET_TOKEN"))
 	defer client.Close()
 
 	writeAPI := client.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("SYSTEM_STATS_BUCKET"))

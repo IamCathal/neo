@@ -10,7 +10,6 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
-	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
@@ -279,7 +278,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	if err != nil {
 		return false, util.MakeErr(err)
 	}
-	APIRes := datastructures.BaseResponse{}
+	APIRes := common.BasicAPIResponse{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
 		return false, util.MakeErr(err)
@@ -288,6 +287,5 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	if res.StatusCode == 200 {
 		return true, nil
 	}
-
 	return false, util.MakeErr(fmt.Errorf("error saving crawling stats for existing user: %+v", APIRes))
 }

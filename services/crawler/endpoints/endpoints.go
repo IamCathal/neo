@@ -15,6 +15,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/iamcathal/neo/services/crawler/worker"
+	"github.com/neosteamfriendgraphing/common"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -109,7 +110,7 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
-	req := datastructures.UptimeResponse{
+	req := common.UptimeResponse{
 		Uptime: time.Since(configuration.ApplicationStartUpTime),
 		Status: "operational",
 	}

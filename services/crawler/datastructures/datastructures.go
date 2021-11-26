@@ -4,18 +4,6 @@ import (
 	"time"
 )
 
-type UptimeResponse struct {
-	Status string        `json:"status"`
-	Uptime time.Duration `json:"uptime"`
-}
-
-type LoggingFields struct {
-	NodeName string
-	NodeDC   string
-	LogPaths []string
-	NodeIPV4 string
-}
-
 type CrawlUsersInput struct {
 	FirstSteamID  string `json:"firstSteamID"`
 	SecondSteamID string `json:"secondSteamID"`
@@ -43,9 +31,4 @@ type APIKeysInUse struct {
 type APIKey struct {
 	Key      string
 	LastUsed time.Time
-}
-
-type BaseResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
 }

@@ -19,7 +19,7 @@ jobs:
         echo STATIC_CONTENT_DIR_NAME=${{ secrets.FRONTEND_STATIC_CONTENT_DIR_NAME }} >> .env
         echo ORG=${{ secrets.ORG }} >> .env
         echo SYSTEM_STATS_BUCKET=${{ secrets.SYSTEM_STATS_BUCKET }} >> .env
-        echo SYSTEM_STATS_BUCKET_TOKEN=${{ secrets.SYSTEM_STATS_BUCKET_TOKEN }} >> .env
+        echo BUCKET_TOKEN=${{ secrets.BUCKET_TOKEN }} >> .env
          echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
         mv .env services/frontend
         cat services/frontend/.env

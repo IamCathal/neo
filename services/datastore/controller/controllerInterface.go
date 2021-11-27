@@ -22,6 +22,11 @@ type CntrInterface interface {
 func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error) {
 	insertionResult, err := collection.InsertOne(ctx, bson)
 	if err != nil {
+		// Sometimes duplicate users are inserted
+		// This is not an issue
+		if mongo.IsDuplicateKeyError(err) {
+			return insertionResult, nil
+		}
 		return nil, err
 	}
 	return insertionResult, nil

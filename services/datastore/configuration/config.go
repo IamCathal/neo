@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/joho/godotenv"
 	"github.com/neosteamfriendgraphing/common"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,6 +20,7 @@ var (
 	Logger                 *zap.Logger
 	ApplicationStartUpTime time.Time
 	DBClient               *mongo.Client
+	InfluxDBClient         influxdb2.Client
 )
 
 func InitConfig() error {
@@ -43,8 +45,18 @@ func InitConfig() error {
 
 	InitAndSetLogger(logConfig)
 	InitMongoDBConnection()
+	initAndSetInfluxClient()
 
 	return nil
+}
+
+func initAndSetInfluxClient() {
+	client := influxdb2.NewClientWithOptions(
+		os.Getenv("INFLUXDB_URL"),
+		os.Getenv("BUCKET_TOKEN"),
+		influxdb2.DefaultOptions().SetBatchSize(10))
+	InfluxDBClient = client
+	Logger.Info("InfluxDB client initialied successfully")
 }
 
 func EnsureAllServiceSpecificEnvVarsAreSet() error {
@@ -66,6 +78,9 @@ func EnsureAllServiceSpecificEnvVarsAreSet() error {
 	}
 	if os.Getenv("CRAWLING_STATS_COLLECTION") == "" {
 		resultString += "CRAWLING_STATS_COLLECTION\n"
+	}
+	if os.Getenv("DATASTORE_LATENCIES_BUCKET") == "" {
+		resultString += "DATASTORE_LATENCIES_BUCKET\n"
 	}
 
 	if resultString != "" {

@@ -1,17 +1,21 @@
 package endpoints
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/IamCathal/neo/services/datastore/app"
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/gorilla/mux"
+	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/neosteamfriendgraphing/common/util"
@@ -112,6 +116,25 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
 			zap.String("path", r.URL.EscapedPath()),
 		)
+
+		urlPathBasic := ""
+		urlPath := strings.Split(r.URL.EscapedPath(), "/")
+
+		if len(urlPath) > 1 {
+			urlPathBasic = urlPath[1]
+		} else {
+			urlPathBasic = "/"
+		}
+
+		writeAPI := configuration.InfluxDBClient.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("DATASTORE_LATENCIES_BUCKET"))
+		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
+			AddTag("path", urlPathBasic).
+			AddField("latency", util.GetCurrentTimeInMs()-requestStartTime).
+			SetTime(time.Now())
+		err := writeAPI.WritePoint(context.Background(), point)
+		if err != nil {
+			log.Fatal(err)
+		}
 	})
 }
 

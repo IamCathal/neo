@@ -21,6 +21,7 @@ import (
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/neosteamfriendgraphing/common/util"
+	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -385,8 +386,6 @@ func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.
 	}
 
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
-
-	time.Sleep(100 * time.Millisecond)
 }
 
 func TestGetUserReturnsInvalidResponseWhenGivenAnInvalidSteamID(t *testing.T) {
@@ -395,4 +394,82 @@ func TestGetUserReturnsInvalidResponseWhenGivenAnInvalidSteamID(t *testing.T) {
 		mockController,
 	}
 	assert.HTTPStatusCode(t, endpoints.GetUser, "GET", "/getuser/invalidsteamid", nil, 400)
+}
+
+func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	rand.Seed(time.Now().UnixNano())
+	randomPort := rand.Intn(48150) + 1024
+
+	// Start a server with this test's mock controller
+	// and shutdown after 2ms
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
+
+	randomErr := errors.New("random error")
+	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, randomErr)
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"invalid crawlid",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/gobbeldygook", randomPort))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+	rand.Seed(time.Now().UnixNano())
+	randomPort := rand.Intn(48150) + 1024
+
+	// Start a server with this test's mock controller
+	// and shutdown after 2ms
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
+	expectedCrawlingStatus := common.CrawlingStatus{
+		TimeStarted:         time.Now(),
+		CrawlID:             ksuid.New().String(),
+		OriginalCrawlTarget: "someuser",
+		MaxLevel:            3,
+		TotalUsersToCrawl:   1337,
+		UsersCrawled:        625,
+	}
+
+	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(expectedCrawlingStatus, nil)
+
+	expectedResponse := struct {
+		Status         string                `json:"status"`
+		CrawlingStatus common.CrawlingStatus `json:"crawlingstatus"`
+	}{
+		"success",
+		expectedCrawlingStatus,
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/%s", randomPort, expectedCrawlingStatus.CrawlID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
 }

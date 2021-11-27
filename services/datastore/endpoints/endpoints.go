@@ -260,24 +260,21 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	fmt.Println(vars["crawlid"])
 	_, err := ksuid.Parse(vars["crawlid"])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
 		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
-
 	crawlingStatus, err := app.GetCrawlingStatsFromDB(endpoints.Cntr, vars["crawlid"])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "couldn't get crawling status", vars, http.StatusNotFound)
 		LogBasicInfo("couldn't get crawling status", r, http.StatusNotFound)
 		return
 	}
-
 	response := struct {
 		Status         string                `json:"status"`
-		CrawlingStatus common.CrawlingStatus `json:"crawlingStatus"`
+		CrawlingStatus common.CrawlingStatus `json:"crawlingstatus"`
 	}{
 		"success",
 		crawlingStatus,

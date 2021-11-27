@@ -18,7 +18,7 @@ Datastore expects the following variables to be set in .env
 | `DB_NAME`      |  Database name for the stored data |
 | `USER_COLLECTION`      |  Collection name for the user data |
 | `CRAWLING_STATS_COLLECTION`      |  Collection name for the crawling stats |
-
+| `DATASTORE_LATENCIES_BUCKET`      |  Latency bucket for Datastore |
 
 
 #### Default

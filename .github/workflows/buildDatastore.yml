@@ -21,6 +21,15 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
+    - name: Create .env and move into endpoints/
+      run: |
+        touch .env
+        echo ORG=${{ secrets.ORG }} >> .env
+        echo BUCKET_TOKEN=${{ secrets.BUCKET_TOKEN }} >> .env
+        echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
+        mv .env services/datastore/endpoints
+        cat services/datastore/endpoints/.env
+
     - name: Build the module
       run: cd services/datastore && go build -v ./...
 

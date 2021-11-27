@@ -70,7 +70,6 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				vars := mux.Vars(r)
-				fmt.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				response := struct {
 					Error string `json:"error"`
@@ -125,7 +124,6 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		} else {
 			urlPathBasic = "/"
 		}
-
 		writeAPI := configuration.InfluxDBClient.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("DATASTORE_LATENCIES_BUCKET"))
 		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
 			AddTag("path", urlPathBasic).
@@ -245,7 +243,6 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 		LogBasicInfo("couldn't get user", r, http.StatusBadRequest)
 		return
 	}
-
 	response := struct {
 		Status string              `json:"status"`
 		User   common.UserDocument `json:"user"`

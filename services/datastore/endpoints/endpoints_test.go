@@ -16,6 +16,8 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
+	influxdb2 "github.com/influxdata/influxdb-client-go"
+	"github.com/joho/godotenv"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/neosteamfriendgraphing/common/util"
@@ -31,6 +33,9 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
 	initTestData()
 	c := zap.NewProductionConfig()
 	c.OutputPaths = []string{"/dev/null"}
@@ -39,9 +44,18 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 	configuration.Logger = logger
+	createMockInfluxDBClient()
 
 	code := m.Run()
+
 	os.Exit(code)
+}
+
+func createMockInfluxDBClient() {
+	os.Setenv("DATASTORE_LATENCIES_BUCKET", "testDataBucket")
+	configuration.InfluxDBClient = influxdb2.NewClient(
+		os.Getenv("INFLUXDB_URL"),
+		os.Getenv("BUCKET_TOKEN"))
 }
 
 func initTestData() {

@@ -17,6 +17,7 @@ type CntrInterface interface {
 	InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error)
 	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error)
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
+	GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (common.CrawlingStatus, error)
 }
 
 func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error) {
@@ -66,4 +67,16 @@ func (control Cntr) GetUser(ctx context.Context, steamID string) (common.UserDoc
 		return common.UserDocument{}, err
 	}
 	return userDoc, nil
+}
+
+func (control Cntr) GetCrawlingStatusFromDB(ctx context.Context, crawlingStatusCollection *mongo.Collection, crawlID string) (common.CrawlingStatus, error) {
+	crawlingStatus := common.CrawlingStatus{}
+
+	if err := crawlingStatusCollection.FindOne(ctx, bson.M{
+		"crawlid": crawlID,
+	}).Decode(&crawlingStatus); err != nil {
+		return common.CrawlingStatus{}, err
+	}
+
+	return crawlingStatus, nil
 }

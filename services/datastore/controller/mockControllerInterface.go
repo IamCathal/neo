@@ -17,6 +17,27 @@ type MockCntrInterface struct {
 	mock.Mock
 }
 
+// GetCrawlingStatusFromDB provides a mock function with given fields: ctx, collection, crawlID
+func (_m *MockCntrInterface) GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (common.CrawlingStatus, error) {
+	ret := _m.Called(ctx, collection, crawlID)
+
+	var r0 common.CrawlingStatus
+	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, string) common.CrawlingStatus); ok {
+		r0 = rf(ctx, collection, crawlID)
+	} else {
+		r0 = ret.Get(0).(common.CrawlingStatus)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, string) error); ok {
+		r1 = rf(ctx, collection, crawlID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUser provides a mock function with given fields: ctx, steamID
 func (_m *MockCntrInterface) GetUser(ctx context.Context, steamID string) (common.UserDocument, error) {
 	ret := _m.Called(ctx, steamID)

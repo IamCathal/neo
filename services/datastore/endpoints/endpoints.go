@@ -43,6 +43,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/saveuser", endpoints.SaveUser).Methods("POST")
 	r.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
 	r.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
+	r.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -254,6 +255,36 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 
+}
+
+func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	fmt.Println(vars["crawlid"])
+	_, err := ksuid.Parse(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
+		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
+		return
+	}
+
+	crawlingStatus, err := app.GetCrawlingStatsFromDB(endpoints.Cntr, vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "couldn't get crawling status", vars, http.StatusNotFound)
+		LogBasicInfo("couldn't get crawling status", r, http.StatusNotFound)
+		return
+	}
+
+	response := struct {
+		Status         string                `json:"status"`
+		CrawlingStatus common.CrawlingStatus `json:"crawlingStatus"`
+	}{
+		"success",
+		crawlingStatus,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {

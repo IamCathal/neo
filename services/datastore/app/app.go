@@ -99,3 +99,12 @@ func GetUserFromDB(cntr controller.CntrInterface, steamID string) (common.UserDo
 	}
 	return user, nil
 }
+
+func GetCrawlingStatsFromDB(cntr controller.CntrInterface, crawlID string) (common.CrawlingStatus, error) {
+	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
+	crawlingStatus, err := cntr.GetCrawlingStatusFromDB(context.TODO(), crawlingStatsCollection, crawlID)
+	if err != nil {
+		return common.CrawlingStatus{}, err
+	}
+	return crawlingStatus, nil
+}

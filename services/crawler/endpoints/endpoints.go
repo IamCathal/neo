@@ -139,14 +139,15 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Change this to use
+	// isValid := common.IsValidFormatSteamID()
 	validSteamIDs, err := worker.VerifyFormatOfSteamIDs(userInput)
 	if err != nil {
-		commonUtil.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
-		util.LogBasicErr(err, r, http.StatusBadRequest)
+		commonUtil.SendBasicInvalidResponse(w, r, "invalid format steamID(s)", vars, http.StatusBadRequest)
 		return
 	}
 	if len(validSteamIDs) == 0 {
-		commonUtil.SendBasicInvalidResponse(w, r, "No valid format steamIDs sent", vars, http.StatusBadRequest)
+		commonUtil.SendBasicInvalidResponse(w, r, "No valid format steamIDs given", vars, http.StatusBadRequest)
 		return
 	}
 	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", validSteamIDs, userInput.Level), r, http.StatusOK)

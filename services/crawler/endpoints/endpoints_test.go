@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
+	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -48,9 +50,10 @@ func initServerAndDependencies() (*controller.MockCntrInterface, int) {
 	ctx, cancel := context.WithCancel(ctx)
 	go runServer(mockController, ctx, randomPort)
 	go func() {
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(15 * time.Millisecond)
 		cancel()
 	}()
+	time.Sleep(1 * time.Millisecond)
 	return mockController, randomPort
 }
 
@@ -129,4 +132,104 @@ func TestIsPrivateProfileReturnsInvalidResponseWhenCallGetFriendsReturnsAnError(
 
 	mockController.AssertCalled(t, "CallGetFriends", validFormatSteamID)
 	assert.Equal(t, 400, res.StatusCode)
+}
+
+func TestCrawlOneValidUser(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	userCrawlInput := datastructures.CrawlUsersInput{
+		FirstSteamID: validFormatSteamID,
+		Level:        3,
+	}
+	requestBodyJSON, err := json.Marshal(userCrawlInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.On("PublishToJobsQueue", mock.Anything).Return(nil)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/crawl", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	apiResponse := common.BasicAPIResponse{}
+	err = json.Unmarshal(body, &apiResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, res.StatusCode, 200)
+	assert.Equal(t, "success", apiResponse.Status)
+}
+
+func TestCrawlUserReturnsInvalidLevelGivenWhenItGetsInvalidInput(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	invalidUserCrawlInput := common.BasicAPIResponse{
+		Status:  "error",
+		Message: "Ribena",
+	}
+	requestBodyJSON, err := json.Marshal(invalidUserCrawlInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/crawl", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"Invalid level given",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.AssertNotCalled(t, "CallGetFriends")
+	assert.Equal(t, 400, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestCrawlUserReturnsInvalidFormatSteamIDsForInvalidSteamIDs(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	invalidUserCrawlInput := datastructures.CrawlUsersInput{
+		FirstSteamID: "uachtar reoite",
+		Level:        3,
+	}
+	requestBodyJSON, err := json.Marshal(invalidUserCrawlInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/crawl", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"No valid format steamIDs given",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.AssertNotCalled(t, "CallGetFriends")
+	assert.Equal(t, 400, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }

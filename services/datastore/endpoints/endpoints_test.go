@@ -69,7 +69,7 @@ func initServerAndDependencies() (*controller.MockCntrInterface, int) {
 	ctx, cancel := context.WithCancel(ctx)
 	go runServer(mockController, ctx, randomPort)
 	go func() {
-		time.Sleep(4 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		cancel()
 	}()
 	return mockController, randomPort
@@ -386,12 +386,9 @@ func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *te
 
 	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(expectedCrawlingStatus, nil)
 
-	expectedResponse := struct {
-		Status         string                `json:"status"`
-		CrawlingStatus common.CrawlingStatus `json:"crawlingstatus"`
-	}{
-		"success",
-		expectedCrawlingStatus,
+	expectedResponse := dtos.GetCrawlingStatusDTO{
+		Status:         "success",
+		CrawlingStatus: expectedCrawlingStatus,
 	}
 	expectedJSONResponse, err := json.Marshal(expectedResponse)
 	if err != nil {

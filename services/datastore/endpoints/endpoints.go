@@ -272,12 +272,9 @@ func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Req
 		LogBasicInfo("couldn't get crawling status", r, http.StatusNotFound)
 		return
 	}
-	response := struct {
-		Status         string                `json:"status"`
-		CrawlingStatus common.CrawlingStatus `json:"crawlingstatus"`
-	}{
-		"success",
-		crawlingStatus,
+	response := dtos.GetCrawlingStatusDTO{
+		Status:         "success",
+		CrawlingStatus: crawlingStatus,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

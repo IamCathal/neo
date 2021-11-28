@@ -11,7 +11,7 @@ require (
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/joho/godotenv v1.4.0
 	github.com/mackerelio/go-osstat v0.2.1
-	github.com/neosteamfriendgraphing/common v0.0.0-20211125201017-c9ac4c8041b8
+	github.com/neosteamfriendgraphing/common v0.0.0-20211128163011-af727f78771b
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0

@@ -59,6 +59,20 @@ func createMockInfluxDBClient() {
 		os.Getenv("BUCKET_TOKEN"))
 }
 
+func initServerAndDependencies() (*controller.MockCntrInterface, int) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+	rand.Seed(time.Now().UnixNano())
+	randomPort := rand.Intn(48150) + 1024
+
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	go runServer(mockController, ctx, randomPort)
+	time.Sleep(2 * time.Millisecond)
+	cancel()
+	return mockController, randomPort
+}
+
 func initTestData() {
 	testUser = common.UserDocument{
 		AccDetails: common.AccDetailsDocument{
@@ -110,18 +124,7 @@ func TestGetAPIStatus(t *testing.T) {
 }
 
 func TestSaveUserWithExistingUser(t *testing.T) {
-	mockController := &controller.MockCntrInterface{}
-	configuration.DBClient = &mongo.Client{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
-
-	// Start a server with this test's mock controller
-	// and shutdown after 2ms
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
+	mockController, serverPort := initServerAndDependencies()
 
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
@@ -150,7 +153,7 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -164,18 +167,7 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 }
 
 func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *testing.T) {
-	mockController := &controller.MockCntrInterface{}
-	configuration.DBClient = &mongo.Client{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
-
-	// Start a server with this test's mock controller
-	// and shutdown after 2ms
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
+	mockController, serverPort := initServerAndDependencies()
 
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
@@ -196,7 +188,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -210,18 +202,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 }
 
 func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing.T) {
-	mockController := &controller.MockCntrInterface{}
-	configuration.DBClient = &mongo.Client{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
-
-	// Start a server with this test's mock controller
-	// and shutdown after 2ms
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
+	mockController, serverPort := initServerAndDependencies()
 
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
@@ -248,7 +229,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -262,21 +243,10 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 }
 
 func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
-	mockController := &controller.MockCntrInterface{}
-	configuration.DBClient = &mongo.Client{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
+	mockController, serverPort := initServerAndDependencies()
 
 	maxLeveltestUserDTO := testSaveUserDTO
 	maxLeveltestUserDTO.CurrentLevel = maxLeveltestUserDTO.MaxLevel
-
-	// Start a server with this test's mock controller
-	// and shutdown after 2ms
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
 
 	mockController.On("UpdateCrawlingStatus",
 		mock.Anything,
@@ -305,7 +275,7 @@ func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", randomPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -322,17 +292,7 @@ func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	mockController := &controller.MockCntrInterface{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
-
-	// Start a server with this test's mock controller
-	// and shutdown after 2ms
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
+	mockController, serverPort := initServerAndDependencies()
 
 	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(testUser, nil)
 	expectedResponse := struct {
@@ -347,7 +307,7 @@ func TestGetUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", randomPort, testUser.AccDetails.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", serverPort, testUser.AccDetails.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -356,17 +316,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.T) {
-	mockController := &controller.MockCntrInterface{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
-
-	// Start a server with this test's mock controller
-	// and shutdown after 2ms
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
+	mockController, serverPort := initServerAndDependencies()
 
 	expectedError := errors.New("couldn't get user")
 	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, expectedError)
@@ -380,7 +330,7 @@ func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", randomPort, testUser.AccDetails.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", serverPort, testUser.AccDetails.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -397,17 +347,7 @@ func TestGetUserReturnsInvalidResponseWhenGivenAnInvalidSteamID(t *testing.T) {
 }
 
 func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T) {
-	mockController := &controller.MockCntrInterface{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
-
-	// Start a server with this test's mock controller
-	// and shutdown after 2ms
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
+	mockController, serverPort := initServerAndDependencies()
 
 	randomErr := errors.New("random error")
 	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, randomErr)
@@ -422,7 +362,7 @@ func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T)
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/gobbeldygook", randomPort))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/gobbeldygook", serverPort))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -431,18 +371,8 @@ func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T)
 }
 
 func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *testing.T) {
-	mockController := &controller.MockCntrInterface{}
-	configuration.DBClient = &mongo.Client{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
+	mockController, serverPort := initServerAndDependencies()
 
-	// Start a server with this test's mock controller
-	// and shutdown after 2ms
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
 	expectedCrawlingStatus := common.CrawlingStatus{
 		TimeStarted:         time.Now(),
 		CrawlID:             ksuid.New().String(),
@@ -466,7 +396,31 @@ func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *te
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/%s", randomPort, expectedCrawlingStatus.CrawlID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/%s", serverPort, expectedCrawlingStatus.CrawlID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestGetCrawlingStatsReturnsCouldntGetCrawlingStatusWhenDBReturnsAnError(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	randomError := errors.New("hello world")
+	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(common.CrawlingStatus{}, randomError)
+
+	expectedResponse := struct {
+		Message string `json:"error"`
+	}{
+		"couldn't get crawling status",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/%s", serverPort, ksuid.New().String()))
 	if err != nil {
 		log.Fatal(err)
 	}

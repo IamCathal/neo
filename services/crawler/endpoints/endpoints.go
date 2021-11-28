@@ -38,6 +38,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/crawl", endpoints.CrawlUsers).Methods("POST")
+	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -116,7 +117,7 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonObj, err := json.Marshal(req)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(util.MakeErr(err))
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -135,7 +136,6 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	if userInput.Level < 1 || userInput.Level > 3 {
 		commonUtil.SendBasicInvalidResponse(w, r, "Invalid level given", vars, http.StatusBadRequest)
-		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 
@@ -165,13 +165,42 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonObj, err := json.Marshal(response)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(util.MakeErr(err))
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(jsonObj))
+}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// w.WriteHeader(http.StatusOK)
+func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	if isValid := commonUtil.IsValidFormatSteamID(vars["steamid"]); isValid == false {
+		commonUtil.SendBasicInvalidResponse(w, r, "invalid steamid given", vars, http.StatusBadRequest)
+		return
+	}
+
+	friends, err := endpoints.Cntr.CallGetFriends(vars["steamid"])
+	if err != nil {
+		commonUtil.SendBasicInvalidResponse(w, r, "invalid steamid given", vars, http.StatusBadRequest)
+		return
+	}
+
+	response := common.BasicAPIResponse{
+		Status: "success",
+	}
+	if len(friends) == 0 {
+		response.Message = "private"
+	} else {
+		response.Message = "public"
+	}
+
+	jsonObj, err := json.Marshal(response)
+	if err != nil {
+		log.Fatal(util.MakeErr(err))
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, string(jsonObj))
 
 }

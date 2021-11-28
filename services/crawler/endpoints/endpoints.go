@@ -159,10 +159,9 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	// 	util.LogBasicErr(err, vars, r, http.StatusBadRequest)
 	// 	return
 	// }
-	response := struct {
-		Status string
-	}{
-		Status: "success, now crawling",
+	response := common.BasicAPIResponse{
+		Status:  "success",
+		Message: vars["requestID"],
 	}
 	jsonObj, err := json.Marshal(response)
 	if err != nil {

@@ -3,9 +3,11 @@ package worker
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
@@ -46,6 +48,7 @@ func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]string, err
 }
 
 func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructures.Job, friendIDs []string) error {
+	startTime := time.Now()
 	for _, ID := range friendIDs {
 		nextLevel := currentJob.CurrentLevel + 1
 		if nextLevel <= currentJob.MaxLevel {
@@ -62,17 +65,35 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 			if err != nil {
 				return err
 			}
-			configuration.Logger.Info(fmt.Sprintf("pushing job from: %+v", newJob))
+
+			configuration.Logger.Sugar().Infof("pushing job: %+v", newJob)
 			err = cntr.PublishToJobsQueue(jsonObj)
 			if err != nil {
-				return err
+				configuration.Logger.Sugar().Infof("failed to publish job: %+v retrying now", newJob)
+				maxRetries := 3
+				successfulRequest := false
+
+				for i := 0; i < maxRetries; i++ {
+					exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+					time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
+					err = cntr.PublishToJobsQueue(jsonObj)
+					if err == nil {
+						configuration.Logger.Sugar().Infof("successfully placed job in queue after %d retries", i)
+						successfulRequest = true
+						break
+					}
+					configuration.Logger.Info(fmt.Sprintf("failed to publish job to queue. Retrying for the %d time: %+v", i, newJob))
+				}
+
+				if !successfulRequest {
+					configuration.Logger.Error(fmt.Sprintf("failed to publish job to queue after %v and retrying %d times with job: %+v", time.Since(startTime), maxRetries, newJob))
+					return err
+				}
 			}
-			// configuration.Logger.Info(fmt.Sprintf("placed job %s:%d into queue", friend.Steamid, job.CurrentLevel))
-		} else {
-			// configuration.Logger.Info(fmt.Sprintf("job %d:%d was not published", job.CurrentTargetSteamID, job.CurrentLevel))
 		}
 
 	}
+	configuration.Logger.Sugar().Infof("took %v to publish %d jobs to queue", time.Since(startTime), len(friendIDs))
 	return nil
 }
 

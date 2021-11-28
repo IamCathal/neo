@@ -25,6 +25,22 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	if userWasFoundInDB {
+		crawlingStatus := common.CrawlingStatus{
+			OriginalCrawlTarget: job.OriginalTargetSteamID,
+			MaxLevel:            job.MaxLevel,
+			CrawlID:             job.CrawlID,
+			TotalUsersToCrawl:   len(friendsList),
+		}
+
+		success, err := cntr.SaveCrawlingStatsToDataStore(job.CurrentLevel, crawlingStatus)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if !success {
+			configuration.Logger.Sugar().Fatalf("failed to save crawling stats to DB for existing user: %+v", err)
+			log.Fatal(err)
+		}
+
 		friendsShoudlBeCrawled := util.JobIsNotLevelOneAndNotMax(job)
 		// If the job is not at max level or has a max level of one, add
 		// friends to the queue for crawling
@@ -35,21 +51,6 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 				log.Fatal(err)
 			}
 		}
-
-		crawlingStatus := common.CrawlingStatus{
-			OriginalCrawlTarget: job.OriginalTargetSteamID,
-			MaxLevel:            job.MaxLevel,
-			CrawlID:             job.CrawlID,
-			TotalUsersToCrawl:   len(friendsList),
-		}
-		success, err := cntr.SaveCrawlingStatsToDataStore(job.CurrentLevel, crawlingStatus)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if !success {
-			configuration.Logger.Sugar().Fatalf("failed to save crawling stats to DB for existing user: %+v", err)
-			log.Fatal(err)
-		}
 		return
 	}
 
@@ -58,6 +59,19 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	if err != nil {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
 		log.Fatal(err)
+	}
+	// TODO implement proper fix for this
+	if len(playerSummaries) == 0 {
+		configuration.Logger.Sugar().Infof("calling get player summary again for %s", job.CurrentTargetSteamID)
+		playerSummaries, err = cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
+		if err != nil {
+			configuration.Logger.Fatal(fmt.Sprintf("failed AGAIN to get player summary for target user: %v", err.Error()))
+			log.Fatal(err)
+		}
+		if len(playerSummaries) == 0 {
+			configuration.Logger.Fatal(fmt.Sprintf("failed to get a non empty player summary for target user for a second time: %v", err.Error()))
+			log.Fatal("bad cant get player summary for a second time")
+		}
 	}
 	playerSummaryForCurrentUser := playerSummaries[0]
 
@@ -83,12 +97,6 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 
-	// TODO Implement when target user profile summary is included in the main call
-	// Will also need to slice off this user because a user cannot be in their own friendslist
-	// found, targetUsersProfileSummary := getUsersProfileSummaryFromSlice(job.CurrentTargetSteamID, playerSummaries)
-	// if !found {
-	// 	log.Fatal("players own summary not found in lookup")
-	// }
 	privateFriendCount := len(friendsList) - len(friendPlayerSummaries)
 	publicFriendCount := len(friendsList) - privateFriendCount
 	logMsg := fmt.Sprintf("Got data for [%s][%s][%s][%d public %d private friends][%d games]",
@@ -124,7 +132,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	if !success {
-		configuration.Logger.Sugar().Fatalf("failed to save user to DB: %+v", err)
+		configuration.Logger.Sugar().Fatalf("failed to save user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err)
 		log.Fatal(err)
 	}
 }

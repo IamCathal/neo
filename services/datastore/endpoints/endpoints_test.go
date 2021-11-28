@@ -68,8 +68,10 @@ func initServerAndDependencies() (*controller.MockCntrInterface, int) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	go runServer(mockController, ctx, randomPort)
-	time.Sleep(2 * time.Millisecond)
-	cancel()
+	go func() {
+		time.Sleep(4 * time.Millisecond)
+		cancel()
+	}()
 	return mockController, randomPort
 }
 

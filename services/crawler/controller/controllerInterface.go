@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
@@ -159,9 +161,13 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 	for i := 1; i <= maxRetryCount; i++ {
 		res, callErr = client.Do(req)
 		if callErr != nil {
-			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, saveUser.User.AccDetails.SteamID, i)
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, saveUser.User.AccDetails.SteamID, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
+			res.Body.Close()
 		} else {
 			successfulRequest = true
+			defer res.Body.Close()
 			break
 		}
 	}
@@ -170,7 +176,6 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 		return false, util.MakeErr(callErr)
 	}
 
-	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return false, util.MakeErr(err)

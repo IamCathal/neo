@@ -11,8 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IamCathal/neo/services/frontend/app"
+	"github.com/IamCathal/neo/services/frontend/configuration"
 	"github.com/gorilla/mux"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -20,7 +23,6 @@ import (
 
 type Endpoints struct {
 	ApplicationStartUpTime time.Time
-	Logger                 *zap.Logger
 }
 
 // responseWriter is a minimal wrapper for http.ResponseWriter that allows the
@@ -37,6 +39,8 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/", endpoints.HomeHandler).Methods("GET")
 	r.HandleFunc("/graph/{graphID}", endpoints.ServeGraph).Methods("GET")
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
+	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
+	r.HandleFunc("/createcrawlingstatus", endpoints.CreateCrawlingStatus).Methods("POST")
 
 	r.Use(endpoints.LoggingMiddleware)
 
@@ -89,7 +93,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 				requestStartTime, timeParseErr := strconv.ParseInt(vars["requestStartTime"], 10, 64)
 				if timeParseErr != nil {
-					endpoints.Logger.Fatal(fmt.Sprintf("%v", err),
+					configuration.Logger.Fatal(fmt.Sprintf("%v", err),
 						zap.String("requestID", vars["requestID"]),
 						zap.Int("status", http.StatusInternalServerError),
 						zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
@@ -98,7 +102,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 					panic(timeParseErr)
 				}
 
-				endpoints.Logger.Error(fmt.Sprintf("%v", err),
+				configuration.Logger.Error(fmt.Sprintf("%v", err),
 					zap.String("requestID", vars["requestID"]),
 					zap.Int("status", http.StatusInternalServerError),
 					zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
@@ -118,7 +122,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		wrapped := wrapResponseWriter(w)
 		next.ServeHTTP(wrapped, r)
 
-		endpoints.Logger.Info("served content",
+		configuration.Logger.Info("served content",
 			zap.String("requestID", vars["requestID"]),
 			zap.Int("status", wrapped.status),
 			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
@@ -153,6 +157,57 @@ func (endpoints *Endpoints) ServeGraph(w http.ResponseWriter, req *http.Request)
 	}
 
 	http.ServeFile(w, req, fmt.Sprintf("%s/pages/%s.html", os.Getenv("STATIC_CONTENT_DIR_NAME"), vars["graphID"]))
+}
+
+func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	if isValid := util.IsValidFormatSteamID(vars["steamid"]); isValid == false {
+		util.SendBasicInvalidResponse(w, r, "invalid steamid given", vars, http.StatusBadRequest)
+		return
+	}
+
+	res, err := util.GetAndRead(
+		fmt.Sprintf("%s/isprivateprofile/%s", os.Getenv("CRAWLER_INSTANCE"), vars["steamid"]))
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "could not check status of steam profile", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Warnf("failed to call isprivateprofile for %s: %v", vars["steamid"], err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, string(res))
+}
+
+func (endpoints *Endpoints) CreateCrawlingStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	crawlingStatus := dtos.SaveCrawlingStatsDTO{}
+
+	err := json.NewDecoder(r.Body).Decode(&crawlingStatus)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		LogBasicErr(err, r, http.StatusBadRequest)
+		return
+	}
+
+	success, err := app.CreateCrawlingStatus(crawlingStatus)
+	if err != nil || success == false {
+		util.SendBasicInvalidResponse(w, r, "Error saving crawling status", vars, http.StatusBadRequest)
+		LogBasicErr(err, r, http.StatusBadRequest)
+		return
+	}
+
+	response := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"very good",
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {

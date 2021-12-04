@@ -15,7 +15,6 @@ var (
 func TestMain(m *testing.M) {
 	endpoints = Endpoints{
 		ApplicationStartUpTime: time.Now(),
-		Logger:                 nil,
 	}
 
 	code := m.Run()

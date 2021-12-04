@@ -72,18 +72,37 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 	allPlayerSummaries := common.SteamAPIResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
 	// fmt.Println("get player summary")
+	maxRetryCount := 3
+	successfulRequest := false
 
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
 		apiKey, steamIDStringList)
 	res, err := MakeNetworkGETRequest(targetURL)
 	if err != nil {
+		configuration.Logger.Info("error from first call to getPlayerSummaries, retrying")
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = MakeNetworkGETRequest(targetURL)
+			if err == nil {
+				configuration.Logger.Sugar().Infof("success on the %d request", i)
+				successfulRequest = true
+				break
+			}
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 12
+			configuration.Logger.Sugar().Infof("failed to call get player summaries (%s) %d times. Sleeping for %d ms", steamIDStringList, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
+		}
+	} else {
+		successfulRequest = true
+	}
+
+	if successfulRequest == false {
 		return []common.Player{}, err
 	}
-	json.Unmarshal(res, &allPlayerSummaries)
 
+	json.Unmarshal(res, &allPlayerSummaries)
 	// Check if empty
 	if len(allPlayerSummaries.Response.Players) == 0 {
-		configuration.Logger.Sugar().Infof("empty player summary for %s: %+v", targetURL, allPlayerSummaries.Response.Players)
+		configuration.Logger.Sugar().Warnf("empty player summary for %s: %+v", targetURL, allPlayerSummaries.Response.Players)
 	}
 	return allPlayerSummaries.Response.Players, nil
 }
@@ -212,8 +231,10 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 		res, callErr = client.Do(req)
 		if callErr != nil {
 			configuration.Logger.Sugar().Infof("failed to call %s %d times", targetURL, i)
+			res.Body.Close()
 		} else {
 			successfulRequest = true
+			defer res.Body.Close()
 			break
 		}
 	}
@@ -226,7 +247,6 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	if res.StatusCode == http.StatusNotFound {
 		return common.UserDocument{}, nil
 	}
-	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return common.UserDocument{}, util.MakeErr(err)
@@ -267,8 +287,10 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 		res, callErr = client.Do(req)
 		if callErr != nil {
 			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, crawlingStatus.CrawlID, i)
+			res.Body.Close()
 		} else {
 			successfulRequest = true
+			defer res.Body.Close()
 			break
 		}
 	}
@@ -277,7 +299,6 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 		return false, util.MakeErr(callErr)
 	}
 
-	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return false, util.MakeErr(err)

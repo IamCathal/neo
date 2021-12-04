@@ -74,7 +74,7 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 				successfulRequest := false
 
 				for i := 0; i < maxRetries; i++ {
-					exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+					exponentialBackOffSleepTime := math.Pow(6, float64(i)) * 28
 					time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 					err = cntr.PublishToJobsQueue(jsonObj)
 					if err == nil {
@@ -82,7 +82,7 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 						successfulRequest = true
 						break
 					}
-					configuration.Logger.Info(fmt.Sprintf("failed to publish job to queue. Retrying for the %d time: %+v", i, newJob))
+					configuration.Logger.Info(fmt.Sprintf("failed to publish job to queue. Sleeping for %v ms Retrying for the %d time: %+v", exponentialBackOffSleepTime, i, newJob))
 				}
 
 				if !successfulRequest {
@@ -91,7 +91,7 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 				}
 			}
 		}
-
+		time.Sleep(25 * time.Millisecond)
 	}
 	configuration.Logger.Sugar().Infof("took %v to publish %d jobs to queue", time.Since(startTime), len(friendIDs))
 	return nil

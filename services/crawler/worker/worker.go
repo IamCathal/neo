@@ -53,8 +53,8 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		}
 		return
 	}
-
 	// User was never crawled before
+
 	playerSummaries, err := cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
 	if err != nil {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
@@ -69,7 +69,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 			log.Fatal(err)
 		}
 		if len(playerSummaries) == 0 {
-			configuration.Logger.Fatal(fmt.Sprintf("failed to get a non empty player summary for target user for a second time: %v", err.Error()))
+			configuration.Logger.Fatal(fmt.Sprintf("failed to get a non empty player summary for target user for a second time"))
 			log.Fatal("bad cant get player summary for a second time")
 		}
 	}
@@ -190,7 +190,7 @@ func ControlFunc(cntr controller.CntrInterface) {
 	}
 }
 
-func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int) {
+func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int) error {
 	newJob := datastructures.Job{
 		JobType:               "crawl",
 		OriginalTargetSteamID: steamID,
@@ -212,4 +212,5 @@ func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int
 	} else {
 		configuration.Logger.Info(fmt.Sprintf("placed job steamID: %s level: %d into queue", steamID, level))
 	}
+	return err
 }

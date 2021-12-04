@@ -154,12 +154,12 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 
 	// TODO make a new crawlID when crawling a second user and log it to see the connection
 	// between requestID and this new crawlID
-	worker.CrawlUser(endpoints.Cntr, validSteamIDs[0], vars["requestID"], userInput.Level)
-	// if err != nil {
-	// 	util.SendBasicErrorResponse(w, r, err, vars, http.StatusBadRequest)
-	// 	util.LogBasicErr(err, vars, r, http.StatusBadRequest)
-	// 	return
-	// }
+	err = worker.CrawlUser(endpoints.Cntr, validSteamIDs[0], vars["requestID"], userInput.Level)
+	if err != nil {
+		commonUtil.SendBasicInvalidResponse(w, r, "couldn't start crawl", vars, http.StatusBadRequest)
+		return
+	}
+
 	response := common.BasicAPIResponse{
 		Status:  "success",
 		Message: vars["requestID"],

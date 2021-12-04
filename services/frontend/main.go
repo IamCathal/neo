@@ -7,24 +7,19 @@ import (
 	"os"
 	"time"
 
+	"github.com/IamCathal/neo/services/frontend/configuration"
 	"github.com/IamCathal/neo/services/frontend/endpoints"
 	"github.com/IamCathal/neo/services/frontend/statsmonitoring"
-	"github.com/joho/godotenv"
 	"github.com/neosteamfriendgraphing/common/util"
 )
 
 func main() {
-	err := godotenv.Load()
+	err := configuration.InitConfig()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("failure initialising config: %v", err)
 	}
 
-	logConfig, err := util.LoadLoggingConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
 	endpoints := &endpoints.Endpoints{
-		Logger:                 util.InitLogger(logConfig),
 		ApplicationStartUpTime: time.Now(),
 	}
 
@@ -38,6 +33,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-	endpoints.Logger.Info(fmt.Sprintf("frontend start up and serving requsts on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
+	configuration.Logger.Info(fmt.Sprintf("frontend start up and serving requsts on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())
 }

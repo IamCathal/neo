@@ -203,5 +203,5 @@ func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(jsonObj))
-
+	
 }

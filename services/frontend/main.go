@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/IamCathal/neo/services/frontend/configuration"
+	"github.com/IamCathal/neo/services/frontend/controller"
 	"github.com/IamCathal/neo/services/frontend/endpoints"
 	"github.com/IamCathal/neo/services/frontend/statsmonitoring"
 	"github.com/neosteamfriendgraphing/common/util"
@@ -19,8 +20,9 @@ func main() {
 		log.Fatalf("failure initialising config: %v", err)
 	}
 
+	controller := controller.Cntr{}
 	endpoints := &endpoints.Endpoints{
-		ApplicationStartUpTime: time.Now(),
+		Cntr: controller,
 	}
 
 	go statsmonitoring.CollectAndShipStats()

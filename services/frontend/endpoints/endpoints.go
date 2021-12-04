@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IamCathal/neo/services/frontend/app"
 	"github.com/IamCathal/neo/services/frontend/configuration"
+	"github.com/IamCathal/neo/services/frontend/controller"
 	"github.com/gorilla/mux"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
@@ -22,7 +22,7 @@ import (
 )
 
 type Endpoints struct {
-	ApplicationStartUpTime time.Time
+	Cntr controller.CntrInterface
 }
 
 // responseWriter is a minimal wrapper for http.ResponseWriter that allows the
@@ -191,7 +191,13 @@ func (endpoints *Endpoints) CreateCrawlingStatus(w http.ResponseWriter, r *http.
 		return
 	}
 
-	success, err := app.CreateCrawlingStatus(crawlingStatus)
+	crawlingStatusJSON, err := json.Marshal(crawlingStatus)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		LogBasicErr(err, r, http.StatusBadRequest)
+		return
+	}
+	success, err := endpoints.Cntr.SaveCrawlingStats(crawlingStatusJSON)
 	if err != nil || success == false {
 		util.SendBasicInvalidResponse(w, r, "Error saving crawling status", vars, http.StatusBadRequest)
 		LogBasicErr(err, r, http.StatusBadRequest)
@@ -212,7 +218,7 @@ func (endpoints *Endpoints) CreateCrawlingStatus(w http.ResponseWriter, r *http.
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	req := common.UptimeResponse{
-		Uptime: time.Since(endpoints.ApplicationStartUpTime),
+		Uptime: time.Since(configuration.ApplicationStartUpTime),
 		Status: "operational",
 	}
 	jsonObj, err := json.Marshal(req)

@@ -21,6 +21,7 @@ func main() {
 	}
 
 	controller := controller.Cntr{}
+
 	endpoints := &endpoints.Endpoints{
 		Cntr: controller,
 	}

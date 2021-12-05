@@ -167,10 +167,9 @@ func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	res, err := util.GetAndRead(
-		fmt.Sprintf("%s/isprivateprofile/%s", os.Getenv("CRAWLER_INSTANCE"), vars["steamid"]))
+	res, err := endpoints.Cntr.CallIsPrivateProfile(vars["steamid"])
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "could not check status of steam profile", vars, http.StatusBadRequest)
+		util.SendBasicInvalidResponse(w, r, "could not check privacy status of steam profile", vars, http.StatusBadRequest)
 		configuration.Logger.Sugar().Warnf("failed to call isprivateprofile for %s: %v", vars["steamid"], err)
 		return
 	}

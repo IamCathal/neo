@@ -9,6 +9,29 @@ type MockCntrInterface struct {
 	mock.Mock
 }
 
+// CallIsPrivateProfile provides a mock function with given fields: steamID
+func (_m *MockCntrInterface) CallIsPrivateProfile(steamID string) ([]byte, error) {
+	ret := _m.Called(steamID)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(steamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(steamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveCrawlingStats provides a mock function with given fields: crawlingStatusJSON
 func (_m *MockCntrInterface) SaveCrawlingStats(crawlingStatusJSON []byte) (bool, error) {
 	ret := _m.Called(crawlingStatusJSON)

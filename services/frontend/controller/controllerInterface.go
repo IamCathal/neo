@@ -10,12 +10,14 @@ import (
 
 	"github.com/IamCathal/neo/services/frontend/configuration"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/util"
 )
 
 type Cntr struct{}
 
 type CntrInterface interface {
 	SaveCrawlingStats(crawlingStatusJSON []byte) (bool, error)
+	CallIsPrivateProfile(steamID string) ([]byte, error)
 }
 
 func (control Cntr) SaveCrawlingStats(crawlingStatusJSON []byte) (bool, error) {
@@ -53,4 +55,10 @@ func (control Cntr) SaveCrawlingStats(crawlingStatusJSON []byte) (bool, error) {
 	}
 
 	return false, fmt.Errorf("failed to save crawling status: %+v", APIRes)
+}
+
+func (contrl Cntr) CallIsPrivateProfile(steamID string) ([]byte, error) {
+	res, err := util.GetAndRead(
+		fmt.Sprintf("%s/isprivateprofile/%s", os.Getenv("CRAWLER_INSTANCE"), steamID))
+	return res, err
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -29,7 +30,8 @@ var (
 
 func TestMain(m *testing.M) {
 	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"/dev/null"}
+	// c.OutputPaths = []string{"/dev/null"}
+	c.OutputPaths = []string{"stdout"}
 	log, err := c.Build()
 	if err != nil {
 		panic(err)
@@ -118,4 +120,59 @@ func TestCreateCrawlingStatusReturnsSuccessForValidResponseFromDataStore(t *test
 
 	assert.Equal(t, res.StatusCode, 200)
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestIsPrivateProfileReturnsCorrectProfilePrivacyType(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	expectedResponse := common.BasicAPIResponse{
+		Status:  "success",
+		Message: "public",
+	}
+	expectedResponseJSON, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	mockController.On("CallIsPrivateProfile", mock.AnythingOfType("string")).Return(expectedResponseJSON, nil)
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/isprivateprofile/%s", serverPort, validFormatSteamID))
+	if err != nil {
+		log.Fatal(err)
+	}
+	realResponse, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.AssertNumberOfCalls(t, "CallIsPrivateProfile", 1)
+	assert.Equal(t, string(expectedResponseJSON), string(realResponse))
+	assert.Equal(t, 200, res.StatusCode)
+}
+
+func TestIsPrivateProfileReturnsInvalidWhenCrawlerReturnsAnError(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	emptyByteResponse := []byte{}
+	randomError := errors.New("error")
+	mockController.On("CallIsPrivateProfile", mock.AnythingOfType("string")).Return(emptyByteResponse, randomError)
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/isprivateprofile/%s", serverPort, validFormatSteamID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.AssertNumberOfCalls(t, "CallIsPrivateProfile", 1)
+	assert.Equal(t, 400, res.StatusCode)
+}
+
+func TestIsPrivateProfileReturnsInvalidSteamIDWhenGivenInvalidSteamID(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/isprivateprofile/%s", serverPort, "invalid steamID"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.AssertNotCalled(t, "CallIsPrivateProfile")
+	assert.Equal(t, 400, res.StatusCode)
 }

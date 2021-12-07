@@ -74,7 +74,12 @@ func (endpoints *Endpoints) DisallowFileBrowsing(next http.Handler) http.Handler
 			http.NotFound(w, r)
 			return
 		}
-		next.ServeHTTP(w, r)
+		if strings.HasPrefix(r.URL.Path, "/static") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		http.NotFound(w, r)
+		return
 	})
 }
 

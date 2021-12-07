@@ -30,8 +30,7 @@ var (
 
 func TestMain(m *testing.M) {
 	c := zap.NewProductionConfig()
-	// c.OutputPaths = []string{"/dev/null"}
-	c.OutputPaths = []string{"stdout"}
+	c.OutputPaths = []string{"/dev/null"}
 	log, err := c.Build()
 	if err != nil {
 		panic(err)

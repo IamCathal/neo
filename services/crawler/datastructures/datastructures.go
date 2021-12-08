@@ -32,3 +32,7 @@ type APIKey struct {
 	Key      string
 	LastUsed time.Time
 }
+
+type CreateGraph struct {
+	CrawlID string `json:"crawlid"`
+}

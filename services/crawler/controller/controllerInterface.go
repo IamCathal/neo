@@ -32,6 +32,9 @@ type CntrInterface interface {
 	SaveUserToDataStore(dtos.SaveUserDTO) (bool, error)
 	GetUserFromDataStore(steamID string) (common.UserDocument, error)
 	SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error)
+	GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error)
+	GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error)
+	GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error)
 }
 
 // CallGetFriends calls the steam web API to retrieve a list of
@@ -313,4 +316,154 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 		return true, nil
 	}
 	return false, util.MakeErr(fmt.Errorf("error saving crawling stats for existing user: %+v", APIRes))
+}
+
+func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
+	targetURL := fmt.Sprintf("%s/getcrawlingstatus/%s", os.Getenv("DATASTORE_URL"), crawlID)
+	req, err := http.NewRequest("GET", targetURL, nil)
+	req.Close = true
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authentication", "something")
+
+	client := &http.Client{}
+	res := &http.Response{}
+	var callErr error
+
+	maxRetryCount := 3
+	successfulRequest := false
+
+	for i := 1; i <= maxRetryCount; i++ {
+		res, callErr = client.Do(req)
+		if callErr != nil {
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, crawlID, i)
+			res.Body.Close()
+		} else {
+			successfulRequest = true
+			defer res.Body.Close()
+			break
+		}
+	}
+	// Failed after all retries
+	if successfulRequest == false {
+		return common.CrawlingStatus{}, util.MakeErr(callErr)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return common.CrawlingStatus{}, util.MakeErr(err)
+	}
+	APIRes := dtos.GetCrawlingStatusDTO{}
+	err = json.Unmarshal(body, &APIRes)
+	if err != nil {
+		return common.CrawlingStatus{}, util.MakeErr(err)
+	}
+
+	if res.StatusCode == 200 {
+		return APIRes.CrawlingStatus, nil
+	}
+	return common.CrawlingStatus{}, util.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
+}
+
+func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {
+	targetURL := fmt.Sprintf("%s/getgraphabledata/%s", os.Getenv("DATASTORE_URL"), steamID)
+	req, err := http.NewRequest("GET", targetURL, nil)
+	req.Close = true
+	req.Header.Set("Authentication", "something")
+
+	client := &http.Client{}
+	res := &http.Response{}
+	var callErr error
+
+	maxRetryCount := 3
+	successfulRequest := false
+
+	for i := 1; i <= maxRetryCount; i++ {
+		res, callErr = client.Do(req)
+		if callErr != nil {
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, steamID, i)
+			res.Body.Close()
+		} else {
+			successfulRequest = true
+			defer res.Body.Close()
+			break
+		}
+	}
+	// Failed after all retries
+	if successfulRequest == false {
+		return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(callErr)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(err)
+	}
+	APIRes := dtos.GetGraphableDataForUserDTO{}
+	err = json.Unmarshal(body, &APIRes)
+	if err != nil {
+		return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(err)
+	}
+
+	if res.StatusCode == 200 {
+		return APIRes, nil
+	}
+	return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
+}
+
+func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error) {
+	targetURL := fmt.Sprintf("%s/getusernamesfromsteamids", os.Getenv("DATASTORE_URL"))
+	steamIDsInput := dtos.GetUsernamesFromSteamIDsInputDTO{
+		SteamIDs: steamIDs,
+	}
+	jsonObj, err := json.Marshal(steamIDsInput)
+	if err != nil {
+		return make(map[string]string), util.MakeErr(err)
+	}
+
+	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	req.Close = true
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authentication", "something")
+
+	client := &http.Client{}
+	res := &http.Response{}
+	var callErr error
+
+	maxRetryCount := 3
+	successfulRequest := false
+
+	for i := 1; i <= maxRetryCount; i++ {
+		res, callErr = client.Do(req)
+		if callErr != nil {
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, steamIDs, i)
+			res.Body.Close()
+		} else {
+			successfulRequest = true
+			defer res.Body.Close()
+			break
+		}
+	}
+	// Failed after all retries
+	if successfulRequest == false {
+		return make(map[string]string), util.MakeErr(callErr)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return make(map[string]string), util.MakeErr(err)
+	}
+	APIRes := dtos.GetUsernamesFromSteamIDsDTO{}
+	err = json.Unmarshal(body, &APIRes)
+	if err != nil {
+		return make(map[string]string), util.MakeErr(err)
+	}
+
+	if res.StatusCode == 200 {
+		steamIDToUserMap := make(map[string]string)
+		for _, user := range APIRes.SteamIDAndUsername {
+			steamIDToUserMap[user.SteamID] = user.Username
+		}
+		return steamIDToUserMap, nil
+	}
+
+	return make(map[string]string), util.MakeErr(fmt.Errorf("error getting usernames for steamIDs: %+v", APIRes))
 }

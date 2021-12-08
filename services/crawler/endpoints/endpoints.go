@@ -13,6 +13,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/iamcathal/neo/services/crawler/graphing"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/iamcathal/neo/services/crawler/worker"
 	"github.com/neosteamfriendgraphing/common"
@@ -39,6 +40,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/crawl", endpoints.CrawlUsers).Methods("POST")
 	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
+	r.HandleFunc("/creategraph", endpoints.CreateGraph).Methods("POST")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -191,6 +193,9 @@ func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Requ
 		Status: "success",
 	}
 	if len(friends) == 0 {
+		// If the user has no friends they might have a public
+		// account but we might as well consider them private
+		// as we cannot crawl them
 		response.Message = "private"
 	} else {
 		response.Message = "public"
@@ -203,5 +208,41 @@ func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(jsonObj))
-	
+}
+
+func (endpoints *Endpoints) CreateGraph(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	createGraph := datastructures.CreateGraph{}
+	err := json.NewDecoder(r.Body).Decode(&createGraph)
+	if err != nil {
+		commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	// Check if this crawl session is actually finished
+	crawlingStats, err := endpoints.Cntr.GetCrawlingStatsFromDataStore(createGraph.CrawlID)
+	if err != nil {
+		commonUtil.SendBasicInvalidResponse(w, r, "could not check if crawling has finished", vars, http.StatusBadRequest)
+		return
+	}
+	graphWorkerConfig := graphing.GraphWorkerConfig{
+		TotalUsersToCrawl: crawlingStats.TotalUsersToCrawl,
+		UsersCrawled:      0,
+		MaxLevel:          crawlingStats.MaxLevel,
+	}
+
+	go graphing.ControlFunc(endpoints.Cntr, crawlingStats.OriginalCrawlTarget, graphWorkerConfig)
+
+	response := common.BasicAPIResponse{
+		Status:  "success",
+		Message: "graph creation has been initiated",
+	}
+	jsonObj, err := json.Marshal(response)
+	if err != nil {
+		log.Fatal(util.MakeErr(err))
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, string(jsonObj))
 }

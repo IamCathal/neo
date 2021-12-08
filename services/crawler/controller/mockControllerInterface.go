@@ -106,6 +106,48 @@ func (_m *MockCntrInterface) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error
 	return r0, r1
 }
 
+// GetCrawlingStatsFromDataStore provides a mock function with given fields: crawlID
+func (_m *MockCntrInterface) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
+	ret := _m.Called(crawlID)
+
+	var r0 common.CrawlingStatus
+	if rf, ok := ret.Get(0).(func(string) common.CrawlingStatus); ok {
+		r0 = rf(crawlID)
+	} else {
+		r0 = ret.Get(0).(common.CrawlingStatus)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(crawlID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetGraphableDataFromDataStore provides a mock function with given fields: steamID
+func (_m *MockCntrInterface) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {
+	ret := _m.Called(steamID)
+
+	var r0 dtos.GetGraphableDataForUserDTO
+	if rf, ok := ret.Get(0).(func(string) dtos.GetGraphableDataForUserDTO); ok {
+		r0 = rf(steamID)
+	} else {
+		r0 = ret.Get(0).(dtos.GetGraphableDataForUserDTO)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(steamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUserFromDataStore provides a mock function with given fields: steamID
 func (_m *MockCntrInterface) GetUserFromDataStore(steamID string) (common.UserDocument, error) {
 	ret := _m.Called(steamID)
@@ -120,6 +162,29 @@ func (_m *MockCntrInterface) GetUserFromDataStore(steamID string) (common.UserDo
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(steamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUsernamesForSteamIDs provides a mock function with given fields: steamIDs
+func (_m *MockCntrInterface) GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error) {
+	ret := _m.Called(steamIDs)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func([]string) map[string]string); ok {
+		r0 = rf(steamIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(steamIDs)
 	} else {
 		r1 = ret.Error(1)
 	}

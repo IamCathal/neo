@@ -59,6 +59,29 @@ func (_m *MockCntrInterface) GetUser(ctx context.Context, steamID string) (commo
 	return r0, r1
 }
 
+// GetUsernames provides a mock function with given fields: ctx, steamIDs
+func (_m *MockCntrInterface) GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error) {
+	ret := _m.Called(ctx, steamIDs)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(context.Context, []string) map[string]string); ok {
+		r0 = rf(ctx, steamIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, steamIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // InsertOne provides a mock function with given fields: ctx, collection, bson
 func (_m *MockCntrInterface) InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error) {
 	ret := _m.Called(ctx, collection, bson)

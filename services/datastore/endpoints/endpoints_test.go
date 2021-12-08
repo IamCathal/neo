@@ -64,14 +64,14 @@ func initServerAndDependencies() (*controller.MockCntrInterface, int) {
 	configuration.DBClient = &mongo.Client{}
 	rand.Seed(time.Now().UnixNano())
 	randomPort := rand.Intn(48150) + 1024
-
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	go runServer(mockController, ctx, randomPort)
 	go func() {
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 		cancel()
 	}()
+	time.Sleep(3 * time.Millisecond)
 	return mockController, randomPort
 }
 

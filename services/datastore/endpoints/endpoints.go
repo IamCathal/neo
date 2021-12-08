@@ -14,6 +14,7 @@ import (
 	"github.com/IamCathal/neo/services/datastore/app"
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
+	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/gorilla/mux"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/neosteamfriendgraphing/common"
@@ -44,6 +45,8 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
 	r.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
 	r.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
+	r.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
+	r.HandleFunc("/getusernamesfromsteamids", endpoints.GetUsernamesFromSteamIDs).Methods("POST")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -279,6 +282,62 @@ func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) GetGraphableData(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	// Validate steamid
+	if isValid := util.IsValidFormatSteamID(vars["steamid"]); !isValid {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	user, err := endpoints.Cntr.GetUser(context.TODO(), vars["steamid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "couldn't get user", vars, http.StatusNotFound)
+		return
+	}
+
+	graphableDataForUser := dtos.GetGraphableDataForUserDTO{
+		Username:  user.AccDetails.Personaname,
+		SteamID:   user.AccDetails.SteamID,
+		FriendIDs: user.FriendIDs,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(graphableDataForUser)
+}
+
+func (endpoints *Endpoints) GetUsernamesFromSteamIDs(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	steamIDsInput := datastructures.GetUsernamesFromSteamIDsInput{}
+
+	err := json.NewDecoder(r.Body).Decode(&steamIDsInput)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		LogBasicErr(err, r, http.StatusBadRequest)
+		return
+	}
+
+	// Validate all given steamids
+	for _, steamID := range steamIDsInput.SteamIDs {
+		if isValid := util.IsValidFormatSteamID(steamID); !isValid {
+			util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+			return
+		}
+	}
+
+	steamIDsToUsernames, err := endpoints.Cntr.GetUsernames(context.TODO(), steamIDsInput.SteamIDs)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "couldn't get usernames from steamIDs", vars, http.StatusNotFound)
+		configuration.Logger.Error(err.Error())
+		return
+	}
+	configuration.Logger.Sugar().Infof("retrieved %d usernames from steamIDs", len(steamIDsToUsernames))
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(steamIDsToUsernames)
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {

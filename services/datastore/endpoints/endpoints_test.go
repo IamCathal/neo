@@ -29,8 +29,10 @@ import (
 )
 
 var (
-	testUser        common.UserDocument
-	testSaveUserDTO dtos.SaveUserDTO
+	testUser             common.UserDocument
+	testSaveUserDTO      dtos.SaveUserDTO
+	validFormatSteamID   = "76561197960287930"
+	invalidFormatSteamID = validFormatSteamID + "zzz"
 )
 
 func TestMain(m *testing.M) {
@@ -425,4 +427,196 @@ func TestGetCrawlingStatsReturnsCouldntGetCrawlingStatusWhenDBReturnsAnError(t *
 	}
 
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestGetUsernamesFromSteamIDsReturnsUsernamesForSteamID(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	expectedUsername := "Cathal"
+
+	expectedSteamIDsToUsernames := make(map[string]string)
+	expectedSteamIDsToUsernames[validFormatSteamID] = expectedUsername
+
+	mockController.On("GetUsernames", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(expectedSteamIDsToUsernames, nil)
+
+	expectedResponse := dtos.GetUsernamesFromSteamIDsDTO{
+		SteamIDAndUsername: []dtos.SteamIDAndUsername{
+			{
+				SteamID:  validFormatSteamID,
+				Username: expectedUsername,
+			},
+		},
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	requestBody := dtos.GetUsernamesFromSteamIDsInputDTO{
+		SteamIDs: []string{
+			validFormatSteamID,
+		},
+	}
+	requestBodyJSON, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestGetUsernamesReturnsInvalidInputForAnyInvalidFormatSteamIDsGiven(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+
+	requestBody := dtos.GetUsernamesFromSteamIDsInputDTO{
+		SteamIDs: []string{
+			invalidFormatSteamID,
+		},
+	}
+	requestBodyJSON, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+}
+
+func TestGetUsernamesFromSteamIDsReturnsInvalidRequestWhenCallToDataStoreFails(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	randomError := errors.New("hello world")
+	mockController.On("GetUsernames", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(make(map[string]string), randomError)
+
+	requestBody := dtos.GetUsernamesFromSteamIDsInputDTO{
+		SteamIDs: []string{
+			validFormatSteamID,
+		},
+	}
+	requestBodyJSON, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusNotFound, res.StatusCode)
+}
+
+func TestGetGraphableDataReturnsGraphableDataForAValidUser(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	foundUser := common.UserDocument{
+		AccDetails: common.AccDetailsDocument{
+			Personaname: "Cathal",
+			SteamID:     validFormatSteamID,
+		},
+		FriendIDs: []string{
+			"1",
+			"2",
+			"3",
+		},
+	}
+	expectedResponse := dtos.GetGraphableDataForUserDTO{
+		Username:  foundUser.AccDetails.Personaname,
+		SteamID:   foundUser.AccDetails.SteamID,
+		FriendIDs: foundUser.FriendIDs,
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.On("GetUser", mock.Anything, foundUser.AccDetails.SteamID).Return(foundUser, nil)
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getgraphabledata/%s", serverPort, foundUser.AccDetails.SteamID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestGetGraphableDataReturnsCouldntGetUserWhenNoUserIsFound(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"couldn't get user",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	randomError := errors.New("hello world")
+	mockController.On("GetUser", mock.Anything, validFormatSteamID).Return(common.UserDocument{}, randomError)
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getgraphabledata/%s", serverPort, validFormatSteamID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestGetGraphableDataReturnsInvalidInputForInvalidFormatSteamIDs(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"Invalid input",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getgraphabledata/%s", serverPort, invalidFormatSteamID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestSaveCrawlingStatsToDB(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	crawlingStatsInput := dtos.SaveCrawlingStatsDTO{
+		CurrentLevel: 2,
+		CrawlingStatus: common.CrawlingStatus{
+			TimeStarted:       time.Now(),
+			MaxLevel:          3,
+			UsersCrawled:      5,
+			TotalUsersToCrawl: 20,
+		},
+	}
+	requestBodyJSON, err := json.Marshal(crawlingStatsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+	mockController.On("UpdateCrawlingStatus", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/savecrawlingstats", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
 }

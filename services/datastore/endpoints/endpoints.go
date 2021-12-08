@@ -334,9 +334,18 @@ func (endpoints *Endpoints) GetUsernamesFromSteamIDs(w http.ResponseWriter, r *h
 	}
 	configuration.Logger.Sugar().Infof("retrieved %d usernames from steamIDs", len(steamIDsToUsernames))
 
+	returnJSON := dtos.GetUsernamesFromSteamIDsDTO{}
+	for key, val := range steamIDsToUsernames {
+		currentMapping := dtos.SteamIDAndUsername{
+			SteamID:  key,
+			Username: val,
+		}
+		returnJSON.SteamIDAndUsername = append(returnJSON.SteamIDAndUsername, currentMapping)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(steamIDsToUsernames)
+	json.NewEncoder(w).Encode(returnJSON)
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {

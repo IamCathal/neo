@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Cntr struct{}
@@ -87,8 +88,12 @@ func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[st
 	userCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("USER_COLLECTION"))
 	steamIDToUsernameMap := make(map[string]string)
 
+	projection := bson.D{
+		{Key: "accdetails.steamid", Value: 1},
+		{Key: "accdetails.personaname", Value: 1},
+	}
 	cursor, err := userCollection.Find(ctx,
-		bson.D{{Key: "accdetails.steamid", Value: bson.D{{Key: "$in", Value: steamIDs}}}})
+		bson.D{{Key: "accdetails.steamid", Value: bson.D{{Key: "$in", Value: steamIDs}}}}, options.Find().SetProjection(projection))
 	if err != nil {
 		return make(map[string]string), err
 	}

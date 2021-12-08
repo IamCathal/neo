@@ -14,7 +14,6 @@ import (
 	"github.com/IamCathal/neo/services/datastore/app"
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
-	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/gorilla/mux"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/neosteamfriendgraphing/common"
@@ -310,7 +309,7 @@ func (endpoints *Endpoints) GetGraphableData(w http.ResponseWriter, r *http.Requ
 
 func (endpoints *Endpoints) GetUsernamesFromSteamIDs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	steamIDsInput := datastructures.GetUsernamesFromSteamIDsInput{}
+	steamIDsInput := dtos.GetUsernamesFromSteamIDsInputDTO{}
 
 	err := json.NewDecoder(r.Body).Decode(&steamIDsInput)
 	if err != nil {

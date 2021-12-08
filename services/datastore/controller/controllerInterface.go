@@ -6,6 +6,7 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,6 +19,7 @@ type CntrInterface interface {
 	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error)
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
 	GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (common.CrawlingStatus, error)
+	GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error)
 }
 
 func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error) {
@@ -79,4 +81,35 @@ func (control Cntr) GetCrawlingStatusFromDB(ctx context.Context, crawlingStatusC
 	}
 
 	return crawlingStatus, nil
+}
+
+func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error) {
+	userCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("USER_COLLECTION"))
+	steamIDToUsernameMap := make(map[string]string)
+
+	cursor, err := userCollection.Find(ctx,
+		bson.D{{Key: "accdetails.steamid", Value: bson.D{{Key: "$in", Value: steamIDs}}}})
+	if err != nil {
+		return make(map[string]string), err
+	}
+	defer cursor.Close(ctx)
+
+	var allUsers []common.UserDocument
+	var singleUser common.UserDocument
+	for cursor.Next(ctx) {
+		err = cursor.Decode(&singleUser)
+		if err != nil {
+			return make(map[string]string), err
+		}
+		allUsers = append(allUsers, singleUser)
+	}
+
+	if len(allUsers) != len(steamIDs) {
+		return make(map[string]string), errors.Errorf("queried %d steamIDs and only received back %d", len(steamIDs), len(allUsers))
+	}
+
+	for _, result := range allUsers {
+		steamIDToUsernameMap[result.AccDetails.SteamID] = result.AccDetails.Personaname
+	}
+	return steamIDToUsernameMap, nil
 }

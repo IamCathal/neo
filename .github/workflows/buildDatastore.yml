@@ -25,7 +25,7 @@ jobs:
       run: |
         touch .env
         echo ORG=${{ secrets.ORG }} >> .env
-        echo BUCKET_TOKEN=${{ secrets.BUCKET_TOKEN }} >> .env
+        echo SYSTEM_STATS_BUCKET_TOKEN=${{ secrets.BUCKET_TOKEN }} >> .env
         echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
         mv .env services/datastore/endpoints
         cat services/datastore/endpoints/.env

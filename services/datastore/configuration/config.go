@@ -52,7 +52,7 @@ func InitConfig() error {
 func initAndSetInfluxClient() {
 	client := influxdb2.NewClientWithOptions(
 		os.Getenv("INFLUXDB_URL"),
-		os.Getenv("BUCKET_TOKEN"),
+		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"),
 		influxdb2.DefaultOptions().SetBatchSize(10))
 	InfluxDBClient = client
 	Logger.Info("InfluxDB client initialied successfully")

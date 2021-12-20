@@ -12,15 +12,19 @@ jobs:
     - name: Create .env file
       run: |
         touch .env
+        echo STATIC_CONTENT_DIR_NAME=${{ secrets.FRONTEND_STATIC_CONTENT_DIR_NAME }} >> .env
+
         echo API_PORT=${{ secrets.FRONTEND_API_PORT }} >> .env
         echo LOG_PATH=${{ secrets.FRONTEND_LOG_PATH }} >> .env
         echo NODE_NAME=${{ secrets.FRONTEND_NODE_NAME }} >> .env
         echo NODE_DC=${{ secrets.FRONTEND_NODE_DC }} >> .env
-        echo STATIC_CONTENT_DIR_NAME=${{ secrets.FRONTEND_STATIC_CONTENT_DIR_NAME }} >> .env
-        echo ORG=${{ secrets.ORG }} >> .env
         echo SYSTEM_STATS_BUCKET=${{ secrets.SYSTEM_STATS_BUCKET }} >> .env
-        echo BUCKET_TOKEN=${{ secrets.BUCKET_TOKEN }} >> .env
-         echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
+        echo SYSTEM_STATS_BUCKET_TOKEN=${{ secrets.SYSTEM_STATS_BUCKET_BUCKET_TOKEN }} >> .env
+        echo ENDPOINT_LATENCIES_BUCKET=${{ secrets.ENDPOINT_LATENCIES_BUCKET }} >> .env
+        echo ENDPOINT_LATENCIES_BUCKET_TOKEN=${{ secrets.ENDPOINT_LATENCIES_BUCKET_TOKEN }} >> .env
+        echo ORG=${{ secrets.ORG }} >> .env
+        echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
+
         mv .env services/frontend
         cat services/frontend/.env
 

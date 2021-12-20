@@ -16,19 +16,6 @@ Frontend expects the following variables to be set in .env
 | `CRAWLER_INSTANCE`      | URL (port included) for any crawler instance     |
 | `DATASTORE_URL` | URL (port included) of the datastore instance    |
 
-#### Default
-
-| Variable     | Description |
-| ----------- | ----------- |
-| `API_PORT`      | The port to host the application on       |
-| `LOG_PATH`   | Where to write logs to        |
-| `NODE_NAME`   | Unique name for this instance      |
-| `NODE_DC`   | Datacenter for this instance        |
-| `SYSTEM_STATS_BUCKET`   | Bucket name for system stats metrics        |
-| `BUCKET_TOKEN`   | InfluxDB r/w token for buckets       |
-| `ORG`   | Org name for grafana        |
-| `INFLUXDB_URL`   | Full URL for connecting to influxDB        |
-
 ## Running 
 
 `docker-compose up` to start with docker-compose (preferred)

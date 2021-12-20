@@ -21,19 +21,6 @@ Datastore expects the following variables to be set in .env
 | `DATASTORE_LATENCIES_BUCKET`      |  Latency bucket for Datastore |
 
 
-#### Default
-
-| Variable     | Description |
-| ----------- | ----------- |
-| `API_PORT`      | The port to host the application on       |
-| `LOG_PATH`   | Where to write logs to        |
-| `NODE_NAME`   | Unique name for this instance      |
-| `SYSTEM_STATS_BUCKET`   | Bucket name for system stats metrics        |
-| `BUCKET_TOKEN`   | Read and write token for influxDB buckets    |
-| `ORG`   | Org name for grafana        |
-| `INFLUXDB_URL`   | Full URL for connecting to influxDB        |
-
-
 ## Running 
 
 `docker-compose up` to start with docker-compose (preferred)

@@ -127,7 +127,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		} else {
 			urlPathBasic = "/"
 		}
-		writeAPI := configuration.InfluxDBClient.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("DATASTORE_LATENCIES_BUCKET"))
+		writeAPI := configuration.InfluxDBClient.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
 		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
 			AddTag("path", urlPathBasic).
 			AddField("latency", util.GetCurrentTimeInMs()-requestStartTime).

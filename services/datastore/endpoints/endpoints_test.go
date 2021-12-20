@@ -55,10 +55,11 @@ func TestMain(m *testing.M) {
 }
 
 func createMockInfluxDBClient() {
-	os.Setenv("DATASTORE_LATENCIES_BUCKET", "testDataBucket")
+	os.Setenv("ENDPOINT_LATENCIES_BUCKET", "testDataBucket")
+
 	configuration.InfluxDBClient = influxdb2.NewClient(
 		os.Getenv("INFLUXDB_URL"),
-		os.Getenv("BUCKET_TOKEN"))
+		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"))
 }
 
 func initServerAndDependencies() (*controller.MockCntrInterface, int) {
@@ -165,7 +166,6 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	assert.Equal(t, res.StatusCode, 200)
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }

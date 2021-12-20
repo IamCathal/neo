@@ -10,6 +10,7 @@ import (
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/joho/godotenv"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/util"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -29,14 +30,12 @@ func InitConfig() error {
 		return err
 	}
 
-	err := EnsureAllServiceSpecificEnvVarsAreSet()
+	err := util.EnsureAllEnvVarsAreSet("MONGODB_USER",
+		"MONGODB_PASSWORD", "MONGO_INSTANCE_IP", "DB_NAME",
+		"USER_COLLECTION", "CRAWLING_STATS_COLLECTION")
 	if err != nil {
 		return err
 	}
-	// err := common.EnsureAllDefaultEnvVarsAreSet()
-	// if err != nil {
-	// 	return err
-	// }
 
 	logConfig, err := LoadLoggingConfig()
 	if err != nil {
@@ -57,36 +56,6 @@ func initAndSetInfluxClient() {
 		influxdb2.DefaultOptions().SetBatchSize(10))
 	InfluxDBClient = client
 	Logger.Info("InfluxDB client initialied successfully")
-}
-
-func EnsureAllServiceSpecificEnvVarsAreSet() error {
-	resultString := ""
-	if os.Getenv("MONGODB_USER") == "" {
-		resultString += "MONGODB_USER\n"
-	}
-	if os.Getenv("MONGODB_PASSWORD") == "" {
-		resultString += "MONGODB_PASSWORD\n"
-	}
-	if os.Getenv("MONGO_INSTANCE_IP") == "" {
-		resultString += "MONGO_INSTANCE_IP\n"
-	}
-	if os.Getenv("DB_NAME") == "" {
-		resultString += "DB_NAME\n"
-	}
-	if os.Getenv("USER_COLLECTION") == "" {
-		resultString += "USER_COLLECTION\n"
-	}
-	if os.Getenv("CRAWLING_STATS_COLLECTION") == "" {
-		resultString += "CRAWLING_STATS_COLLECTION\n"
-	}
-	if os.Getenv("DATASTORE_LATENCIES_BUCKET") == "" {
-		resultString += "DATASTORE_LATENCIES_BUCKET\n"
-	}
-
-	if resultString != "" {
-		return fmt.Errorf("One or more service specific env vars were not set: %s", resultString)
-	}
-	return nil
 }
 
 func LoadLoggingConfig() (common.LoggingFields, error) {

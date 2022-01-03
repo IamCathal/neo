@@ -12,6 +12,7 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
+	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
@@ -35,6 +36,7 @@ type CntrInterface interface {
 	GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error)
 	GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error)
 	GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error)
+	SaveProcessedGraphDataToDataStore(crawlID string, graphData datastructures.UsersGraphData) (bool, error)
 }
 
 // CallGetFriends calls the steam web API to retrieve a list of
@@ -466,4 +468,57 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 	}
 
 	return make(map[string]string), util.MakeErr(fmt.Errorf("error getting usernames for steamIDs: %+v", APIRes))
+}
+
+func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {
+	targetURL := fmt.Sprintf("%s/saveprocessedgraphdata/%s", os.Getenv("DATASTORE_URL"), crawlID)
+
+	jsonObj, err := json.Marshal(graphData)
+	if err != nil {
+		return false, util.MakeErr(err)
+	}
+
+	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	req.Close = true
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authentication", "something")
+
+	client := &http.Client{}
+	res := &http.Response{}
+	var callErr error
+
+	maxRetryCount := 3
+	successfulRequest := false
+
+	for i := 1; i <= maxRetryCount; i++ {
+		res, callErr = client.Do(req)
+		if callErr != nil {
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, crawlID, i)
+			res.Body.Close()
+		} else {
+			successfulRequest = true
+			defer res.Body.Close()
+			break
+		}
+	}
+	// Failed after all retries
+	if successfulRequest == false {
+		return false, util.MakeErr(callErr)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return false, util.MakeErr(err)
+	}
+	APIRes := dtos.GetUsernamesFromSteamIDsDTO{}
+	err = json.Unmarshal(body, &APIRes)
+	if err != nil {
+		return false, util.MakeErr(err)
+	}
+
+	if res.StatusCode == 200 {
+		return true, nil
+	}
+
+	return false, util.MakeErr(fmt.Errorf("error saving processed graphdata: %+v", APIRes))
 }

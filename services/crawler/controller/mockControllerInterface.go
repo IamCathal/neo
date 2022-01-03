@@ -6,6 +6,8 @@ import (
 	common "github.com/neosteamfriendgraphing/common"
 	amqp "github.com/streadway/amqp"
 
+	datastructures "github.com/iamcathal/neo/services/crawler/datastructures"
+
 	dtos "github.com/neosteamfriendgraphing/common/dtos"
 
 	mock "github.com/stretchr/testify/mock"
@@ -220,6 +222,27 @@ func (_m *MockCntrInterface) SaveCrawlingStatsToDataStore(currentLevel int, craw
 	var r1 error
 	if rf, ok := ret.Get(1).(func(int, common.CrawlingStatus) error); ok {
 		r1 = rf(currentLevel, crawlingStatus)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SaveProcessedGraphDataToDataStore provides a mock function with given fields: crawlID, graphData
+func (_m *MockCntrInterface) SaveProcessedGraphDataToDataStore(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {
+	ret := _m.Called(crawlID, graphData)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, datastructures.UsersGraphData) bool); ok {
+		r0 = rf(crawlID, graphData)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, datastructures.UsersGraphData) error); ok {
+		r1 = rf(crawlID, graphData)
 	} else {
 		r1 = ret.Error(1)
 	}

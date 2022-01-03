@@ -12,7 +12,6 @@ var (
 	requestMakeLock     sync.Mutex
 	TimeBetweenRequests = time.Duration(3 * time.Millisecond)
 	lastRequestTime     = time.Now()
-	activeRequests      = 0
 )
 
 // MakeNetworkGETRequest limits the throughput for network GET

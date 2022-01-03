@@ -7,6 +7,8 @@ import (
 
 	common "github.com/neosteamfriendgraphing/common"
 
+	datastructures "github.com/IamCathal/neo/services/datastore/datastructures"
+
 	mock "github.com/stretchr/testify/mock"
 
 	mongo "go.mongodb.org/mongo-driver/mongo"
@@ -31,6 +33,27 @@ func (_m *MockCntrInterface) GetCrawlingStatusFromDB(ctx context.Context, collec
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, string) error); ok {
 		r1 = rf(ctx, collection, crawlID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetProcessedGraphData provides a mock function with given fields: crawlID
+func (_m *MockCntrInterface) GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error) {
+	ret := _m.Called(crawlID)
+
+	var r0 datastructures.UsersGraphData
+	if rf, ok := ret.Get(0).(func(string) datastructures.UsersGraphData); ok {
+		r0 = rf(crawlID)
+	} else {
+		r0 = ret.Get(0).(datastructures.UsersGraphData)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(crawlID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -98,6 +121,27 @@ func (_m *MockCntrInterface) InsertOne(ctx context.Context, collection *mongo.Co
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, []byte) error); ok {
 		r1 = rf(ctx, collection, bson)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SaveProcessedGraphData provides a mock function with given fields: crawlID, graphData
+func (_m *MockCntrInterface) SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {
+	ret := _m.Called(crawlID, graphData)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, datastructures.UsersGraphData) bool); ok {
+		r0 = rf(crawlID, graphData)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, datastructures.UsersGraphData) error); ok {
+		r1 = rf(crawlID, graphData)
 	} else {
 		r1 = ret.Error(1)
 	}

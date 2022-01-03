@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,11 +17,15 @@ import (
 type Cntr struct{}
 
 type CntrInterface interface {
+	// MongoDB related functions
 	InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error)
 	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error)
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
 	GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (common.CrawlingStatus, error)
 	GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error)
+	// Postgresql related functions
+	SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error)
+	GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error)
 }
 
 func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error) {
@@ -117,4 +122,12 @@ func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[st
 		steamIDToUsernameMap[result.AccDetails.SteamID] = result.AccDetails.Personaname
 	}
 	return steamIDToUsernameMap, nil
+}
+
+func (control Cntr) SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {
+	return true, nil
+}
+
+func (control Cntr) GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error) {
+	return datastructures.UsersGraphData{}, nil
 }

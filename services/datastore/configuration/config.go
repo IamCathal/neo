@@ -32,7 +32,9 @@ func InitConfig() error {
 
 	err := util.EnsureAllEnvVarsAreSet("MONGODB_USER",
 		"MONGODB_PASSWORD", "MONGO_INSTANCE_IP", "DB_NAME",
-		"USER_COLLECTION", "CRAWLING_STATS_COLLECTION")
+		"USER_COLLECTION", "CRAWLING_STATS_COLLECTION",
+		"POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB",
+		"POSTGRES_INSTANCE_IP")
 	if err != nil {
 		return err
 	}
@@ -64,6 +66,7 @@ func LoadLoggingConfig() (common.LoggingFields, error) {
 		NodeDC:   os.Getenv("NODE_DC"),
 		LogPaths: []string{"stdout", os.Getenv("LOG_PATH")},
 		NodeIPV4: GetLocalIPAddress(),
+		Service:  "datastore",
 	}
 	if logFieldsConfig.NodeName == "" || logFieldsConfig.NodeDC == "" ||
 		logFieldsConfig.LogPaths[1] == "" || logFieldsConfig.NodeIPV4 == "" {

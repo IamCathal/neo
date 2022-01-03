@@ -14,6 +14,7 @@ import (
 	"github.com/IamCathal/neo/services/datastore/app"
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
+	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/gorilla/mux"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/neosteamfriendgraphing/common"
@@ -46,7 +47,8 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
 	r.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
 	r.HandleFunc("/getusernamesfromsteamids", endpoints.GetUsernamesFromSteamIDs).Methods("POST")
-
+	r.HandleFunc("/saveprocessedgraphdata/{crawlid}", endpoints.SaveProcessedGraphData).Methods("POST")
+	r.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST")
 	r.Use(endpoints.LoggingMiddleware)
 	return r
 }
@@ -130,6 +132,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		writeAPI := configuration.InfluxDBClient.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
 		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
 			AddTag("path", urlPathBasic).
+			AddTag("service", "datastore").
 			AddField("latency", util.GetCurrentTimeInMs()-requestStartTime).
 			SetTime(time.Now())
 		err := writeAPI.WritePoint(context.Background(), point)
@@ -346,6 +349,44 @@ func (endpoints *Endpoints) GetUsernamesFromSteamIDs(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(returnJSON)
+}
+
+func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	graphData := datastructures.UsersGraphData{}
+	err := json.NewDecoder(r.Body).Decode(&graphData)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("\n\n%+v\n\n", graphData)
+
+	response := struct {
+		Status string `json:"status"`
+	}{
+		"success",
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	usersProcessedGraphData, err := endpoints.Cntr.GetProcessedGraphData(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Couldn't get graph data", vars, http.StatusBadRequest)
+		errMsg := fmt.Errorf("failed to get processed graph data: %+v", err)
+		configuration.Logger.Error(errMsg.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(usersProcessedGraphData)
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {

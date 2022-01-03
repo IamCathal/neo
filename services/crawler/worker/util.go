@@ -1,9 +1,6 @@
 package worker
 
 import (
-	"encoding/json"
-	"fmt"
-	"math"
 	"regexp"
 	"sort"
 	"strings"
@@ -49,50 +46,32 @@ func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]string, err
 
 func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructures.Job, friendIDs []string) error {
 	startTime := time.Now()
-	for _, ID := range friendIDs {
-		nextLevel := currentJob.CurrentLevel + 1
-		if nextLevel <= currentJob.MaxLevel {
-			newJob := datastructures.Job{
-				JobType:               "crawl",
-				OriginalTargetSteamID: currentJob.OriginalTargetSteamID,
-				CurrentTargetSteamID:  ID,
 
-				CrawlID:      currentJob.CrawlID,
-				MaxLevel:     currentJob.MaxLevel,
-				CurrentLevel: nextLevel,
-			}
-			jsonObj, err := json.Marshal(newJob)
-			if err != nil {
-				return err
-			}
-
-			configuration.Logger.Sugar().Infof("pushing job: %+v", newJob)
-			err = cntr.PublishToJobsQueue(jsonObj)
-			if err != nil {
-				configuration.Logger.Sugar().Infof("failed to publish job: %+v retrying now", newJob)
-				maxRetries := 3
-				successfulRequest := false
-
-				for i := 0; i < maxRetries; i++ {
-					exponentialBackOffSleepTime := math.Pow(6, float64(i)) * 28
-					time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-					err = cntr.PublishToJobsQueue(jsonObj)
-					if err == nil {
-						configuration.Logger.Sugar().Infof("successfully placed job in queue after %d retries", i)
-						successfulRequest = true
-						break
-					}
-					configuration.Logger.Info(fmt.Sprintf("failed to publish job to queue. Sleeping for %v ms Retrying for the %d time: %+v", exponentialBackOffSleepTime, i, newJob))
-				}
-
-				if !successfulRequest {
-					configuration.Logger.Error(fmt.Sprintf("failed to publish job to queue after %v and retrying %d times with job: %+v", time.Since(startTime), maxRetries, newJob))
-					return err
-				}
-			}
-		}
-		time.Sleep(25 * time.Millisecond)
+	nextLevel := currentJob.CurrentLevel + 1
+	if nextLevel > currentJob.MaxLevel {
+		configuration.Logger.Info("not putting on friends")
+		return nil
 	}
+
+	for _, ID := range friendIDs {
+		newJob := datastructures.Job{
+			JobType:               "crawl",
+			OriginalTargetSteamID: currentJob.OriginalTargetSteamID,
+			CurrentTargetSteamID:  ID,
+
+			CrawlID:      currentJob.CrawlID,
+			MaxLevel:     currentJob.MaxLevel,
+			CurrentLevel: nextLevel,
+		}
+
+		configuration.Logger.Sugar().Infof("pushing job: %+v", newJob)
+		err := publishJobWithThrottling(cntr, newJob)
+		if err != nil {
+			configuration.Logger.Sugar().Fatalf("failed to publish job after all retries: %+v", err)
+			panic(err)
+		}
+	}
+
 	configuration.Logger.Sugar().Infof("took %v to publish %d jobs to queue", time.Since(startTime), len(friendIDs))
 	return nil
 }

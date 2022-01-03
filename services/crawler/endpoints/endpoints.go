@@ -232,7 +232,7 @@ func (endpoints *Endpoints) CreateGraph(w http.ResponseWriter, r *http.Request) 
 		MaxLevel:          crawlingStats.MaxLevel,
 	}
 
-	go graphing.ControlFunc(endpoints.Cntr, crawlingStats.OriginalCrawlTarget, graphWorkerConfig)
+	go graphing.CollectGraphData(endpoints.Cntr, crawlingStats.OriginalCrawlTarget, createGraph.CrawlID, graphWorkerConfig)
 
 	response := common.BasicAPIResponse{
 		Status:  "success",

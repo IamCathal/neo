@@ -91,10 +91,13 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	}
 
 	friendPlayerSummarySteamIDs := getSteamIDsFromPlayers(friendPlayerSummaries)
-	err = putFriendsIntoQueue(cntr, job, friendPlayerSummarySteamIDs)
-	if err != nil {
-		configuration.Logger.Fatal(fmt.Sprintf("failed publish friends from steamID: %s to queue: %v", job.CurrentTargetSteamID, err.Error()))
-		log.Fatal(err)
+	friendsShoudlBeCrawled := util.JobIsNotLevelOneAndNotMax(job)
+	if friendsShoudlBeCrawled {
+		err = putFriendsIntoQueue(cntr, job, friendPlayerSummarySteamIDs)
+		if err != nil {
+			configuration.Logger.Fatal(fmt.Sprintf("failed publish friends from steamID: %s to queue: %v", job.CurrentTargetSteamID, err.Error()))
+			log.Fatal(err)
+		}
 	}
 
 	privateFriendCount := len(friendsList) - len(friendPlayerSummaries)

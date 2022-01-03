@@ -2,6 +2,8 @@ package datastructures
 
 import (
 	"time"
+
+	"github.com/neosteamfriendgraphing/common"
 )
 
 type CrawlUsersInput struct {
@@ -35,4 +37,26 @@ type APIKey struct {
 
 type CreateGraph struct {
 	CrawlID string `json:"crawlid"`
+}
+
+type UsersGraphData struct {
+	UserDetails   ResStruct   `json:"userdetails"`
+	FriendDetails []ResStruct `json:"frienddetails"`
+}
+
+type CrawlJob struct {
+	SteamID string
+
+	FromID       string
+	MaxLevel     int
+	CurrentLevel int
+}
+
+type ResStruct struct {
+	// data frields
+	User common.UserDocument
+	// Job fields
+	FromID       string
+	MaxLevel     int
+	CurrentLevel int
 }

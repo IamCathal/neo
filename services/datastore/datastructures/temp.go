@@ -25,3 +25,8 @@ type BareGameInfo struct {
 type GetDetailsForGamesDTO struct {
 	GameIDs []int `json:"gameids"`
 }
+
+type GetProcessedGraphDataDTO struct {
+	Status        string         `json:"status"`
+	UserGraphData UsersGraphData `json:"usergraphdata"`
+}

@@ -16,6 +16,7 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
+	"github.com/IamCathal/neo/services/datastore/datastructures"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/joho/godotenv"
 	"github.com/neosteamfriendgraphing/common"
@@ -41,7 +42,8 @@ func TestMain(m *testing.M) {
 	}
 	initTestData()
 	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"/dev/null"}
+	// c.OutputPaths = []string{"/dev/null"}
+	c.OutputPaths = []string{"stdout"}
 	logger, err := c.Build()
 	if err != nil {
 		log.Fatal(err)
@@ -619,4 +621,431 @@ func TestSaveCrawlingStatsToDB(t *testing.T) {
 	}
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
+
+func TestInsertGame(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	bareGameInfo := datastructures.BareGameInfo{
+		AppID: 10,
+		Name:  "Counter-Strike",
+	}
+	mockController.On("InsertGame", mock.Anything, bareGameInfo).Return(true, nil)
+
+	requestBodyJSON, err := json.Marshal(bareGameInfo)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/insertgame", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	mockController.AssertNumberOfCalls(t, "InsertGame", 1)
+}
+
+func TestInsertGameReturnsCouldntInsertGameWhenAnErrorOccurs(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	bareGameInfo := datastructures.BareGameInfo{
+		AppID: 10,
+		Name:  "Counter-Strike",
+	}
+	randomError := errors.New("Bobandy")
+	mockController.On("InsertGame", mock.Anything, bareGameInfo).Return(false, randomError)
+	requestBodyJSON, err := json.Marshal(bareGameInfo)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/insertgame", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	mockController.AssertNumberOfCalls(t, "InsertGame", 1)
+}
+
+func TestGetDetailsForGames(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	input := datastructures.GetDetailsForGamesDTO{
+		GameIDs: []int{90, 50},
+	}
+	expectedReturnedGameDetails := []datastructures.BareGameInfo{
+		{
+			AppID: 90,
+			Name:  "Half-Life Dedicated Server",
+		},
+		{
+			AppID: 50,
+			Name:  "Half-Life: Opposing Force",
+		},
+	}
+	expectedResponse := struct {
+		Status string                        `json:"status"`
+		Games  []datastructures.BareGameInfo `json:"games"`
+	}{
+		"success",
+		expectedReturnedGameDetails,
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	mockController.On("GetDetailsForGames", mock.Anything, input.GameIDs).Return(expectedReturnedGameDetails, nil)
+
+	requestBodyJSON, err := json.Marshal(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "GetDetailsForGames", 1)
+}
+
+func TestGetDetailsForGamesReturnsErrorWhenNoneOrMoreThanTwentyGamesAreRequested(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	input := datastructures.GetDetailsForGamesDTO{
+		GameIDs: []int{},
+	}
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"Can only request 1-20 games in a request",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+
+	requestBodyJSON, err := json.Marshal(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNotCalled(t, "GetDetailsForGames")
+}
+
+func TestGetDetailsForGamesReturnsAnErrorWhenGetGameDetailsReturnsAnError(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	input := datastructures.GetDetailsForGamesDTO{
+		GameIDs: []int{90, 50},
+	}
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"Error retrieving games",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	randomError := errors.New("error")
+	mockController.On("GetDetailsForGames", mock.Anything, input.GameIDs).Return([]datastructures.BareGameInfo{}, randomError)
+
+	requestBodyJSON, err := json.Marshal(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "GetDetailsForGames", 1)
+}
+
+func TestGetDetailsForGamesReturnsAnEmptyGameDetailsResponseWhenNoGameDetailsAreFound(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	input := datastructures.GetDetailsForGamesDTO{
+		GameIDs: []int{90},
+	}
+	expectedReturnedGameDetails := []datastructures.BareGameInfo{}
+	expectedResponse := struct {
+		Status string                        `json:"status"`
+		Games  []datastructures.BareGameInfo `json:"games"`
+	}{
+		"success",
+		expectedReturnedGameDetails,
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	mockController.On("GetDetailsForGames", mock.Anything, input.GameIDs).Return(expectedReturnedGameDetails, nil)
+
+	requestBodyJSON, err := json.Marshal(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "GetDetailsForGames", 1)
+}
+
+func TestSaveProcessedGraphData(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	crawlID := ksuid.New().String()
+	input := datastructures.UsersGraphData{
+		UserDetails: datastructures.ResStruct{
+			User: common.UserDocument{
+				AccDetails: common.AccDetailsDocument{
+					Personaname: "cathal",
+				},
+			},
+		},
+		FriendDetails: []datastructures.ResStruct{
+			{
+				User: common.UserDocument{
+					AccDetails: common.AccDetailsDocument{
+						Personaname: "joe",
+					},
+				},
+			},
+			{
+				User: common.UserDocument{
+					AccDetails: common.AccDetailsDocument{
+						Personaname: "padraic",
+					},
+				},
+			},
+		},
+	}
+	expectedResponse := struct {
+		Status string `json:"status"`
+	}{
+		"success",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	mockController.On("SaveProcessedGraphData", mock.Anything, input).Return(true, nil)
+
+	requestBodyJSON, err := json.Marshal(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "SaveProcessedGraphData", 1)
+}
+
+func TestSaveProcessedGraphDataReturnsInvalidInputForInvalidFormatCrawlID(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	crawlID := "invalid format crawlID"
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"invalid input",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	mockController.On("SaveProcessedGraphData", mock.Anything, mock.Anything).Return(true, nil)
+
+	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
+}
+
+func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	crawlID := ksuid.New().String()
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"could not retrieve graph data",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	err := errors.New("random error")
+	mockController.On("SaveProcessedGraphData", mock.Anything, mock.Anything).Return(false, err)
+
+	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
+}
+
+func TestGetProcessedGraphData(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	crawlID := ksuid.New().String()
+	input := datastructures.UsersGraphData{
+		UserDetails: datastructures.ResStruct{
+			User: common.UserDocument{
+				AccDetails: common.AccDetailsDocument{
+					Personaname: "cathal",
+				},
+			},
+		},
+		FriendDetails: []datastructures.ResStruct{
+			{
+				User: common.UserDocument{
+					AccDetails: common.AccDetailsDocument{
+						Personaname: "joe",
+					},
+				},
+			},
+			{
+				User: common.UserDocument{
+					AccDetails: common.AccDetailsDocument{
+						Personaname: "padraic",
+					},
+				},
+			},
+		},
+	}
+	expectedResponse := datastructures.GetProcessedGraphDataDTO{
+		Status:        "success",
+		UserGraphData: input,
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	mockController.On("GetProcessedGraphData", mock.Anything, mock.Anything).Return(input, nil)
+
+	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
+}
+
+func TestGetProcessedGraphDataReturnsInvalidInputForInvalidFormatCrawlID(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	crawlID := "invalid format"
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"invalid input",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+
+	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNotCalled(t, "GetProcessedGraphData")
+}
+
+func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnError(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	crawlID := ksuid.New().String()
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"Couldn't get graph data",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	err := errors.New("random error")
+	mockController.On("GetProcessedGraphData", mock.Anything, mock.Anything).Return(datastructures.UsersGraphData{}, err)
+
+	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
 }

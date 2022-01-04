@@ -313,8 +313,8 @@ func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Re
 	gameDetails, err := endpoints.Cntr.GetDetailsForGames(context.TODO(), gamesInput.GameIDs)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Error retrieving games", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Fatalf("error retrieving games: %+v", err)
-		panic(err)
+		configuration.Logger.Sugar().Errorf("error retrieving games: %+v", err)
+		return
 	}
 	if len(gameDetails) == 0 {
 		gameDetails = []datastructures.BareGameInfo{}
@@ -426,7 +426,7 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 
 	_, err := ksuid.Parse(vars["crawlid"])
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusNotFound)
+		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
 		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
@@ -440,9 +440,9 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 
 	success, err := endpoints.Cntr.SaveProcessedGraphData(vars["crawlid"], graphData)
 	if success == false || err != nil {
-		util.SendBasicInvalidResponse(w, r, "could not retrieve graph data", vars, http.StatusNotFound)
-		configuration.Logger.Sugar().Fatalf("could not retrieve graph data: %+v", err)
-		panic(err)
+		util.SendBasicInvalidResponse(w, r, "could not retrieve graph data", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Errorf("could not retrieve graph data: %+v", err)
+		return
 	}
 
 	response := struct {
@@ -460,7 +460,7 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 
 	_, err := ksuid.Parse(vars["crawlid"])
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusNotFound)
+		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
 		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
@@ -472,10 +472,13 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 		configuration.Logger.Error(errMsg.Error())
 		return
 	}
-
+	response := datastructures.GetProcessedGraphDataDTO{
+		Status:        "success",
+		UserGraphData: usersProcessedGraphData,
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(usersProcessedGraphData)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {

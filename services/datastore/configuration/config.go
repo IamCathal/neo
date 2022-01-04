@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -9,6 +10,7 @@ import (
 
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/util"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,6 +24,7 @@ var (
 	ApplicationStartUpTime time.Time
 	DBClient               *mongo.Client
 	InfluxDBClient         influxdb2.Client
+	SQLClient              *sql.DB
 )
 
 func InitConfig() error {
@@ -46,12 +49,13 @@ func InitConfig() error {
 
 	InitAndSetLogger(logConfig)
 	InitMongoDBConnection()
-	initAndSetInfluxClient()
+	InitAndSetInfluxClient()
+	InitSQLDBConnection()
 
 	return nil
 }
 
-func initAndSetInfluxClient() {
+func InitAndSetInfluxClient() {
 	client := influxdb2.NewClientWithOptions(
 		os.Getenv("INFLUXDB_URL"),
 		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"),
@@ -119,4 +123,31 @@ func InitMongoDBConnection() {
 
 	DBClient = client
 	Logger.Info("MongoDB connection initialised successfully")
+}
+
+func InitSQLDBConnection() {
+	postgresUser := os.Getenv("POSTGRES_USER")
+	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
+	postgresDB := os.Getenv("POSTGRES_DB")
+	postgresInstanceIP := os.Getenv("POSTGRES_INSTANCE_IP")
+
+	connURL := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
+		postgresUser, postgresPassword, postgresInstanceIP, postgresDB)
+
+	db, err := sql.Open("postgres", connURL)
+	if err != nil {
+		logMsg := fmt.Sprintf("couldn't open connection to SQL db: %+v", err)
+		Logger.Fatal(logMsg)
+		panic(logMsg)
+	}
+
+	pingErr := db.Ping()
+	if pingErr != nil {
+		logMsg := fmt.Sprintf("couldn't ping sql db: %+v", err)
+		Logger.Fatal(logMsg)
+		panic(logMsg)
+	}
+
+	SQLClient = db
+	Logger.Info("SQL connection initialised successfully")
 }

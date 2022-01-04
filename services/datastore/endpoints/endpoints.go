@@ -42,7 +42,9 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/saveuser", endpoints.SaveUser).Methods("POST")
+	r.HandleFunc("/insertgame", endpoints.InsertGame).Methods("POST")
 	r.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
+	r.HandleFunc("/getdetailsforgames", endpoints.GetDetailsForGames).Methods("POST")
 	r.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
 	r.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
 	r.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
@@ -197,6 +199,36 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func (endpoints *Endpoints) InsertGame(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	bareGameInfo := datastructures.BareGameInfo{}
+
+	err := json.NewDecoder(r.Body).Decode(&bareGameInfo)
+	if err != nil {
+		fmt.Printf("the input: %+v\n", bareGameInfo)
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	success, err := endpoints.Cntr.InsertGame(context.TODO(), bareGameInfo)
+	if err != nil || success != true {
+		util.SendBasicInvalidResponse(w, r, "couldn't insert game", vars, http.StatusBadRequest)
+		LogBasicInfo("couldn't insert game", r, http.StatusBadRequest)
+		return
+	}
+
+	response := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"very good",
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
 func (endpoints *Endpoints) SaveCrawlingStatsToDB(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	crawlingStatus := dtos.SaveCrawlingStatsDTO{}
@@ -260,6 +292,44 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 
+}
+
+func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	gamesInput := datastructures.GetDetailsForGamesDTO{}
+
+	err := json.NewDecoder(r.Body).Decode(&gamesInput)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	if len(gamesInput.GameIDs) == 0 || len(gamesInput.GameIDs) > 20 {
+		util.SendBasicInvalidResponse(w, r, "Can only request 1-20 games in a request", vars, http.StatusBadRequest)
+		return
+	}
+
+	gameDetails, err := endpoints.Cntr.GetDetailsForGames(context.TODO(), gamesInput.GameIDs)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Error retrieving games", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Fatalf("error retrieving games: %+v", err)
+		panic(err)
+	}
+	if len(gameDetails) == 0 {
+		gameDetails = []datastructures.BareGameInfo{}
+	}
+
+	response := struct {
+		Status string                        `json:"status"`
+		Games  []datastructures.BareGameInfo `json:"games"`
+	}{
+		"success",
+		gameDetails,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Request) {

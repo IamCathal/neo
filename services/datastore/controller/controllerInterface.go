@@ -23,6 +23,8 @@ type CntrInterface interface {
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
 	GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (common.CrawlingStatus, error)
 	GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error)
+	InsertGame(ctx context.Context, game datastructures.BareGameInfo) (bool, error)
+	GetDetailsForGames(ctx context.Context, IDList []int) ([]datastructures.BareGameInfo, error)
 	// Postgresql related functions
 	SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error)
 	GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error)
@@ -122,6 +124,49 @@ func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[st
 		steamIDToUsernameMap[result.AccDetails.SteamID] = result.AccDetails.Personaname
 	}
 	return steamIDToUsernameMap, nil
+}
+
+func (control Cntr) InsertGame(ctx context.Context, game datastructures.BareGameInfo) (bool, error) {
+	gamesCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection("games")
+
+	bsonObj, err := bson.Marshal(game)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = gamesCollection.InsertOne(ctx, bsonObj)
+	if err != nil {
+		// Sometimes duplicate users are inserted
+		// This is not an issue
+		if mongo.IsDuplicateKeyError(err) {
+			return true, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]datastructures.BareGameInfo, error) {
+	gamesCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection("games")
+
+	cursor, err := gamesCollection.Find(ctx,
+		bson.D{{Key: "appid", Value: bson.D{{Key: "$in", Value: IDList}}}})
+	if err != nil {
+		return []datastructures.BareGameInfo{}, err
+	}
+	defer cursor.Close(ctx)
+
+	var allGames []datastructures.BareGameInfo
+	var singleGame datastructures.BareGameInfo
+	for cursor.Next(ctx) {
+		err = cursor.Decode(&singleGame)
+		if err != nil {
+			return []datastructures.BareGameInfo{}, err
+		}
+		allGames = append(allGames, singleGame)
+	}
+
+	return allGames, nil
 }
 
 func (control Cntr) SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {

@@ -15,3 +15,12 @@ type ResStruct struct {
 	MaxLevel     int
 	CurrentLevel int
 }
+
+type BareGameInfo struct {
+	AppID int    `json:"appid"`
+	Name  string `json:"name"`
+}
+
+type GetDetailsForGamesDTO struct {
+	GameIDs []int `json:"gameids"`
+}

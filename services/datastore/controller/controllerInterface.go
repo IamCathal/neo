@@ -2,10 +2,13 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
+	"github.com/lib/pq"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -170,9 +173,44 @@ func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]dat
 }
 
 func (control Cntr) SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {
+	jsonBody, err := json.Marshal(graphData)
+	if err != nil {
+		return false, fmt.Errorf("failed to unmarshal graphdata json: %+v", err)
+	}
+
+	queryString := `INSERT INTO graphdata (crawlid, graphdata) VALUES ($1, $2)`
+	_, err = configuration.SQLClient.Exec(queryString, crawlID, string(jsonBody))
+	if err != nil {
+		if err, ok := err.(*pq.Error); ok {
+			// Attempts to duplicate an insert are not an issue
+			if err.Code.Name() != "unique_violation" {
+				return false, fmt.Errorf("failed to exec insert into graphdata: %+v", err)
+			} else {
+				configuration.Logger.Sugar().Infof("duplicate insert of crawlid %s was attempted", crawlID)
+			}
+		}
+	}
 	return true, nil
 }
 
 func (control Cntr) GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error) {
-	return datastructures.UsersGraphData{}, nil
+	graphData := datastructures.UsersGraphData{}
+
+	queryString := `SELECT * FROM graphdata WHERE crawlid = $1`
+	res, err := configuration.SQLClient.Query(queryString, crawlID)
+	if err != nil {
+		return datastructures.UsersGraphData{}, err
+	}
+	graphDataJSON := ""
+	for res.Next() {
+		crawlID := ""
+		if err := res.Scan(&crawlID, &graphDataJSON); err != nil {
+			return datastructures.UsersGraphData{}, fmt.Errorf("failed to scan returned row: %+v", err)
+		}
+	}
+	err = json.Unmarshal([]byte(graphDataJSON), &graphData)
+	if err != nil {
+		return datastructures.UsersGraphData{}, fmt.Errorf("failed to unmarshal returned data for crawlid %s: %+v", crawlID, err)
+	}
+	return graphData, nil
 }

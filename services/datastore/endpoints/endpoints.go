@@ -424,14 +424,26 @@ func (endpoints *Endpoints) GetUsernamesFromSteamIDs(w http.ResponseWriter, r *h
 func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
+	_, err := ksuid.Parse(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusNotFound)
+		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
+		return
+	}
+
 	graphData := datastructures.UsersGraphData{}
-	err := json.NewDecoder(r.Body).Decode(&graphData)
+	err = json.NewDecoder(r.Body).Decode(&graphData)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		return
 	}
 
-	fmt.Printf("\n\n%+v\n\n", graphData)
+	success, err := endpoints.Cntr.SaveProcessedGraphData(vars["crawlid"], graphData)
+	if success == false || err != nil {
+		util.SendBasicInvalidResponse(w, r, "could not retrieve graph data", vars, http.StatusNotFound)
+		configuration.Logger.Sugar().Fatalf("could not retrieve graph data: %+v", err)
+		panic(err)
+	}
 
 	response := struct {
 		Status string `json:"status"`
@@ -445,6 +457,13 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 
 func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+
+	_, err := ksuid.Parse(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusNotFound)
+		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
+		return
+	}
 
 	usersProcessedGraphData, err := endpoints.Cntr.GetProcessedGraphData(vars["crawlid"])
 	if err != nil {

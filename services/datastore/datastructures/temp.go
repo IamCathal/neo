@@ -3,8 +3,9 @@ package datastructures
 import "github.com/neosteamfriendgraphing/common"
 
 type UsersGraphData struct {
-	UserDetails   ResStruct   `json:"userdetails"`
-	FriendDetails []ResStruct `json:"frienddetails"`
+	UserDetails       ResStruct      `json:"userdetails"`
+	FriendDetails     []ResStruct    `json:"frienddetails"`
+	TopTenGameDetails []BareGameInfo `json:"toptengamedetails"`
 }
 
 type ResStruct struct {

@@ -10,6 +10,7 @@ require (
 	github.com/influxdata/influxdb-client-go v1.4.0
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/joho/godotenv v1.4.0
+	github.com/lib/pq v1.10.4
 	github.com/mackerelio/go-osstat v0.2.1
 	github.com/neosteamfriendgraphing/common v0.0.0-20211220231050-bee578c3353b
 	github.com/pkg/errors v0.9.1

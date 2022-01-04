@@ -129,6 +129,29 @@ func (_m *MockCntrInterface) GetCrawlingStatsFromDataStore(crawlID string) (comm
 	return r0, r1
 }
 
+// GetGameDetailsFromIDs provides a mock function with given fields: gameIDs
+func (_m *MockCntrInterface) GetGameDetailsFromIDs(gameIDs []int) ([]datastructures.BareGameInfo, error) {
+	ret := _m.Called(gameIDs)
+
+	var r0 []datastructures.BareGameInfo
+	if rf, ok := ret.Get(0).(func([]int) []datastructures.BareGameInfo); ok {
+		r0 = rf(gameIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]datastructures.BareGameInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]int) error); ok {
+		r1 = rf(gameIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetGraphableDataFromDataStore provides a mock function with given fields: steamID
 func (_m *MockCntrInterface) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {
 	ret := _m.Called(steamID)

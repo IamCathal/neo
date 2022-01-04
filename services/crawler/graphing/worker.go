@@ -302,26 +302,33 @@ func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, wo
 		usersDataForGraphWithOnlyTop5Games = append(usersDataForGraphWithOnlyTop5Games, friend)
 	}
 
-	usersDataForGraphWithFriends := datastructures.UsersGraphData{
-		UserDetails:   usersDataForGraphWithOnlyTop5Games[0],
-		FriendDetails: usersDataForGraphWithOnlyTop5Games[1:],
-	}
-
-	json, err := json.Marshal(usersDataForGraphWithFriends)
+	topTenOverallGameDetails, err := getTopTenOverallGameNames(cntr, usersDataForGraphWithOnlyTop5Games)
 	if err != nil {
-		configuration.Logger.Fatal("failed to marshal json for user graph data")
+		configuration.Logger.Sugar().Fatalf("failed to get top 10 game detail: %+v", err)
 		panic(err)
 	}
 
-	err = os.WriteFile("hellok.json", json, 0644)
+	usersDataForGraphWithFriends := datastructures.UsersGraphData{
+		UserDetails:       usersDataForGraphWithOnlyTop5Games[0],
+		FriendDetails:     usersDataForGraphWithOnlyTop5Games[1:],
+		TopTenGameDetails: topTenOverallGameDetails,
+	}
+	jsonObj, err := json.Marshal(&usersDataForGraphWithFriends)
 	if err != nil {
-		configuration.Logger.Fatal("failed to write json for user graph data")
+		configuration.Logger.Sugar().Fatalf("err marshaling data: %+v", err)
 		panic(err)
 	}
 
 	success, err := cntr.SaveProcessedGraphDataToDataStore(crawlID, usersDataForGraphWithFriends)
 	if err != nil || success == false {
 		configuration.Logger.Sugar().Fatalf("failed to save processed graph data to datastore: %+v", err)
+		panic(err)
+	}
+	configuration.Logger.Sugar().Infof("successfully collected graph data for crawlID: %s", crawlID)
+
+	err = os.WriteFile("helloJson.json", jsonObj, 0644)
+	if err != nil {
+		configuration.Logger.Sugar().Fatalf("err writing json file: %+v", err)
 		panic(err)
 	}
 }

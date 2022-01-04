@@ -40,8 +40,9 @@ type CreateGraph struct {
 }
 
 type UsersGraphData struct {
-	UserDetails   ResStruct   `json:"userdetails"`
-	FriendDetails []ResStruct `json:"frienddetails"`
+	UserDetails       ResStruct      `json:"userdetails"`
+	FriendDetails     []ResStruct    `json:"frienddetails"`
+	TopTenGameDetails []BareGameInfo `json:"toptengamedetails"`
 }
 
 type CrawlJob struct {
@@ -59,4 +60,18 @@ type ResStruct struct {
 	FromID       string
 	MaxLevel     int
 	CurrentLevel int
+}
+
+type BareGameInfo struct {
+	AppID int    `json:"appid"`
+	Name  string `json:"name"`
+}
+
+type GetDetailsForGamesDTO struct {
+	Status string         `json:"status"`
+	Games  []BareGameInfo `json:"games"`
+}
+
+type GetDetailsForGamesInputDTO struct {
+	GameIDs []int `json:"gameids"`
 }

@@ -37,6 +37,7 @@ type CntrInterface interface {
 	GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error)
 	GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error)
 	SaveProcessedGraphDataToDataStore(crawlID string, graphData datastructures.UsersGraphData) (bool, error)
+	GetGameDetailsFromIDs(gameIDs []int) ([]datastructures.BareGameInfo, error)
 }
 
 // CallGetFriends calls the steam web API to retrieve a list of
@@ -521,4 +522,60 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 	}
 
 	return false, util.MakeErr(fmt.Errorf("error saving processed graphdata: %+v", APIRes))
+}
+
+func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]datastructures.BareGameInfo, error) {
+	targetURL := fmt.Sprintf("%s/getdetailsforgames", os.Getenv("DATASTORE_URL"))
+
+	detailsForGamesInput := datastructures.GetDetailsForGamesInputDTO{
+		GameIDs: gameIDs,
+	}
+	jsonObj, err := json.Marshal(detailsForGamesInput)
+	if err != nil {
+		return []datastructures.BareGameInfo{}, util.MakeErr(err)
+	}
+
+	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	req.Close = true
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authentication", "something")
+
+	client := &http.Client{}
+	res := &http.Response{}
+	var callErr error
+
+	maxRetryCount := 3
+	successfulRequest := false
+
+	for i := 1; i <= maxRetryCount; i++ {
+		res, callErr = client.Do(req)
+		if callErr != nil {
+			configuration.Logger.Sugar().Infof("failed to call %s for %+v %d times", targetURL, gameIDs, i)
+			res.Body.Close()
+		} else {
+			successfulRequest = true
+			defer res.Body.Close()
+			break
+		}
+	}
+	// Failed after all retries
+	if successfulRequest == false {
+		return []datastructures.BareGameInfo{}, util.MakeErr(callErr)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return []datastructures.BareGameInfo{}, util.MakeErr(err)
+	}
+	APIRes := datastructures.GetDetailsForGamesDTO{}
+	err = json.Unmarshal(body, &APIRes)
+	if err != nil {
+		return []datastructures.BareGameInfo{}, util.MakeErr(err)
+	}
+
+	if res.StatusCode == 200 {
+		return APIRes.Games, nil
+	}
+	fmt.Printf("code was: %+v\n", res.StatusCode)
+	return []datastructures.BareGameInfo{}, util.MakeErr(fmt.Errorf("error when retrieving details for games: %+v", APIRes))
 }

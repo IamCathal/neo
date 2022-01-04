@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-echarts/go-echarts/charts"
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
@@ -30,9 +29,6 @@ type GraphWorkerConfig struct {
 	TotalUsersToCrawl int
 	UsersCrawled      int
 	MaxLevel          int
-
-	links []charts.GraphLink
-	nodes []charts.GraphNode
 }
 
 // func graphWorker(id int, ctx context.Context, cntr controller.CntrInterface, workerConfig *GraphWorkerConfig, jobs <-chan jobStruct, res chan<- jobStruct) {
@@ -163,7 +159,7 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 
 			userGraphData, err := cntr.GetUserFromDataStore(currentJob.SteamID)
 			if err != nil {
-				configuration.Logger.Sugar().Fatalf("failed tgo get user data for %s: %+v", currentJob.SteamID, err)
+				configuration.Logger.Sugar().Fatalf("failed to get user data for %s: %+v", currentJob.SteamID, err)
 				panic(err)
 			}
 

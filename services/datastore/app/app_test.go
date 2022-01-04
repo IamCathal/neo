@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
@@ -195,4 +196,37 @@ func TestGetUserReturnsAnErrorAndEmptyUserWhenMongoReturnsAnError(t *testing.T) 
 
 	assert.EqualError(t, err, expectedError.Error())
 	assert.Equal(t, user, common.UserDocument{})
+}
+
+func TestGetCrawlingStatsFromDB(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+
+	crawlID := "crawlID"
+	expectedCrawlingStatus := common.CrawlingStatus{
+		TimeStarted: time.Now(),
+		CrawlID:     crawlID,
+	}
+	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, crawlID).Return(expectedCrawlingStatus, nil)
+
+	crawlingStatus, err := GetCrawlingStatsFromDB(mockController, crawlID)
+
+	assert.Nil(t, err)
+	assert.Equal(t, expectedCrawlingStatus, crawlingStatus)
+	mockController.AssertNumberOfCalls(t, "GetCrawlingStatusFromDB", 1)
+}
+
+func TestGetCrawlingStatsFromDBReturnsAnErrorWhenControllerMethodDoes(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	configuration.DBClient = &mongo.Client{}
+
+	crawlID := "crawlID"
+	expectedError := errors.New("expected error")
+	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, crawlID).Return(common.CrawlingStatus{}, expectedError)
+
+	crawlingStatus, err := GetCrawlingStatsFromDB(mockController, crawlID)
+
+	assert.Empty(t, crawlingStatus)
+	assert.Equal(t, expectedError, err)
+	mockController.AssertNumberOfCalls(t, "GetCrawlingStatusFromDB", 1)
 }

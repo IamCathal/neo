@@ -11,6 +11,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -31,6 +32,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	configuration.Logger = log
+	configuration.AmqpChannels = append(configuration.AmqpChannels, amqp.Channel{})
 
 	code := m.Run()
 
@@ -94,6 +96,7 @@ func initTestData() {
 
 func TestPutFriendsIntoJobsQueue(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
+
 	currentJob := datastructures.Job{
 		JobType:               "crawl",
 		OriginalTargetSteamID: "12345",
@@ -104,7 +107,7 @@ func TestPutFriendsIntoJobsQueue(t *testing.T) {
 	}
 	friendIDs := []string{"12455", "29456", "05838", "54954", "45967"}
 
-	mockController.On("PublishToJobsQueue", mock.Anything).Return(nil)
+	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(nil)
 
 	err := putFriendsIntoQueue(mockController, currentJob, friendIDs)
 
@@ -375,14 +378,14 @@ func TestInitWorkerConfig(t *testing.T) {
 
 func TestCrawlUser(t *testing.T) {
 	mockController := controller.MockCntrInterface{}
-	mockController.On("PublishToJobsQueue", mock.Anything).Return(nil)
+	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(nil)
 
 	CrawlUser(&mockController, "testSteamID", "testcrawlID", 4)
 }
 
 func TestCrawlUserWhenErrorIsReturnedPublishingJobToQueue(t *testing.T) {
 	mockController := controller.MockCntrInterface{}
-	mockController.On("PublishToJobsQueue", mock.Anything).Return(errors.New("test error"))
+	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(errors.New("test error"))
 
 	CrawlUser(&mockController, "testSteamID", "testcrawlID", 4)
 }

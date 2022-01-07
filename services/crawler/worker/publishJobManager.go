@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/iamcathal/neo/services/crawler/amqpchannelmanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
@@ -28,7 +29,8 @@ func publishJobWithThrottling(cntr controller.CntrInterface, job datastructures.
 	startTime := time.Now()
 	jobPublishLock.Lock()
 	for {
-		if time.Since(lastPublishedTime) > time.Duration(25*time.Millisecond) {
+		// if time.Since(lastPublishedTime) > time.Duration(25*time.Millisecond) {
+		if time.Since(lastPublishedTime) > time.Duration(2*time.Nanosecond) {
 			lastPublishedTime = time.Now()
 
 			// go func() {
@@ -81,7 +83,7 @@ func publishJob(cntr controller.CntrInterface, job datastructures.Job) error {
 		return err
 	}
 
-	err = cntr.PublishToJobsQueue(jobJSON)
+	err = amqpchannelmanager.PublishToJobsQueue(cntr, jobJSON)
 	if err != nil {
 		configuration.Logger.Sugar().Infof("failed to publish job: %+v retrying now", string(jobJSON))
 		maxRetries := 3
@@ -89,11 +91,8 @@ func publishJob(cntr controller.CntrInterface, job datastructures.Job) error {
 		sleepTimers := []int{80, 18500, 8500}
 
 		for i := 0; i < maxRetries; i++ {
-			// 30, 420, 5880ms
-			// exponentialBackOffSleepTime := math.Pow(14, float64(i)) * 30
-			// time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			time.Sleep(time.Duration(sleepTimers[i]) * time.Millisecond)
-			err = cntr.PublishToJobsQueue(jobJSON)
+			err = amqpchannelmanager.PublishToJobsQueue(cntr, jobJSON)
 			if err == nil {
 				configuration.Logger.Sugar().Infof("successfully placed job in queue after %d retries", i)
 				successfulRequest = true

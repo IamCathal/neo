@@ -217,13 +217,13 @@ func (_m *MockCntrInterface) GetUsernamesForSteamIDs(steamIDs []string) (map[str
 	return r0, r1
 }
 
-// PublishToJobsQueue provides a mock function with given fields: jobJSON
-func (_m *MockCntrInterface) PublishToJobsQueue(jobJSON []byte) error {
-	ret := _m.Called(jobJSON)
+// PublishToJobsQueue provides a mock function with given fields: channel, jobJSON
+func (_m *MockCntrInterface) PublishToJobsQueue(channel amqp.Channel, jobJSON []byte) error {
+	ret := _m.Called(channel, jobJSON)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func([]byte) error); ok {
-		r0 = rf(jobJSON)
+	if rf, ok := ret.Get(0).(func(amqp.Channel, []byte) error); ok {
+		r0 = rf(channel, jobJSON)
 	} else {
 		r0 = ret.Error(0)
 	}

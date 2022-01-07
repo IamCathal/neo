@@ -19,7 +19,7 @@ func InitWorkerConfig() datastructures.WorkerConfig {
 }
 
 func StartUpWorkers(cntr controller.CntrInterface) {
-	for i := 0; i < len(configuration.UsableAPIKeys.APIKeys); i++ {
+	for i := 0; i < 40; i++ {
 		go ControlFunc(cntr)
 	}
 }

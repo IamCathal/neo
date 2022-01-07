@@ -20,8 +20,9 @@ var (
 
 	WorkerConfig datastructures.WorkerConfig
 
-	Queue   amqp.Queue
-	Channel amqp.Channel
+	Queue          amqp.Queue
+	ConsumeChannel amqp.Channel
+	AmqpChannels   []amqp.Channel
 
 	UsableAPIKeys datastructures.APIKeysInUse
 )
@@ -42,7 +43,11 @@ func InitConfig() error {
 
 	logger := commonUtil.InitLogger(logConfig)
 	Logger = logger
-	InitRabbitMQConnection()
+
+	newQueue, channel := InitRabbitMQConnection()
+	Queue = newQueue
+	ConsumeChannel = channel
+	InitAMQPChannels()
 
 	return nil
 }
@@ -56,7 +61,7 @@ func InitAndSetWorkerConfig() {
 	WorkerConfig = workerConfig
 }
 
-func InitRabbitMQConnection() {
+func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s", os.Getenv("RABBITMQ_USER"), os.Getenv("RABBITMQ_PASSWORD"), os.Getenv("RABBITMQ_URL")))
 	if err != nil {
 		log.Fatal(err)
@@ -89,7 +94,14 @@ func InitRabbitMQConnection() {
 		log.Fatal(err)
 	}
 
-	Queue = queue
-	Channel = *channel
 	Logger.Info("started rabbitMQ connection")
+	return queue, *channel
+}
+
+func InitAMQPChannels() {
+	for i := 0; i < 10; i++ {
+		_, newChannel := InitRabbitMQConnection()
+		AmqpChannels = append(AmqpChannels, newChannel)
+	}
+	Logger.Sugar().Infof("initialised %d rabbitMQ channels successfully", len(AmqpChannels))
 }

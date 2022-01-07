@@ -18,6 +18,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -29,12 +30,14 @@ var (
 
 func TestMain(m *testing.M) {
 	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"/dev/null"}
+	// c.OutputPaths = []string{"/dev/null"}
+	c.OutputPaths = []string{"stdout"}
 	logger, err := c.Build()
 	if err != nil {
 		log.Fatal(err)
 	}
 	configuration.Logger = logger
+	configuration.AmqpChannels = append(configuration.AmqpChannels, amqp.Channel{})
 
 	code := m.Run()
 
@@ -146,7 +149,7 @@ func TestCrawlOneValidUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	mockController.On("PublishToJobsQueue", mock.Anything).Return(nil)
+	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(nil)
 
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/crawl", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
@@ -162,7 +165,7 @@ func TestCrawlOneValidUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, res.StatusCode, 200)
+	assert.Equal(t, 200, res.StatusCode)
 	assert.Equal(t, "success", apiResponse.Status)
 }
 

@@ -27,7 +27,7 @@ type CntrInterface interface {
 	CallGetPlayerSummaries(steamIDList string) ([]common.Player, error)
 	CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error)
 	// RabbitMQ related functions
-	PublishToJobsQueue(jobJSON []byte) error
+	PublishToJobsQueue(channel amqp.Channel, jobJSON []byte) error
 	ConsumeFromJobsQueue() (<-chan amqp.Delivery, error)
 	// Datastore related functions
 	SaveUserToDataStore(dtos.SaveUserDTO) (bool, error)
@@ -132,8 +132,8 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 
 // PublishToJobsQueue publishes a job to the rabbitMQ queue
 //		err := PublishToJobsQueue(job)
-func (control Cntr) PublishToJobsQueue(jobJSON []byte) error {
-	return configuration.Channel.Publish(
+func (control Cntr) PublishToJobsQueue(channel amqp.Channel, jobJSON []byte) error {
+	return channel.Publish(
 		"",                       // exchange
 		configuration.Queue.Name, // routing key
 		false,                    // mandatory
@@ -152,7 +152,7 @@ func (control Cntr) PublishToJobsQueue(jobJSON []byte) error {
 //			err := json.Unmarshal(d.Body, &newJob)
 //		}
 func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
-	return configuration.Channel.Consume(
+	return configuration.ConsumeChannel.Consume(
 		configuration.Queue.Name, // queue
 		"",                       // consumer
 		false,                    // auto-ack

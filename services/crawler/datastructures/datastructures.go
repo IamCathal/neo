@@ -1,9 +1,11 @@
 package datastructures
 
 import (
+	"sync"
 	"time"
 
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/streadway/amqp"
 )
 
 type CrawlUsersInput struct {
@@ -33,6 +35,11 @@ type APIKeysInUse struct {
 type APIKey struct {
 	Key      string
 	LastUsed time.Time
+}
+
+type AmqpChannel struct {
+	Channel amqp.Channel
+	Lock    *sync.Mutex
 }
 
 type CreateGraph struct {

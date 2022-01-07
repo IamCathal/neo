@@ -131,6 +131,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		} else {
 			urlPathBasic = "/"
 		}
+		// TODO change from blocking to async
 		writeAPI := configuration.InfluxDBClient.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
 		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
 			AddTag("path", urlPathBasic).

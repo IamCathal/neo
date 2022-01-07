@@ -17,7 +17,9 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/segmentio/ksuid"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -30,8 +32,7 @@ var (
 
 func TestMain(m *testing.M) {
 	c := zap.NewProductionConfig()
-	// c.OutputPaths = []string{"/dev/null"}
-	c.OutputPaths = []string{"stdout"}
+	c.OutputPaths = []string{"/dev/null"}
 	logger, err := c.Build()
 	if err != nil {
 		log.Fatal(err)
@@ -235,4 +236,34 @@ func TestCrawlUserReturnsInvalidFormatSteamIDsForInvalidSteamIDs(t *testing.T) {
 	mockController.AssertNotCalled(t, "CallGetFriends")
 	assert.Equal(t, 400, res.StatusCode)
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestCreateGraph(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	returnedCrawlingStatus := common.CrawlingStatus{
+		TimeStarted: time.Now(),
+		CrawlID:     ksuid.New().String(),
+	}
+	mockController.On("GetCrawlingStatsFromDataStore", returnedCrawlingStatus.CrawlID).Return(returnedCrawlingStatus, nil)
+
+	expectedResponse := common.BasicAPIResponse{
+		Status:  "success",
+		Message: "graph creation has been initiated",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(util.MakeErr(err))
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/creategraph/%s", serverPort, returnedCrawlingStatus.CrawlID), "application/json", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse), string(body))
 }

@@ -40,7 +40,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/crawl", endpoints.CrawlUsers).Methods("POST")
 	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
-	r.HandleFunc("/creategraph", endpoints.CreateGraph).Methods("POST")
+	r.HandleFunc("/creategraph/{crawlid}", endpoints.CreateGraph).Methods("POST")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r
@@ -213,15 +213,14 @@ func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Requ
 func (endpoints *Endpoints) CreateGraph(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	createGraph := datastructures.CreateGraph{}
-	err := json.NewDecoder(r.Body).Decode(&createGraph)
+	_, err := ksuid.Parse(vars["crawlid"])
 	if err != nil {
-		commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		commonUtil.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusBadRequest)
 		return
 	}
 
 	// Check if this crawl session is actually finished
-	crawlingStats, err := endpoints.Cntr.GetCrawlingStatsFromDataStore(createGraph.CrawlID)
+	crawlingStats, err := endpoints.Cntr.GetCrawlingStatsFromDataStore(vars["crawlid"])
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "could not check if crawling has finished", vars, http.StatusBadRequest)
 		return
@@ -232,7 +231,7 @@ func (endpoints *Endpoints) CreateGraph(w http.ResponseWriter, r *http.Request) 
 		MaxLevel:          crawlingStats.MaxLevel,
 	}
 
-	go graphing.CollectGraphData(endpoints.Cntr, crawlingStats.OriginalCrawlTarget, createGraph.CrawlID, graphWorkerConfig)
+	go graphing.CollectGraphData(endpoints.Cntr, crawlingStats.OriginalCrawlTarget, vars["crawlid"], graphWorkerConfig)
 
 	response := common.BasicAPIResponse{
 		Status:  "success",

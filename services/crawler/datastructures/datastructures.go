@@ -82,3 +82,24 @@ type GetDetailsForGamesDTO struct {
 type GetDetailsForGamesInputDTO struct {
 	GameIDs []int `json:"gameids"`
 }
+
+// TEMP
+
+type CrawlingStatus struct {
+	TimeStarted         int64  `json:"timestarted"`
+	CrawlID             string `json:"crawlid"`
+	OriginalCrawlTarget string `json:"originalcrawltarget"`
+	MaxLevel            int    `json:"maxlevel"`
+	TotalUsersToCrawl   int    `json:"totaluserstocrawl"`
+	UsersCrawled        int    `json:"userscrawled"`
+}
+
+type SaveCrawlingStatsDTO struct {
+	CurrentLevel   int            `json:"currentlevel"`
+	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
+}
+
+type GetCrawlingStatusDTO struct {
+	Status         string         `json:"status"`
+	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
+}

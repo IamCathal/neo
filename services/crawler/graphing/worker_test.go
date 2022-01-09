@@ -15,8 +15,7 @@ import (
 
 func TestMain(m *testing.M) {
 	c := zap.NewProductionConfig()
-	// c.OutputPaths = []string{"/dev/null"}
-	c.OutputPaths = []string{"stdout"}
+	c.OutputPaths = []string{"/dev/null"}
 	logger, err := c.Build()
 	if err != nil {
 		log.Fatal(err)

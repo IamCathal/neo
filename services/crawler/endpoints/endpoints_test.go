@@ -241,8 +241,8 @@ func TestCrawlUserReturnsInvalidFormatSteamIDsForInvalidSteamIDs(t *testing.T) {
 func TestCreateGraph(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	returnedCrawlingStatus := common.CrawlingStatus{
-		TimeStarted: time.Now(),
+	returnedCrawlingStatus := datastructures.CrawlingStatus{
+		TimeStarted: time.Now().Unix(),
 		CrawlID:     ksuid.New().String(),
 	}
 	mockController.On("GetCrawlingStatsFromDataStore", returnedCrawlingStatus.CrawlID).Return(returnedCrawlingStatus, nil)

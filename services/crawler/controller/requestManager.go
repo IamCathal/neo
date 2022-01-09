@@ -27,7 +27,10 @@ func MakeNetworkGETRequest(targetURL string) ([]byte, error) {
 	requestMakeLock.Lock()
 	for {
 		if time.Since(lastRequestTime) > time.Duration(1*time.Nanosecond) {
-			configuration.Logger.Sugar().Infof("waited %v and time since last request is %v\n", time.Since(startTime), time.Since(lastRequestTime))
+			if time.Since(startTime) > time.Duration(10*time.Millisecond) {
+				configuration.Logger.Sugar().Infof("waited %v and time since last request is %v\n", time.Since(startTime), time.Since(lastRequestTime))
+			}
+
 			lastRequestTime = time.Now()
 			// Roughly 1ms after the request is made allow the lock to be unlocked.
 			// We only want one request being initiated at a time but don't care about

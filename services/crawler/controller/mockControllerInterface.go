@@ -109,14 +109,14 @@ func (_m *MockCntrInterface) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error
 }
 
 // GetCrawlingStatsFromDataStore provides a mock function with given fields: crawlID
-func (_m *MockCntrInterface) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
+func (_m *MockCntrInterface) GetCrawlingStatsFromDataStore(crawlID string) (datastructures.CrawlingStatus, error) {
 	ret := _m.Called(crawlID)
 
-	var r0 common.CrawlingStatus
-	if rf, ok := ret.Get(0).(func(string) common.CrawlingStatus); ok {
+	var r0 datastructures.CrawlingStatus
+	if rf, ok := ret.Get(0).(func(string) datastructures.CrawlingStatus); ok {
 		r0 = rf(crawlID)
 	} else {
-		r0 = ret.Get(0).(common.CrawlingStatus)
+		r0 = ret.Get(0).(datastructures.CrawlingStatus)
 	}
 
 	var r1 error
@@ -232,18 +232,18 @@ func (_m *MockCntrInterface) PublishToJobsQueue(channel amqp.Channel, jobJSON []
 }
 
 // SaveCrawlingStatsToDataStore provides a mock function with given fields: currentLevel, crawlingStatus
-func (_m *MockCntrInterface) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error) {
+func (_m *MockCntrInterface) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus datastructures.CrawlingStatus) (bool, error) {
 	ret := _m.Called(currentLevel, crawlingStatus)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(int, common.CrawlingStatus) bool); ok {
+	if rf, ok := ret.Get(0).(func(int, datastructures.CrawlingStatus) bool); ok {
 		r0 = rf(currentLevel, crawlingStatus)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, common.CrawlingStatus) error); ok {
+	if rf, ok := ret.Get(1).(func(int, datastructures.CrawlingStatus) error); ok {
 		r1 = rf(currentLevel, crawlingStatus)
 	} else {
 		r1 = ret.Error(1)

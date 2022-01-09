@@ -26,7 +26,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	if userWasFoundInDB {
-		crawlingStatus := common.CrawlingStatus{
+		crawlingStatus := datastructures.CrawlingStatus{
 			OriginalCrawlTarget: job.OriginalTargetSteamID,
 			MaxLevel:            job.MaxLevel,
 			CrawlID:             job.CrawlID,
@@ -83,7 +83,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	}
 	topTwentyOrFewerTopPlayedGames := getTopTwentyOrFewerGames(allGamesOwnedForCurrentUser)
 	topTwentyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topTwentyOrFewerTopPlayedGames)
-	topTwentyOrFewerGamesSlimmedDown := GetSlimmedDownGames(topTwentyOrFewerTopPlayedGames)
+	// topTwentyOrFewerGamesSlimmedDown := GetSlimmedDownGames(topTwentyOrFewerTopPlayedGames)
 
 	friendPlayerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
 	if err != nil {
@@ -128,7 +128,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 			FriendIDs:  friendPlayerSummarySteamIDs,
 			GamesOwned: topTwentyOrFewerGamesOwnedSlimmedDown,
 		},
-		GamesOwnedFull: topTwentyOrFewerGamesSlimmedDown,
+		// GamesOwnedFull: topTwentyOrFewerGamesSlimmedDown,
 	}
 
 	success, err := cntr.SaveUserToDataStore(saveUser)

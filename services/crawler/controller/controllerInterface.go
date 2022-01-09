@@ -32,8 +32,8 @@ type CntrInterface interface {
 	// Datastore related functions
 	SaveUserToDataStore(dtos.SaveUserDTO) (bool, error)
 	GetUserFromDataStore(steamID string) (common.UserDocument, error)
-	SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error)
-	GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error)
+	SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus datastructures.CrawlingStatus) (bool, error)
+	GetCrawlingStatsFromDataStore(crawlID string) (datastructures.CrawlingStatus, error)
 	GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error)
 	GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error)
 	SaveProcessedGraphDataToDataStore(crawlID string, graphData datastructures.UsersGraphData) (bool, error)
@@ -267,9 +267,9 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	return userDoc.User, nil
 }
 
-func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error) {
+func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus datastructures.CrawlingStatus) (bool, error) {
 	targetURL := fmt.Sprintf("%s/savecrawlingstats", os.Getenv("DATASTORE_URL"))
-	crawlingStatsDTO := dtos.SaveCrawlingStatsDTO{
+	crawlingStatsDTO := datastructures.SaveCrawlingStatsDTO{
 		CurrentLevel:   currentLevel,
 		CrawlingStatus: crawlingStatus,
 	}
@@ -321,7 +321,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	return false, util.MakeErr(fmt.Errorf("error saving crawling stats for existing user: %+v", APIRes))
 }
 
-func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
+func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (datastructures.CrawlingStatus, error) {
 	targetURL := fmt.Sprintf("%s/getcrawlingstatus/%s", os.Getenv("DATASTORE_URL"), crawlID)
 	req, err := http.NewRequest("GET", targetURL, nil)
 	req.Close = true
@@ -348,23 +348,23 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 	}
 	// Failed after all retries
 	if successfulRequest == false {
-		return common.CrawlingStatus{}, util.MakeErr(callErr)
+		return datastructures.CrawlingStatus{}, util.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return common.CrawlingStatus{}, util.MakeErr(err)
+		return datastructures.CrawlingStatus{}, util.MakeErr(err)
 	}
-	APIRes := dtos.GetCrawlingStatusDTO{}
+	APIRes := datastructures.GetCrawlingStatusDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return common.CrawlingStatus{}, util.MakeErr(err)
+		return datastructures.CrawlingStatus{}, util.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return APIRes.CrawlingStatus, nil
 	}
-	return common.CrawlingStatus{}, util.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
+	return datastructures.CrawlingStatus{}, util.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
 }
 
 func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {

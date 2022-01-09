@@ -49,7 +49,7 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 
 	nextLevel := currentJob.CurrentLevel + 1
 	if nextLevel > currentJob.MaxLevel {
-		configuration.Logger.Info("not putting on friends")
+		// configuration.Logger.Info("not putting on friends")
 		return nil
 	}
 

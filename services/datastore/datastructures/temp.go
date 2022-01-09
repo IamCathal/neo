@@ -67,4 +67,5 @@ type AddUserEvent struct {
 	PersonaName string `json:"personaname"`
 	ProfileURL  string `json:"profileurl"`
 	Avatar      string `json:"avatar"`
+	CountryCode string `json:"countrycode"`
 }

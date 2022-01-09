@@ -160,7 +160,7 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -194,7 +194,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -235,7 +235,7 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -281,7 +281,7 @@ func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -313,7 +313,7 @@ func TestGetUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", serverPort, testUser.AccDetails.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -336,7 +336,7 @@ func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getuser/%s", serverPort, testUser.AccDetails.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -368,7 +368,7 @@ func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T)
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/gobbeldygook", serverPort))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/gobbeldygook", serverPort))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -399,7 +399,7 @@ func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *te
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/%s", serverPort, expectedCrawlingStatus.CrawlID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/%s", serverPort, expectedCrawlingStatus.CrawlID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -423,7 +423,7 @@ func TestGetCrawlingStatsReturnsCouldntGetCrawlingStatusWhenDBReturnsAnError(t *
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getcrawlingstatus/%s", serverPort, ksuid.New().String()))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/%s", serverPort, ksuid.New().String()))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -462,7 +462,7 @@ func TestGetUsernamesFromSteamIDsReturnsUsernamesForSteamID(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -487,7 +487,7 @@ func TestGetUsernamesReturnsInvalidInputForAnyInvalidFormatSteamIDsGiven(t *test
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -511,7 +511,7 @@ func TestGetUsernamesFromSteamIDsReturnsInvalidRequestWhenCallToDataStoreFails(t
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -545,7 +545,7 @@ func TestGetGraphableDataReturnsGraphableDataForAValidUser(t *testing.T) {
 
 	mockController.On("GetUser", mock.Anything, foundUser.AccDetails.SteamID).Return(foundUser, nil)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getgraphabledata/%s", serverPort, foundUser.AccDetails.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, foundUser.AccDetails.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -568,7 +568,7 @@ func TestGetGraphableDataReturnsCouldntGetUserWhenNoUserIsFound(t *testing.T) {
 	randomError := errors.New("hello world")
 	mockController.On("GetUser", mock.Anything, validFormatSteamID).Return(common.UserDocument{}, randomError)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getgraphabledata/%s", serverPort, validFormatSteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, validFormatSteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -589,7 +589,7 @@ func TestGetGraphableDataReturnsInvalidInputForInvalidFormatSteamIDs(t *testing.
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/getgraphabledata/%s", serverPort, invalidFormatSteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, invalidFormatSteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -615,7 +615,7 @@ func TestSaveCrawlingStatsToDB(t *testing.T) {
 	}
 	mockController.On("UpdateCrawlingStatus", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/savecrawlingstats", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/savecrawlingstats", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -635,7 +635,7 @@ func TestInsertGame(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/insertgame", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/insertgame", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -657,7 +657,7 @@ func TestInsertGameReturnsCouldntInsertGameWhenAnErrorOccurs(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/insertgame", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/insertgame", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -696,7 +696,7 @@ func TestGetDetailsForGames(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -728,7 +728,7 @@ func TestGetDetailsForGamesReturnsErrorWhenNoneOrMoreThanTwentyGamesAreRequested
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -763,7 +763,7 @@ func TestGetDetailsForGamesReturnsAnErrorWhenGetGameDetailsReturnsAnError(t *tes
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -799,7 +799,7 @@ func TestGetDetailsForGamesReturnsAnEmptyGameDetailsResponseWhenNoGameDetailsAre
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -855,7 +855,7 @@ func TestSaveProcessedGraphData(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -886,7 +886,7 @@ func TestSaveProcessedGraphDataReturnsInvalidInputForInvalidFormatCrawlID(t *tes
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -918,7 +918,7 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *t
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -973,7 +973,7 @@ func TestGetProcessedGraphData(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1003,7 +1003,7 @@ func TestGetProcessedGraphDataReturnsInvalidInputForInvalidFormatCrawlID(t *test
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1035,7 +1035,7 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -16,6 +16,7 @@ import (
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
@@ -23,6 +24,13 @@ import (
 	"github.com/segmentio/ksuid"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
+)
+
+var (
+	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
 )
 
 type Endpoints struct {
@@ -40,18 +48,24 @@ type responseWriter struct {
 
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/status", endpoints.Status).Methods("POST")
-	r.HandleFunc("/saveuser", endpoints.SaveUser).Methods("POST")
-	r.HandleFunc("/insertgame", endpoints.InsertGame).Methods("POST")
-	r.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
-	r.HandleFunc("/getdetailsforgames", endpoints.GetDetailsForGames).Methods("POST")
-	r.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
-	r.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
-	r.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
-	r.HandleFunc("/getusernamesfromsteamids", endpoints.GetUsernamesFromSteamIDs).Methods("POST")
-	r.HandleFunc("/saveprocessedgraphdata/{crawlid}", endpoints.SaveProcessedGraphData).Methods("POST")
-	r.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST")
-	r.Use(endpoints.LoggingMiddleware)
+
+	apiRouter := r.PathPrefix("/api").Subrouter()
+	apiRouter.HandleFunc("/status", endpoints.Status).Methods("POST")
+	apiRouter.HandleFunc("/saveuser", endpoints.SaveUser).Methods("POST")
+	apiRouter.HandleFunc("/insertgame", endpoints.InsertGame).Methods("POST")
+	apiRouter.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
+	apiRouter.HandleFunc("/getdetailsforgames", endpoints.GetDetailsForGames).Methods("POST")
+	apiRouter.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
+	apiRouter.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
+	apiRouter.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
+	apiRouter.HandleFunc("/getusernamesfromsteamids", endpoints.GetUsernamesFromSteamIDs).Methods("POST")
+	apiRouter.HandleFunc("/saveprocessedgraphdata/{crawlid}", endpoints.SaveProcessedGraphData).Methods("POST")
+	apiRouter.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST")
+	apiRouter.Use(endpoints.LoggingMiddleware)
+
+	wsRouter := r.PathPrefix("/ws").Subrouter()
+	wsRouter.HandleFunc("/newuserstream", endpoints.NewUserStream).Methods("GET")
+
 	return r
 }
 

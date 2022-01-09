@@ -56,6 +56,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
 	apiRouter.HandleFunc("/getdetailsforgames", endpoints.GetDetailsForGames).Methods("POST")
 	apiRouter.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
+	apiRouter.HandleFunc("/hasbeencrawledbefore", endpoints.HasBeenCrawledBefore).Methods("POST")
 	apiRouter.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
 	apiRouter.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
 	apiRouter.HandleFunc("/getusernamesfromsteamids", endpoints.GetUsernamesFromSteamIDs).Methods("POST")
@@ -274,6 +275,47 @@ func (endpoints *Endpoints) SaveCrawlingStatsToDB(w http.ResponseWriter, r *http
 	json.NewEncoder(w).Encode(response)
 }
 
+func (endpoints *Endpoints) HasBeenCrawledBefore(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	crawlDetails := datastructures.HasBeenCrawledBeforeInputDTO{}
+
+	err := json.NewDecoder(r.Body).Decode(&crawlDetails)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	if isValidFormat := util.IsValidFormatSteamID(crawlDetails.SteamID); !isValidFormat {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	hasBeenCrawled, err := endpoints.Cntr.HasUserBeenCrawledBeforeAtLevel(context.TODO(), crawlDetails.Level, crawlDetails.SteamID)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Could not lookup crawling status", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Fatalf("couldn't lookup has user been crawled before: %+v", err)
+		panic(err)
+	}
+
+	response := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"",
+	}
+
+	if hasBeenCrawled {
+		response.Message = "does exist"
+	} else {
+		response.Message = "does not exist"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
 func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -356,7 +398,7 @@ func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Req
 		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
-	crawlingStatus, err := app.GetCrawlingStatsFromDB(endpoints.Cntr, vars["crawlid"])
+	crawlingStatus, err := app.GetCrawlingStatsFromDBFromCrawlID(endpoints.Cntr, vars["crawlid"])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "couldn't get crawling status", vars, http.StatusNotFound)
 		LogBasicInfo("couldn't get crawling status", r, http.StatusNotFound)

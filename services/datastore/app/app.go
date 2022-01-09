@@ -100,9 +100,8 @@ func GetUserFromDB(cntr controller.CntrInterface, steamID string) (common.UserDo
 	return user, nil
 }
 
-func GetCrawlingStatsFromDB(cntr controller.CntrInterface, crawlID string) (datastructures.CrawlingStatus, error) {
-	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
-	crawlingStatus, err := cntr.GetCrawlingStatusFromDB(context.TODO(), crawlingStatsCollection, crawlID)
+func GetCrawlingStatsFromDBFromCrawlID(cntr controller.CntrInterface, crawlID string) (datastructures.CrawlingStatus, error) {
+	crawlingStatus, err := cntr.GetCrawlingStatusFromDBFromCrawlID(context.TODO(), crawlID)
 	if err != nil {
 		return datastructures.CrawlingStatus{}, err
 	}

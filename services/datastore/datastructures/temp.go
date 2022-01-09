@@ -69,3 +69,8 @@ type AddUserEvent struct {
 	Avatar      string `json:"avatar"`
 	CountryCode string `json:"countrycode"`
 }
+
+type HasBeenCrawledBeforeInputDTO struct {
+	Level   int    `json:"level"`
+	SteamID string `json:"steamid"`
+}

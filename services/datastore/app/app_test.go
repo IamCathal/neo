@@ -199,7 +199,7 @@ func TestGetUserReturnsAnErrorAndEmptyUserWhenMongoReturnsAnError(t *testing.T) 
 	assert.Equal(t, user, common.UserDocument{})
 }
 
-func TestGetCrawlingStatsFromDB(t *testing.T) {
+func TestGetCrawlingStatsFromDBFromCrawlID(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	configuration.DBClient = &mongo.Client{}
 
@@ -208,13 +208,13 @@ func TestGetCrawlingStatsFromDB(t *testing.T) {
 		TimeStarted: time.Now().Unix(),
 		CrawlID:     crawlID,
 	}
-	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, crawlID).Return(expectedCrawlingStatus, nil)
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, crawlID).Return(expectedCrawlingStatus, nil)
 
-	crawlingStatus, err := GetCrawlingStatsFromDB(mockController, crawlID)
+	crawlingStatus, err := GetCrawlingStatsFromDBFromCrawlID(mockController, crawlID)
 
 	assert.Nil(t, err)
 	assert.Equal(t, expectedCrawlingStatus, crawlingStatus)
-	mockController.AssertNumberOfCalls(t, "GetCrawlingStatusFromDB", 1)
+	mockController.AssertNumberOfCalls(t, "GetCrawlingStatusFromDBFromCrawlID", 1)
 }
 
 func TestGetCrawlingStatsFromDBReturnsAnErrorWhenControllerMethodDoes(t *testing.T) {
@@ -223,11 +223,11 @@ func TestGetCrawlingStatsFromDBReturnsAnErrorWhenControllerMethodDoes(t *testing
 
 	crawlID := "crawlID"
 	expectedError := errors.New("expected error")
-	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, crawlID).Return(datastructures.CrawlingStatus{}, expectedError)
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, crawlID).Return(datastructures.CrawlingStatus{}, expectedError)
 
-	crawlingStatus, err := GetCrawlingStatsFromDB(mockController, crawlID)
+	crawlingStatus, err := GetCrawlingStatsFromDBFromCrawlID(mockController, crawlID)
 
 	assert.Empty(t, crawlingStatus)
 	assert.Equal(t, expectedError, err)
-	mockController.AssertNumberOfCalls(t, "GetCrawlingStatusFromDB", 1)
+	mockController.AssertNumberOfCalls(t, "GetCrawlingStatusFromDBFromCrawlID", 1)
 }

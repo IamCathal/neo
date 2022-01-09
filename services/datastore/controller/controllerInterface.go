@@ -24,7 +24,8 @@ type CntrInterface interface {
 	InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error)
 	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus datastructures.CrawlingStatus) (bool, error)
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
-	GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (datastructures.CrawlingStatus, error)
+	GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (datastructures.CrawlingStatus, error)
+	HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (bool, error)
 	GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error)
 	InsertGame(ctx context.Context, game datastructures.BareGameInfo) (bool, error)
 	GetDetailsForGames(ctx context.Context, IDList []int) ([]datastructures.BareGameInfo, error)
@@ -82,16 +83,34 @@ func (control Cntr) GetUser(ctx context.Context, steamID string) (common.UserDoc
 	return userDoc, nil
 }
 
-func (control Cntr) GetCrawlingStatusFromDB(ctx context.Context, crawlingStatusCollection *mongo.Collection, crawlID string) (datastructures.CrawlingStatus, error) {
+func (control Cntr) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (datastructures.CrawlingStatus, error) {
+	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
 	crawlingStatus := datastructures.CrawlingStatus{}
 
-	if err := crawlingStatusCollection.FindOne(ctx, bson.M{
+	if err := crawlingStatsCollection.FindOne(ctx, bson.M{
 		"crawlid": crawlID,
 	}).Decode(&crawlingStatus); err != nil {
 		return datastructures.CrawlingStatus{}, err
 	}
 
 	return crawlingStatus, nil
+}
+
+func (control Cntr) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (bool, error) {
+	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
+	crawlingStatus := datastructures.CrawlingStatus{}
+
+	err := crawlingStatsCollection.FindOne(ctx, bson.M{
+		"maxlevel":            level,
+		"originalcrawltarget": steamID,
+	}).Decode(&crawlingStatus)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to find existing crawlingstatus: %+v", err)
+	}
+	return true, nil
 }
 
 func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error) {

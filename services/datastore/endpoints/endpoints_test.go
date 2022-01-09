@@ -42,7 +42,8 @@ func TestMain(m *testing.M) {
 	}
 	initTestData()
 	c := zap.NewProductionConfig()
-	c.OutputPaths = []string{"/dev/null"}
+	// c.OutputPaths = []string{"/dev/null"}
+	c.OutputPaths = []string{"stdout"}
 	logger, err := c.Build()
 	if err != nil {
 		log.Fatal(err)
@@ -355,7 +356,7 @@ func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T)
 	mockController, serverPort := initServerAndDependencies()
 
 	randomErr := errors.New("random error")
-	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, randomErr)
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, randomErr)
 
 	expectedResponse := struct {
 		Error string `json:"error"`
@@ -387,7 +388,7 @@ func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *te
 		UsersCrawled:        625,
 	}
 
-	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(expectedCrawlingStatus, nil)
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(expectedCrawlingStatus, nil)
 
 	expectedResponse := datastructures.GetCrawlingStatusDTO{
 		Status:         "success",
@@ -410,7 +411,7 @@ func TestGetCrawlingStatsReturnsCouldntGetCrawlingStatusWhenDBReturnsAnError(t *
 	mockController, serverPort := initServerAndDependencies()
 
 	randomError := errors.New("hello world")
-	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(datastructures.CrawlingStatus{}, randomError)
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(datastructures.CrawlingStatus{}, randomError)
 
 	expectedResponse := struct {
 		Message string `json:"error"`
@@ -1047,4 +1048,111 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
 	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
+}
+
+func TestHasBeenCrawledBefore(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	input := datastructures.HasBeenCrawledBeforeInputDTO{
+		Level:   2,
+		SteamID: validFormatSteamID,
+	}
+	requestBodyJSON, err := json.Marshal(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedResponse := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"does exist",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	mockController.On("HasUserBeenCrawledBeforeAtLevel", mock.Anything, input.Level, input.SteamID).Return(true, nil)
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/hasbeencrawledbefore", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "HasUserBeenCrawledBeforeAtLevel", 1)
+}
+
+func TestHasBeenCrawledBeforeWithInvalidFormatSteamIDReturnsInvalidInput(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	input := datastructures.HasBeenCrawledBeforeInputDTO{
+		Level:   2,
+		SteamID: invalidFormatSteamID,
+	}
+	requestBodyJSON, err := json.Marshal(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"Invalid input",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/hasbeencrawledbefore", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNotCalled(t, "HasUserBeenCrawledBeforeAtLevel")
+}
+
+func TestHasBeenCrawledBeforeReturnsNotFoundWhenNoCrawlingStatusExists(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	input := datastructures.HasBeenCrawledBeforeInputDTO{
+		Level:   2,
+		SteamID: validFormatSteamID,
+	}
+	requestBodyJSON, err := json.Marshal(input)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedResponse := struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}{
+		"success",
+		"does not exist",
+	}
+	expectedResponseJSON, _ := json.Marshal(expectedResponse)
+	mockController.On("HasUserBeenCrawledBeforeAtLevel", mock.Anything, input.Level, input.SteamID).Return(false, nil)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/hasbeencrawledbefore", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "HasUserBeenCrawledBeforeAtLevel", 1)
 }

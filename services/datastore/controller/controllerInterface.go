@@ -22,9 +22,9 @@ type Cntr struct{}
 type CntrInterface interface {
 	// MongoDB related functions
 	InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error)
-	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error)
+	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus datastructures.CrawlingStatus) (bool, error)
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
-	GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (common.CrawlingStatus, error)
+	GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (datastructures.CrawlingStatus, error)
 	GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error)
 	InsertGame(ctx context.Context, game datastructures.BareGameInfo) (bool, error)
 	GetDetailsForGames(ctx context.Context, IDList []int) ([]datastructures.BareGameInfo, error)
@@ -41,12 +41,12 @@ func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection,
 		if mongo.IsDuplicateKeyError(err) {
 			return insertionResult, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to insert document: %+v", err)
 	}
 	return insertionResult, nil
 }
 
-func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error) {
+func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus datastructures.CrawlingStatus) (bool, error) {
 	updatedDoc := collection.FindOneAndUpdate(context.TODO(),
 		bson.M{"crawlid": crawlingStatus.CrawlID},
 		bson.D{
@@ -82,13 +82,13 @@ func (control Cntr) GetUser(ctx context.Context, steamID string) (common.UserDoc
 	return userDoc, nil
 }
 
-func (control Cntr) GetCrawlingStatusFromDB(ctx context.Context, crawlingStatusCollection *mongo.Collection, crawlID string) (common.CrawlingStatus, error) {
-	crawlingStatus := common.CrawlingStatus{}
+func (control Cntr) GetCrawlingStatusFromDB(ctx context.Context, crawlingStatusCollection *mongo.Collection, crawlID string) (datastructures.CrawlingStatus, error) {
+	crawlingStatus := datastructures.CrawlingStatus{}
 
 	if err := crawlingStatusCollection.FindOne(ctx, bson.M{
 		"crawlid": crawlID,
 	}).Decode(&crawlingStatus); err != nil {
-		return common.CrawlingStatus{}, err
+		return datastructures.CrawlingStatus{}, err
 	}
 
 	return crawlingStatus, nil

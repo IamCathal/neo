@@ -108,7 +108,7 @@ func InitMongoDBConnection() {
 		log.Fatal("err")
 	}
 
-	mongoDBConnectionURL := fmt.Sprintf("mongodb://%s:%s@%s:27017/testdb", mongoDBUser, mongoDBPassword, mongoInstanceIP)
+	mongoDBConnectionURL := fmt.Sprintf("mongodb://%s:%s@%s:27017/maindb?authSource=maindb&readPreference=primary&directConnection=true", mongoDBUser, mongoDBPassword, mongoInstanceIP)
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoDBConnectionURL))
 	if err != nil {

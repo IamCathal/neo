@@ -1,6 +1,8 @@
 package datastructures
 
-import "github.com/neosteamfriendgraphing/common"
+import (
+	"github.com/neosteamfriendgraphing/common"
+)
 
 type UsersGraphData struct {
 	UserDetails       ResStruct      `json:"userdetails"`
@@ -29,4 +31,40 @@ type GetDetailsForGamesDTO struct {
 type GetProcessedGraphDataDTO struct {
 	Status        string         `json:"status"`
 	UserGraphData UsersGraphData `json:"usergraphdata"`
+}
+
+// SaveUserDTO is the input schema for saving users to the database. It takes
+// the original crawl target user (that initally caused this crawl) and the
+// current user to be saved
+type SaveUserDTO struct {
+	OriginalCrawlTarget string              `json:"orginalcrawltarget"`
+	CrawlID             string              `json:"crawlid"`
+	CurrentLevel        int                 `json:"currentlevel"`
+	MaxLevel            int                 `json:"maxlevel"`
+	User                common.UserDocument `json:"user"`
+}
+
+type CrawlingStatus struct {
+	TimeStarted         int64  `json:"timestarted"`
+	CrawlID             string `json:"crawlid"`
+	OriginalCrawlTarget string `json:"originalcrawltarget"`
+	MaxLevel            int    `json:"maxlevel"`
+	TotalUsersToCrawl   int    `json:"totaluserstocrawl"`
+	UsersCrawled        int    `json:"userscrawled"`
+}
+
+type SaveCrawlingStatsDTO struct {
+	CurrentLevel   int            `json:"currentlevel"`
+	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
+}
+
+type GetCrawlingStatusDTO struct {
+	Status         string         `json:"status"`
+	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
+}
+
+type AddUserEvent struct {
+	PersonaName string `json:"personaname"`
+	ProfileURL  string `json:"profileurl"`
+	Avatar      string `json:"avatar"`
 }

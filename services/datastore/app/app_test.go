@@ -10,6 +10,7 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
+	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/stretchr/testify/assert"
@@ -102,7 +103,7 @@ func TestSaveCrawlingStatsToDBForExistingUserAtMaxLevelOnlyCallsUpdate(t *testin
 		mock.Anything).Return(true, nil)
 	configuration.DBClient = &mongo.Client{}
 
-	crawlingStatus := common.CrawlingStatus{
+	crawlingStatus := datastructures.CrawlingStatus{
 		OriginalCrawlTarget: maxLevelTestSaveUserDTO.User.AccDetails.SteamID,
 		MaxLevel:            maxLevelTestSaveUserDTO.MaxLevel,
 		CrawlID:             maxLevelTestSaveUserDTO.CrawlID,
@@ -131,7 +132,7 @@ func TestSaveCrawlingStatsToDBCallsUpdateAndThenInsertForNewUser(t *testing.T) {
 		mock.Anything,
 		mock.Anything).Return(nil, nil)
 
-	crawlingStatus := common.CrawlingStatus{
+	crawlingStatus := datastructures.CrawlingStatus{
 		OriginalCrawlTarget: testSaveUserDTO.User.AccDetails.SteamID,
 		MaxLevel:            testSaveUserDTO.MaxLevel,
 		CrawlID:             testSaveUserDTO.CrawlID,
@@ -164,7 +165,7 @@ func TestSaveCrawlingStatsToDBReturnsNilWhenFailsToIncrementUsersCrawledForUserO
 		mock.AnythingOfType("int"),
 		mock.AnythingOfType("int")).Return(false, nil).Once()
 
-	crawlingStatus := common.CrawlingStatus{
+	crawlingStatus := datastructures.CrawlingStatus{
 		OriginalCrawlTarget: testSaveUserDTO.User.AccDetails.SteamID,
 		MaxLevel:            testSaveUserDTO.MaxLevel,
 		CrawlID:             testSaveUserDTO.CrawlID,
@@ -203,8 +204,8 @@ func TestGetCrawlingStatsFromDB(t *testing.T) {
 	configuration.DBClient = &mongo.Client{}
 
 	crawlID := "crawlID"
-	expectedCrawlingStatus := common.CrawlingStatus{
-		TimeStarted: time.Now(),
+	expectedCrawlingStatus := datastructures.CrawlingStatus{
+		TimeStarted: time.Now().Unix(),
 		CrawlID:     crawlID,
 	}
 	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, crawlID).Return(expectedCrawlingStatus, nil)
@@ -222,7 +223,7 @@ func TestGetCrawlingStatsFromDBReturnsAnErrorWhenControllerMethodDoes(t *testing
 
 	crawlID := "crawlID"
 	expectedError := errors.New("expected error")
-	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, crawlID).Return(common.CrawlingStatus{}, expectedError)
+	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, crawlID).Return(datastructures.CrawlingStatus{}, expectedError)
 
 	crawlingStatus, err := GetCrawlingStatsFromDB(mockController, crawlID)
 

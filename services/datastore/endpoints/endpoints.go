@@ -154,7 +154,7 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 
 func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	saveUserDTO := dtos.SaveUserDTO{}
+	saveUserDTO := datastructures.SaveUserDTO{}
 
 	err := json.NewDecoder(r.Body).Decode(&saveUserDTO)
 	if err != nil {
@@ -163,22 +163,23 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	crawlingStats := common.CrawlingStatus{
+	crawlingStats := datastructures.CrawlingStatus{
 		CrawlID:             saveUserDTO.CrawlID,
 		OriginalCrawlTarget: saveUserDTO.OriginalCrawlTarget,
 		MaxLevel:            saveUserDTO.MaxLevel,
 		TotalUsersToCrawl:   len(saveUserDTO.User.FriendIDs),
 	}
+
 	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, saveUserDTO.CurrentLevel, crawlingStats)
 	if err != nil {
-		LogBasicErr(err, r, http.StatusBadRequest)
+		configuration.Logger.Sugar().Errorf("failed to save crawling stats to DB: %+v", err)
 		util.SendBasicInvalidResponse(w, r, "cannot save crawling stats", vars, http.StatusBadRequest)
 		return
 	}
 
 	err = app.SaveUserToDB(endpoints.Cntr, saveUserDTO.User)
 	if err != nil {
-		LogBasicErr(err, r, http.StatusBadRequest)
+		configuration.Logger.Sugar().Errorf("failed to save user to DB: %+v", err)
 		util.SendBasicInvalidResponse(w, r, "cannot save user", vars, http.StatusBadRequest)
 		return
 	}
@@ -206,7 +207,6 @@ func (endpoints *Endpoints) InsertGame(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&bareGameInfo)
 	if err != nil {
-		fmt.Printf("the input: %+v\n", bareGameInfo)
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		return
 	}
@@ -232,16 +232,16 @@ func (endpoints *Endpoints) InsertGame(w http.ResponseWriter, r *http.Request) {
 
 func (endpoints *Endpoints) SaveCrawlingStatsToDB(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	crawlingStatus := dtos.SaveCrawlingStatsDTO{}
+	crawlingStatusInput := datastructures.SaveCrawlingStatsDTO{}
 
-	err := json.NewDecoder(r.Body).Decode(&crawlingStatus)
+	err := json.NewDecoder(r.Body).Decode(&crawlingStatusInput)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 
-	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, crawlingStatus.CurrentLevel, crawlingStatus.CrawlingStatus)
+	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, crawlingStatusInput.CurrentLevel, crawlingStatusInput.CrawlingStatus)
 	if err != nil {
 		LogBasicErr(err, r, http.StatusBadRequest)
 		util.SendBasicInvalidResponse(w, r, "cannot save crawling stats", vars, http.StatusBadRequest)
@@ -279,7 +279,7 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "couldn't get user", vars, http.StatusBadRequest)
-		LogBasicInfo("couldn't get user", r, http.StatusBadRequest)
+		LogBasicInfo(fmt.Sprintf("couldn't get user: %+v", err), r, http.StatusBadRequest)
 		return
 	}
 	response := struct {
@@ -348,7 +348,7 @@ func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Req
 		LogBasicInfo("couldn't get crawling status", r, http.StatusNotFound)
 		return
 	}
-	response := dtos.GetCrawlingStatusDTO{
+	response := datastructures.GetCrawlingStatusDTO{
 		Status:         "success",
 		CrawlingStatus: crawlingStatus,
 	}

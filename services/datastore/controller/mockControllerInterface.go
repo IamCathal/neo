@@ -20,14 +20,14 @@ type MockCntrInterface struct {
 }
 
 // GetCrawlingStatusFromDB provides a mock function with given fields: ctx, collection, crawlID
-func (_m *MockCntrInterface) GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (common.CrawlingStatus, error) {
+func (_m *MockCntrInterface) GetCrawlingStatusFromDB(ctx context.Context, collection *mongo.Collection, crawlID string) (datastructures.CrawlingStatus, error) {
 	ret := _m.Called(ctx, collection, crawlID)
 
-	var r0 common.CrawlingStatus
-	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, string) common.CrawlingStatus); ok {
+	var r0 datastructures.CrawlingStatus
+	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, string) datastructures.CrawlingStatus); ok {
 		r0 = rf(ctx, collection, crawlID)
 	} else {
-		r0 = ret.Get(0).(common.CrawlingStatus)
+		r0 = ret.Get(0).(datastructures.CrawlingStatus)
 	}
 
 	var r1 error
@@ -194,18 +194,18 @@ func (_m *MockCntrInterface) SaveProcessedGraphData(crawlID string, graphData da
 }
 
 // UpdateCrawlingStatus provides a mock function with given fields: ctx, collection, crawlingStatus
-func (_m *MockCntrInterface) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error) {
+func (_m *MockCntrInterface) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus datastructures.CrawlingStatus) (bool, error) {
 	ret := _m.Called(ctx, collection, crawlingStatus)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, common.CrawlingStatus) bool); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, datastructures.CrawlingStatus) bool); ok {
 		r0 = rf(ctx, collection, crawlingStatus)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, common.CrawlingStatus) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, datastructures.CrawlingStatus) error); ok {
 		r1 = rf(ctx, collection, crawlingStatus)
 	} else {
 		r1 = ret.Error(1)

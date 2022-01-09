@@ -9,6 +9,7 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
+	"github.com/IamCathal/neo/services/datastore/dbmonitor"
 	"github.com/IamCathal/neo/services/datastore/endpoints"
 	"github.com/IamCathal/neo/services/datastore/statsmonitoring"
 	"github.com/neosteamfriendgraphing/common/util"
@@ -24,7 +25,9 @@ func main() {
 	endpoints := &endpoints.Endpoints{
 		Cntr: controller,
 	}
+
 	go statsmonitoring.CollectAndShipStats()
+	go dbmonitor.Monitor()
 	router := endpoints.SetupRouter()
 
 	srv := &http.Server{

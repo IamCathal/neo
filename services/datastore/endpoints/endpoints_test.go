@@ -379,8 +379,8 @@ func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T)
 func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	expectedCrawlingStatus := common.CrawlingStatus{
-		TimeStarted:         time.Now(),
+	expectedCrawlingStatus := datastructures.CrawlingStatus{
+		TimeStarted:         time.Now().Unix(),
 		CrawlID:             ksuid.New().String(),
 		OriginalCrawlTarget: "someuser",
 		MaxLevel:            3,
@@ -390,7 +390,7 @@ func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *te
 
 	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(expectedCrawlingStatus, nil)
 
-	expectedResponse := dtos.GetCrawlingStatusDTO{
+	expectedResponse := datastructures.GetCrawlingStatusDTO{
 		Status:         "success",
 		CrawlingStatus: expectedCrawlingStatus,
 	}
@@ -411,7 +411,7 @@ func TestGetCrawlingStatsReturnsCouldntGetCrawlingStatusWhenDBReturnsAnError(t *
 	mockController, serverPort := initServerAndDependencies()
 
 	randomError := errors.New("hello world")
-	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(common.CrawlingStatus{}, randomError)
+	mockController.On("GetCrawlingStatusFromDB", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(datastructures.CrawlingStatus{}, randomError)
 
 	expectedResponse := struct {
 		Message string `json:"error"`
@@ -600,10 +600,10 @@ func TestGetGraphableDataReturnsInvalidInputForInvalidFormatSteamIDs(t *testing.
 func TestSaveCrawlingStatsToDB(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	crawlingStatsInput := dtos.SaveCrawlingStatsDTO{
+	crawlingStatsInput := datastructures.SaveCrawlingStatsDTO{
 		CurrentLevel: 2,
-		CrawlingStatus: common.CrawlingStatus{
-			TimeStarted:       time.Now(),
+		CrawlingStatus: datastructures.CrawlingStatus{
+			TimeStarted:       time.Now().Unix(),
 			MaxLevel:          3,
 			UsersCrawled:      5,
 			TotalUsersToCrawl: 20,

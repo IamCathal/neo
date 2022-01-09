@@ -71,7 +71,6 @@ func CollectAndShipStats() {
 	time.Sleep(5 * time.Second)
 
 	for {
-		// fmt.Printf("Current cpu usage is: %v%% - Total RAM: %v Gb - Used now: %v Gb\n", cpuUsagePercentage, totalRAM, RAMUsedCurrently)
 		point := influxdb2.NewPointWithMeasurement("systemStatusCPU").
 			AddTag("system", os.Getenv("NODE_NAME")).
 			AddField("cpu", cpuUsagePercentage).

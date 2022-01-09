@@ -4,10 +4,40 @@ Containerised mongoDB single node instance
 
 ## Configuration
 
+[Create security keyfile](https://docs.mongodb.com/manual/tutorial/deploy-replica-set-with-keyfile-access-control/#std-label-deploy-repl-set-with-auth) for the replicas to authenticate eachother with
+```
+openssl rand -base64 756 > mykey.key
+```
+
+```
+chmod 400 mykey.key
+```
+
+```
+sudo chown 999:999 mykey.key
+```
+
 Connect with initialsed root user details
 ```
 mongosh -u root -p rootpassword
 ```
+Initiate the replica set
+```
+rs.initiate()
+```
+[Change config so replica set members work correctly](https://stackoverflow.com/a/41067404)
+```
+cfg = rs.conf()
+```
+
+```
+cfg.members[0].host = "localhost:27017"
+```
+
+```
+rs.reconfig(cfg)
+```
+
 
 Add a new user for creating users and roles
 ```

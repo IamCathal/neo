@@ -1,0 +1,106 @@
+{
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "required": [
+        "accdetails",
+        "friendids",
+        "gamesowned"
+    ],
+    "properties": {
+        "accdetails": {
+            "type": "object",
+            "title": "The accdetails schema",
+            "description": "An explanation about the purpose of this instance.",
+            "required": [
+                "steamid",
+                "personaname",
+                "profileurl",
+                "avatar",
+                "timecreated",
+                "loccountrycode"
+            ],
+            "properties": {
+                "steamid": {
+                    "type": "string",
+                    "title": "The steamid schema",
+                    "description": "An explanation about the purpose of this instance."
+                },
+                "personaname": {
+                    "type": "string",
+                    "title": "The personaname schema",
+                    "description": "An explanation about the purpose of this instance."
+                },
+                "profileurl": {
+                    "type": "string",
+                    "title": "The profileurl schema",
+                    "description": "An explanation about the purpose of this instance."
+                },
+                "avatar": {
+                    "type": "string",
+                    "title": "The avatar schema",
+                    "description": "An explanation about the purpose of this instance."
+                },
+                "timecreated": {
+                    "type": "number",
+                    "title": "The timecreated schema",
+                    "description": "An explanation about the purpose of this instance."
+                },
+                "loccountrycode": {
+                    "type": "string",
+                    "title": "The loccountrycode schema",
+                    "description": "An explanation about the purpose of this instance."
+                }
+            },
+            "additionalProperties": true
+        },
+        "friendids": {
+            "type": "array",
+            "title": "The friendids schema",
+            "description": "An explanation about the purpose of this instance.",
+            "additionalItems": true,
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "title": "The first anyOf schema",
+                        "description": "An explanation about the purpose of this instance."
+                    }
+                ]
+            }
+        },
+        "gamesowned": {
+            "type": "array",
+            "title": "The gamesowned schema",
+            "description": "An explanation about the purpose of this instance.",
+            "additionalItems": true,
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "object",
+                        "title": "The first anyOf schema",
+                        "description": "An explanation about the purpose of this instance.",
+                        "required": [
+                            "appid",
+                            "playtime_forever"
+                        ],
+                        "properties": {
+                            "appid": {
+                                "type": "number",
+                                "title": "The appid schema",
+                                "description": "An explanation about the purpose of this instance."
+                            },
+                            "playtime_forever": {
+                                "type": "number",
+                                "title": "The playtime_forever schema",
+                                "description": "An explanation about the purpose of this instance."
+                            }
+                        },
+                        "additionalProperties": true
+                    }
+                ]
+            }
+        }
+    },
+    "additionalProperties": true
+}

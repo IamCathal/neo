@@ -1,0 +1,15 @@
+{
+    "accdetails": {
+        "steamid": "76561198078629620",
+        "personaname": "disco biscuits",
+        "profileurl": "https://steamcommunity.com/id/Lushmeister/",
+        "avatar": "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/ed/edd5ea6d497653dc5b337eddbefe5c2f68940db8.jpg",
+        "timecreated": 1355766074,
+        "loccountrycode": "IE"
+    },
+    "friendids": ["76561198075159154"],
+    "gamesowned": [{
+        "appid": 730,
+        "playtime_forever": 81609
+    }]
+}

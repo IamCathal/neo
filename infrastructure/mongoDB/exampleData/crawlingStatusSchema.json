@@ -1,0 +1,46 @@
+{
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "required": [
+        "timestarted",
+        "crawlid",
+        "originalcrawltarget",
+        "maxlevel",
+        "totaluserstocrawl",
+        "userscrawled"
+    ],
+    "properties": {
+        "timestarted": {
+            "type": "number",
+            "title": "The timestarted schema",
+            "description": "An explanation about the purpose of this instance."
+        },
+        "crawlid": {
+            "type": "string",
+            "title": "The crawlid schema",
+            "description": "An explanation about the purpose of this instance."
+        },
+        "originalcrawltarget": {
+            "type": "string",
+            "title": "The originalcrawltarget schema",
+            "description": "An explanation about the purpose of this instance."
+        },
+        "maxlevel": {
+            "type": "number",
+            "title": "The maxlevel schema",
+            "description": "An explanation about the purpose of this instance."
+        },
+        "totaluserstocrawl": {
+            "type": "number",
+            "title": "The totaluserstocrawl schema",
+            "description": "An explanation about the purpose of this instance."
+        },
+        "userscrawled": {
+            "type": "number",
+            "title": "The userscrawled schema",
+            "description": "An explanation about the purpose of this instance."
+        }
+    },
+    "additionalProperties": true
+}

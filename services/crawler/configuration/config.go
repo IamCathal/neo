@@ -86,7 +86,7 @@ func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 		log.Fatal(err)
 	}
 	err = channel.Qos(
-		10,    // prefetch count
+		4,     // prefetch count
 		0,     // prefetch size
 		false, // global
 	)

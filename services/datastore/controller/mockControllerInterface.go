@@ -129,14 +129,14 @@ func (_m *MockCntrInterface) GetUsernames(ctx context.Context, steamIDs []string
 }
 
 // HasUserBeenCrawledBeforeAtLevel provides a mock function with given fields: ctx, level, steamID
-func (_m *MockCntrInterface) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (bool, error) {
+func (_m *MockCntrInterface) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (string, error) {
 	ret := _m.Called(ctx, level, steamID)
 
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, int, string) bool); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, int, string) string); ok {
 		r0 = rf(ctx, level, steamID)
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error

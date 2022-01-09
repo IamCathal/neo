@@ -290,7 +290,7 @@ func (endpoints *Endpoints) HasBeenCrawledBefore(w http.ResponseWriter, r *http.
 		return
 	}
 
-	hasBeenCrawled, err := endpoints.Cntr.HasUserBeenCrawledBeforeAtLevel(context.TODO(), crawlDetails.Level, crawlDetails.SteamID)
+	crawlID, err := endpoints.Cntr.HasUserBeenCrawledBeforeAtLevel(context.TODO(), crawlDetails.Level, crawlDetails.SteamID)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Could not lookup crawling status", vars, http.StatusBadRequest)
 		configuration.Logger.Sugar().Fatalf("couldn't lookup has user been crawled before: %+v", err)
@@ -302,13 +302,7 @@ func (endpoints *Endpoints) HasBeenCrawledBefore(w http.ResponseWriter, r *http.
 		Message string `json:"message"`
 	}{
 		"success",
-		"",
-	}
-
-	if hasBeenCrawled {
-		response.Message = "does exist"
-	} else {
-		response.Message = "does not exist"
+		crawlID,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

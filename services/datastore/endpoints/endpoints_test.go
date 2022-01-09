@@ -1052,7 +1052,7 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 
 func TestHasBeenCrawledBefore(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
-
+	expectedCrawlID := ksuid.New().String()
 	input := datastructures.HasBeenCrawledBeforeInputDTO{
 		Level:   2,
 		SteamID: validFormatSteamID,
@@ -1067,10 +1067,10 @@ func TestHasBeenCrawledBefore(t *testing.T) {
 		Message string `json:"message"`
 	}{
 		"success",
-		"does exist",
+		expectedCrawlID,
 	}
 	expectedResponseJSON, _ := json.Marshal(expectedResponse)
-	mockController.On("HasUserBeenCrawledBeforeAtLevel", mock.Anything, input.Level, input.SteamID).Return(true, nil)
+	mockController.On("HasUserBeenCrawledBeforeAtLevel", mock.Anything, input.Level, input.SteamID).Return(expectedCrawlID, nil)
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/hasbeencrawledbefore", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
@@ -1137,10 +1137,10 @@ func TestHasBeenCrawledBeforeReturnsNotFoundWhenNoCrawlingStatusExists(t *testin
 		Message string `json:"message"`
 	}{
 		"success",
-		"does not exist",
+		"",
 	}
 	expectedResponseJSON, _ := json.Marshal(expectedResponse)
-	mockController.On("HasUserBeenCrawledBeforeAtLevel", mock.Anything, input.Level, input.SteamID).Return(false, nil)
+	mockController.On("HasUserBeenCrawledBeforeAtLevel", mock.Anything, input.Level, input.SteamID).Return("", nil)
 
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/hasbeencrawledbefore", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {

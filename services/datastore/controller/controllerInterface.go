@@ -25,7 +25,7 @@ type CntrInterface interface {
 	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus datastructures.CrawlingStatus) (bool, error)
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
 	GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (datastructures.CrawlingStatus, error)
-	HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (bool, error)
+	HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (string, error)
 	GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error)
 	InsertGame(ctx context.Context, game datastructures.BareGameInfo) (bool, error)
 	GetDetailsForGames(ctx context.Context, IDList []int) ([]datastructures.BareGameInfo, error)
@@ -96,21 +96,26 @@ func (control Cntr) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, craw
 	return crawlingStatus, nil
 }
 
-func (control Cntr) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (bool, error) {
+func (control Cntr) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (string, error) {
 	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
-	crawlingStatus := datastructures.CrawlingStatus{}
+	crawlStatus := datastructures.CrawlingStatus{}
+
+	projection := bson.D{
+		{Key: "crawlid", Value: 1},
+	}
 
 	err := crawlingStatsCollection.FindOne(ctx, bson.M{
 		"maxlevel":            level,
 		"originalcrawltarget": steamID,
-	}).Decode(&crawlingStatus)
+	}, options.FindOne().SetProjection(projection)).Decode(&crawlStatus)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return false, nil
+			return "", nil
 		}
-		return false, fmt.Errorf("failed to find existing crawlingstatus: %+v", err)
+		return "", fmt.Errorf("failed to find existing crawlingstatus: %+v", err)
 	}
-	return true, nil
+
+	return crawlStatus.CrawlID, nil
 }
 
 func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error) {

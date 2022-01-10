@@ -34,7 +34,7 @@ func TestAddNewUserStreamWebsocketConnection(t *testing.T) {
 		newWs,
 	}
 
-	addNewUserStreamWebsocketConnection(newWs)
+	newUserStreamWebsockets = addNewStreamWebsocketConnection(newWs, newUserStreamWebsockets, &newUserStreamLock)
 
 	assert.Equal(t, expectedWebsocketConnections, newUserStreamWebsockets)
 }
@@ -45,12 +45,12 @@ func TestRemoveNewUserStreamWebsocketConnection(t *testing.T) {
 		Ws: &websocket.Conn{},
 		ID: ksuid.New().String(),
 	}
-	addNewUserStreamWebsocketConnection(newWs)
+	newUserStreamWebsockets = addNewStreamWebsocketConnection(newWs, newUserStreamWebsockets, &newUserStreamLock)
 
-	err := removeNewUserStreamWebsocketConnection(newWs.ID)
+	newUserStreamWebsockets, err := removeAWebsocketConnection(newWs.ID, newUserStreamWebsockets, &newUserStreamLock)
 
 	assert.Nil(t, err)
-	assert.Equal(t, GetNewUserStreamWebsocketConnections(), []WebsocketConn{})
+	assert.Equal(t, newUserStreamWebsockets, []WebsocketConn{})
 }
 
 func TestRemoveNewUserStreamWebsocketConnectionWithNonExistantReturnsAnError(t *testing.T) {
@@ -60,11 +60,10 @@ func TestRemoveNewUserStreamWebsocketConnectionWithNonExistantReturnsAnError(t *
 		Ws: &websocket.Conn{},
 		ID: ksuid.New().String(),
 	}
-	addNewUserStreamWebsocketConnection(newWs)
+	newUserStreamWebsockets = addNewStreamWebsocketConnection(newWs, newUserStreamWebsockets, &newUserStreamLock)
 
-	err := removeNewUserStreamWebsocketConnection(nonExistantID)
+	_, err := removeAWebsocketConnection(nonExistantID, newUserStreamWebsockets, &newUserStreamLock)
 
-	expectedErrorString := fmt.Sprintf("failed to remove non existant websocket %s from new user stream ws connection list", nonExistantID)
+	expectedErrorString := fmt.Sprintf("failed to remove non existant websocket %s from ws connection list", nonExistantID)
 	assert.EqualError(t, err, expectedErrorString)
-	assert.Equal(t, newUserStreamWebsockets, GetNewUserStreamWebsocketConnections())
 }

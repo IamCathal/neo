@@ -9,46 +9,62 @@ import (
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 )
 
 var (
 	newUserStreamWebsockets []WebsocketConn
 	newUserStreamLock       sync.Mutex
+
+	crawlingStatsStreamWebsockets []WebsocketConn
+	crawlingStatsStreamLock       sync.Mutex
 )
 
 type WebsocketConn struct {
-	Ws *websocket.Conn
-	ID string
+	Ws      *websocket.Conn
+	ID      string
+	MatchOn string
 }
 
 func GetNewUserStreamWebsocketConnections() []WebsocketConn {
 	return newUserStreamWebsockets
 }
-
-func addNewUserStreamWebsocketConnection(conn WebsocketConn) {
-	newUserStreamLock.Lock()
-	newUserStreamWebsockets = append(newUserStreamWebsockets, conn)
-	configuration.Logger.Sugar().Infof("adding websocket connection %s to addNewUserStream websocket connections", conn.ID)
-	newUserStreamLock.Unlock()
+func SetNewUserStreamWebsocketConnections(connections []WebsocketConn) {
+	newUserStreamWebsockets = connections
 }
 
-func removeNewUserStreamWebsocketConnection(websocketID string) error {
-	newUserStreamLock.Lock()
+func GetCrawlingStatsStreamWebsocketConnections() []WebsocketConn {
+	return crawlingStatsStreamWebsockets
+}
+func SetCrawlingStatsStreamWebsocketConnections(connections []WebsocketConn) {
+	crawlingStatsStreamWebsockets = connections
+}
+
+func addNewStreamWebsocketConnection(conn WebsocketConn, connections []WebsocketConn, lock *sync.Mutex) []WebsocketConn {
+	lock.Lock()
+	connections = append(connections, conn)
+	configuration.Logger.Sugar().Infof("adding websocket connection %+v to websocket connections", conn)
+	lock.Unlock()
+	return connections
+}
+
+func removeAWebsocketConnection(websocketID string, connections []WebsocketConn, lock *sync.Mutex) ([]WebsocketConn, error) {
+	lock.Lock()
 	websocketFound := false
-	for i, currWebsock := range newUserStreamWebsockets {
+	for i, currWebsock := range connections {
 		if currWebsock.ID == websocketID {
 			websocketFound = true
-			newUserStreamWebsockets[i] = newUserStreamWebsockets[len(newUserStreamWebsockets)-1]
-			newUserStreamWebsockets = newUserStreamWebsockets[:len(newUserStreamWebsockets)-1]
-			newUserStreamLock.Unlock()
-			configuration.Logger.Sugar().Infof("removing websocket connection %s to addNewUserStream websocket connections", currWebsock.ID)
+			connections[i] = connections[len(connections)-1]
+			connections = connections[:len(connections)-1]
+			lock.Unlock()
+			configuration.Logger.Sugar().Infof("removing websocket connection %+v from websocket connections", currWebsock)
 		}
 	}
 	if websocketFound {
-		return nil
+		return connections, nil
 	}
-	return fmt.Errorf("failed to remove non existant websocket %s from new user stream ws connection list", websocketID)
+	return []WebsocketConn{}, fmt.Errorf("failed to remove non existant websocket %s from ws connection list", websocketID)
 }
 
 func (endpoints *Endpoints) NewUserStream(w http.ResponseWriter, r *http.Request) {
@@ -56,22 +72,23 @@ func (endpoints *Endpoints) NewUserStream(w http.ResponseWriter, r *http.Request
 	vars["requestid"] = ksuid.New().String()
 
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		if _, ok := err.(websocket.HandshakeError); !ok {
 			configuration.Logger.Sugar().Errorf("error upgrading websocket connection (handshake error): %+v", err)
-			panic(err)
+			util.SendBasicInvalidResponse(w, r, "unable to upgrade websocket", vars, http.StatusBadRequest)
+			return
 		}
 		configuration.Logger.Sugar().Errorf("error upgrading websocket connection: %+v", err)
-		panic(err)
+		util.SendBasicInvalidResponse(w, r, "unable to upgrade websocket", vars, http.StatusBadRequest)
+		return
 	}
 
 	websocketConn := WebsocketConn{
 		Ws: ws,
 		ID: vars["requestid"],
 	}
-	addNewUserStreamWebsocketConnection(websocketConn)
+	newUserStreamWebsockets = addNewStreamWebsocketConnection(websocketConn, newUserStreamWebsockets, &newUserStreamLock)
 
 	err = ws.WriteMessage(1, []byte("HELLO WORLD"))
 	if err != nil {

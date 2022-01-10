@@ -36,7 +36,6 @@ func LogBasicInfo(msg string, req *http.Request, statusCode int) {
 
 func wsReader(ws *websocket.Conn, requestID string) {
 	defer ws.Close()
-	// ws.SetReadDeadline(time.Now().Add(time.Duration(1 * time.Second)))
 	ws.SetReadLimit(1024)
 	ws.SetPongHandler(func(string) error {
 		ws.SetReadDeadline(time.Now().Add(time.Duration(1 * time.Second)))
@@ -45,7 +44,12 @@ func wsReader(ws *websocket.Conn, requestID string) {
 	for {
 		_, _, err := ws.ReadMessage()
 		if err != nil {
-			removeNewUserStreamWebsocketConnection(requestID)
+			newUserSteamWebsockets, err := removeAWebsocketConnection(requestID, newUserStreamWebsockets, &newUserStreamLock)
+			if err != nil {
+				configuration.Logger.Fatal(err.Error())
+				panic(err)
+			}
+			SetNewUserStreamWebsocketConnections(newUserSteamWebsockets)
 			break
 		}
 	}

@@ -44,3 +44,46 @@ function hideCrawlLoadingElements() {
     document.getElementById("crawlConfigLoadingElement").style.visibility = "hidden";
     document.getElementById("crawlConfigInnerBox").style.webkitFilter = "blur(0px)";
 }
+
+function isPublicProfile(steamID) {
+    return new Promise((resolve, reject) => {
+        fetch(`http://localhost:2570/isprivateprofile/${steamID}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then(res => res.json())
+    .then(data => {
+        console.log(data);
+        if (data.message === "public") {
+            resolve(true)
+        }
+        resolve(false)
+    }).catch(err => {
+        console.error(err)
+        reject(err)
+        })
+    })
+}
+
+function hasBeenCrawled(steamID, level) {
+    return new Promise((resolve, reject) => {
+        reqBody = {
+            "level": parseInt(level),
+            "steamid": steamID
+        }
+        fetch(`http://localhost:2590/api/hasbeencrawledbefore`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(reqBody),
+        }).then(res => res.json())
+        .then(data => {
+            console.log(data)
+            resolve(data.message)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}

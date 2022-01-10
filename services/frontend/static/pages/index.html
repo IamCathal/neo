@@ -559,20 +559,30 @@
                 }
                 return
             }
-            
+
             console.log(`Sending: ${JSON.stringify(requestData)}`);
 
-            document.getElementById("crawlingProgressText").textContent = "checking if profile is private";
-
-            setTimeout(function() {
-                document.getElementById("crawlingProgressText").textContent = "doing final checks";
-                    setTimeout(function() {
-                        document.getElementById("crawlingProgressText").textContent = "done!";
-                        setTimeout(function() {
-                            hideCrawlLoadingElements()
-                        }, 500);
-                    }, 3000);
-            }, 3000);
+            document.getElementById("crawlingProgressText").textContent = "Checking if profile is public";
+            isPublicProfile(firstSteamID).then((isPublic) => {
+                console.log(`the real deal was: ${isPublic}`)
+                if (!isPublic) {
+                    hideCrawlLoadingElements()
+                    displayErrorForInvalidSteamID(true, "Profile is private");
+                    return
+                }
+                document.getElementById("crawlingProgressText").textContent = "Checking if profile has been crawled before";
+                hasBeenCrawled(firstSteamID, level).then((crawlID) => {
+                    if (crawlID === "") {
+                        // New crawl
+                    } else {
+                        // Crawl already exists, reroute to that page
+                    }
+                }, (err) => {
+                    console.log(`err from hasBeenCrawl: ${err}`)
+                })
+            }, (err) => {
+                console.log(`err from isPublic: ${err}`)
+            })
 
             // displayErrorForInvalidSteamID(true, "Invalid format steamID64 given");
             // displayErrorForInvalidSteamID(false, "bad second");

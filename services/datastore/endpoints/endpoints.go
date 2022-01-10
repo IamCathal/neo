@@ -46,6 +46,13 @@ type responseWriter struct {
 	wroteHeader bool
 }
 
+// TODO Move to commom
+func setupCORS(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 
@@ -56,7 +63,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
 	apiRouter.HandleFunc("/getdetailsforgames", endpoints.GetDetailsForGames).Methods("POST")
 	apiRouter.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
-	apiRouter.HandleFunc("/hasbeencrawledbefore", endpoints.HasBeenCrawledBefore).Methods("POST")
+	apiRouter.HandleFunc("/hasbeencrawledbefore", endpoints.HasBeenCrawledBefore).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
 	apiRouter.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
 	apiRouter.HandleFunc("/getusernamesfromsteamids", endpoints.GetUsernamesFromSteamIDs).Methods("POST")
@@ -89,6 +96,10 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		setupCORS(&w, r)
+		if (*r).Method == "OPTIONS" {
+			return
+		}
 		defer func() {
 			if err := recover(); err != nil {
 				vars := mux.Vars(r)

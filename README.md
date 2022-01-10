@@ -1,3 +1,8 @@
+<p align="center">
+ <img width="20%" src="https://i.imgur.com/VCLLyp0.png">
+</p>
+
+
 # neo
 
 NUIG CS&IT Final Year Project 2022

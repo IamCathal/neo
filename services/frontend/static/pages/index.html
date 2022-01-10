@@ -105,6 +105,40 @@
                     <h4 style="font-weight:600" class="h4"> Recently Crawled Users </h4>
                   </div> 
                 
+                  <div class="row">
+                    <div class="col" id="newUserDiv">
+                        
+                    </div>
+
+                    <script>
+                        let textBox = document.getElementById("newUserDiv");
+                        let wsConn = new WebSocket("ws://localhost:2590/ws/newuserstream");
+                        wsConn.addEventListener("close", (evt) => {
+                            console.log("CLOSED!");
+                            document.getElementById("newUserDiv").textContent += "CONNECTION CLOSED"
+                        })
+                        wsConn.addEventListener("message", (evt) => {
+                            newUser = JSON.parse(evt.data);
+                            fullResolutionProfiler = newUser.avatar.split(".jpg").join("") + "_full.jpg"
+                            newUserBox = `
+
+                    <div class="col-2 ml-1 mr-1" style="border: 2px solid red">
+                        <div class="row mt-2">
+                            <img 
+                                src="${fullResolutionProfiler}"
+                                >
+                        </div>
+                        <div class="row text-center">
+                            <div class="col">
+                                <a href="${newUser.profileurl}" > ${newUser.personaname} </a>
+                            </div>
+                        </div>
+                    </div>
+                    `
+                            document.getElementById("newUserDiv").innerHTML += newUserBox;
+                        })
+                    </script>
+                  </div>
                   <div class="row mt-1">
 
                     <div class="col ml-1 mr-1 newUserEventBox" style="border: 2px solid red">
@@ -121,100 +155,7 @@
                         
                     </div>
 
-                    <div class="col ml-1 mr-1" style="border: 2px solid red">
-                        <div class="row mt-2">
-                            <img 
-                                src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/74/7492021e6e5681306412eeb67ff5d8d3e92123f8_medium.jpg"
-                                >
-                        </div>
-                        <div class="row text-center">
-                            <div class="col">
-                                Profile name
-                            </div>
-                        </div>
-                        
-                    </div>
-                    <div class="col ml-1 mr-1" style="border: 2px solid red">
-                        <div class="row mt-2">
-                            <img 
-                                src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/74/7492021e6e5681306412eeb67ff5d8d3e92123f8_medium.jpg"
-                                >
-                        </div>
-                        <div class="row text-center">
-                            <div class="col">
-                                Profile name
-                            </div>
-                        </div>
-                    
-                    </div>
-                    <div class="col   ml-1 mr-1" style="border: 2px solid red">
-                        <div class="row mt-2">
-                            <img 
-                                src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/74/7492021e6e5681306412eeb67ff5d8d3e92123f8_medium.jpg"
-                                >
-                        </div>
-                        <div class="row text-center">
-                            <div class="col">
-                                Profile name
-                            </div>
-                        </div>
-                        
-                    </div>
-                    <div class="col ml-1 mr-1" style="border: 2px solid red">
-                        <div class="row mt-2">
-                            <img 
-                                src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/74/7492021e6e5681306412eeb67ff5d8d3e92123f8_medium.jpg"
-                                >
-                        </div>
-                        <div class="row text-center">
-                            <div class="col">
-                                Profile name
-                            </div>
-                        </div>
-                        
-                    </div>
-                    <div class="col ml-1 mr-1" style="border: 2px solid red">
-                        <div class="row mt-2">
-                            <img 
-                                src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/74/7492021e6e5681306412eeb67ff5d8d3e92123f8_medium.jpg"
-                                >
-                        </div>
-                        <div class="row text-center">
-                            <div class="col">
-                                Profile name
-                            </div>
-                        </div>
-                        
-                    </div>
-                    <div class="col ml-1 mr-1" style="border: 2px solid red">
-                        <div class="row mt-2">
-                            <img 
-                                src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/74/7492021e6e5681306412eeb67ff5d8d3e92123f8_medium.jpg"
-                                >
-                        </div>
-                        <div class="row text-center">
-                            <div class="col">
-                                Profile name
-                            </div>
-                        </div>
-                        
-                    </div>
-
-                    <div class="col ml-1 mr-1" style="border: 2px solid red">
-                        <div class="row mt-2">
-                            <img 
-                                src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/74/7492021e6e5681306412eeb67ff5d8d3e92123f8_medium.jpg"
-                                >
-                        </div>
-                        <div class="row text-center">
-                            <div class="col truncate" >
-                                Profile name
-                            </div>
-                        </div>
-                        
-                    </div>
-
-                  </div>
+                
               </div>
           </div>
 
@@ -577,6 +518,7 @@
                     } else {
                         // Crawl already exists, reroute to that page
                     }
+                    hideCrawlLoadingElements()
                 }, (err) => {
                     console.log(`err from hasBeenCrawl: ${err}`)
                 })

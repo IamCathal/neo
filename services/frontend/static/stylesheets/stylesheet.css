@@ -367,8 +367,14 @@ input[type=text]:focus ~ .bar:before, input[type=text]:focus ~ .bar:after {
 }
 
 .newUserEventBox {
-  width: 9rem;
-  height: 10.5rem;
+  width: 9.5rem; 
+  height: 11.9rem; 
+  /* background-color: #424848; */
+  background-color: #424348;
+  border-radius: 4px;
+  padding-left: 0;
+  padding-right: 0;
+  margin-right: 0.5rem;
 }
 
 .bolder {

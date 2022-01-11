@@ -381,3 +381,50 @@ input[type=text]:focus ~ .bar:before, input[type=text]:focus ~ .bar:after {
 .bolder {
   font-weight: 600;
 }
+
+/* New user events animations */
+@keyframes inFromLeft {
+  from { transform: translate3d(-9.5rem,0px,0) }
+  to { transform: translate3d(0,0,0);  opacity: 1 }
+}
+
+@-webkit-keyframes inFromLeft {
+  from { transform: translate3d(-9.5rem,0px,0) }
+  to { transform: translate3d(0,0,0); opacity: 1 }
+}
+.animatedInFromLeft { opacity: 1 }
+.inFromLeft { opacity: 1; -webkit-animation-name:inFromLeft; animation-name: inFromLeft; }
+.animated {
+  -webkit-animation-fill-mode: both;
+  -webkit-animation-duration: 0.3s;
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+/* eeeeeeee */
+
+@keyframes fadeInFromLeft {
+  from { transform: translate3d(-9.5rem,0px,0) }
+  to { transform: translate3d(0,0,0); opacity: 1 }
+}
+
+@-webkit-keyframes fadeInFromLeft {
+  from { transform: translate3d(-9.5rem,0px,0) }
+  to { transform: translate3d(0,0,0); opacity: 1 }
+}
+
+.animatedFadeInFromLeft { opacity: 0 }
+.fadeInFromLeft { opacity: 0; animation-name: fadeInFromLeft; -webkit-animation-name: fadeInFromLeft; }
+
+@keyframes fadeOutFromLeft {
+  from { transform: translate3d(-9.5rem,0px,0)}
+  to { transform: translate3d(0,0,0); opacity: 0 }
+}
+
+@-webkit-keyframes fadeOutFromLeft {
+  from {transform: translate3d(-9.5rem,0px,0)}
+  to { transform: translate3d(0,0,0); opacity: 0 }
+}
+
+.animatedFadeOutFromLeft { opacity: 1 }
+.fadeOutFromLeft {opacity: 1; animation-name: fadeInFromLeft; -webkit-animation-name: fadeInFromLeft; }

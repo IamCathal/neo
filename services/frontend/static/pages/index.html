@@ -100,47 +100,91 @@
           </div>
 
           <div class="row box">
-              <div class="col text-center">
+              <div class="col text-center pl-4">
                   <div class="row">
                     <h4 style="font-weight:600" class="h4"> Recently Crawled Users </h4>
                   </div> 
                 
-                  <div class="row">
-                    <div class="col" id="newUserDiv">
-                        
-                    </div>
-
-                    <script>
-                        let textBox = document.getElementById("newUserDiv");
-                        let wsConn = new WebSocket("ws://localhost:2590/ws/newuserstream");
-                        wsConn.addEventListener("close", (evt) => {
-                            console.log("CLOSED!");
-                            document.getElementById("newUserDiv").textContent += "CONNECTION CLOSED"
-                        })
-                        wsConn.addEventListener("message", (evt) => {
-                            newUser = JSON.parse(evt.data);
-                            fullResolutionProfiler = newUser.avatar.split(".jpg").join("") + "_full.jpg"
-                            newUserBox = `
-
-                    <div class="col-2 ml-1 mr-1" style="border: 2px solid red">
-                        <div class="row mt-2">
-                            <img 
-                                src="${fullResolutionProfiler}"
-                                >
-                        </div>
-                        <div class="row text-center">
-                            <div class="col">
-                                <a href="${newUser.profileurl}" > ${newUser.personaname} </a>
-                            </div>
-                        </div>
-                    </div>
-                    `
-                            document.getElementById("newUserDiv").innerHTML += newUserBox;
-                        })
+                  <div class="row mt-1" id="newUserDiv">
+                  
+                    <!-- <script>
+                        initAndMonitorWebsocket()
+                    //     let wsConn = new WebSocket("ws://localhost:2590/ws/newuserstream");
+                    //     wsConn.addEventListener("close", (evt) => {
+                    //         console.log("CLOSED!");
+                    //         document.getElementById("newUserDiv").textContent += "CONNECTION CLOSED"
+                    //     })
+                    //     wsConn.addEventListener("message", (evt) => {
+                    //         newUser = JSON.parse(evt.data);
+                    //         fullResolutionProfiler = newUser.avatar.split(".jpg").join("") + "_full.jpg"
+                    //         newUserBox = `
+                    // <div class="col-2 ml-1 mr-1" style="border: 2px solid red">
+                    //     <div class="row mt-2">
+                    //         <img 
+                    //             src="${fullResolutionProfiler}"
+                    //             >
+                    //     </div>
+                    //     <div class="row text-center">
+                    //         <div class="col">
+                    //             <a href="${newUser.profileurl}" > ${newUser.personaname} </a>
+                    //         </div>
+                    //     </div>
+                    // </div>
+                    // `
+                    //         document.getElementById("newUserDiv").innerHTML += newUserBox;
+                    //     })
                     </script>
-                  </div>
+                  </div> -->
 
-                  <div class="row mt-1">
+                <!-- <div class="row mt-1">
+
+                    <div class="col-auto newUserEventBox">
+                        <div class="row-2" style="height: 11rem; width: 9rem">
+                            <div class="row" >
+                               <div class="col pt-2">
+                                    <a href="https://yuppa.com"> 
+                                        <img 
+                                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
+                                            style="height: 8.5rem; padding-left: 0.5rem"
+                                        >
+                                    </a>    
+                               </div>
+                            </div>
+                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
+                                <div class="col truncate" style="font-size: 0.9rem;">
+                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
+                                    <p style="float: right" class="pr-1"> 6s ago </p> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-auto newUserEventBox">
+                        <div class="row-2" style="height: 11rem; width: 9rem">
+                            <div class="row" >
+                               <div class="col pt-2">
+                                    <img 
+                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
+                                        style="height: 8.5rem; padding-left: 0.5rem"
+                                    >
+                               </div>
+                            </div>
+                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
+                                <div class="col truncate" style="font-size: 0.9rem;">
+                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
+                                    <p style="float: right" class="pr-1"> 6s ago </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="col-auto newUserEventBox">
                         <div class="row-2" style="height: 11rem; width: 9rem">
@@ -188,10 +232,76 @@
                         </div>
                     </div>
 
+                    <div class="col-auto newUserEventBox">
+                        <div class="row-2" style="height: 11rem; width: 9rem">
+                            <div class="row" >
+                               <div class="col pt-2">
+                                    <img 
+                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
+                                        style="height: 8.5rem; padding-left: 0.5rem"
+                                    >
+                               </div>
+                            </div>
+                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
+                                <div class="col truncate" style="font-size: 0.9rem;">
+                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
+                                    <p style="float: right" class="pr-1"> 6s ago </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
+                    <div class="col-auto newUserEventBox">
+                        <div class="row-2" style="height: 11rem; width: 9rem">
+                            <div class="row" >
+                               <div class="col pt-2">
+                                    <img 
+                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
+                                        style="height: 8.5rem; padding-left: 0.5rem"
+                                    >
+                               </div>
+                            </div>
+                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
+                                <div class="col truncate" style="font-size: 0.9rem;">
+                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
+                                    <p style="float: right" class="pr-1"> 6s ago </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
+                    <div class="col-auto newUserEventBox">
+                        <div class="row-2" style="height: 11rem; width: 9rem">
+                            <div class="row" >
+                               <div class="col pt-2">
+                                    <img 
+                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
+                                        style="height: 8.5rem; padding-left: 0.5rem"
+                                    >
+                               </div>
+                            </div>
+                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
+                                <div class="col truncate" style="font-size: 0.9rem;">
+                                    <span class="bolder">Hello </span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
+                                    <p style="float: right" class="pr-1"> 6s ago </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 
-              </div>
+                </div> -->
           </div>
 
 
@@ -428,8 +538,12 @@
             </div>
         </div>
     </div>
+    <script src="/static/javascript/newUserFeed.js"></script>
 
     <script>
+
+        initAndMonitorWebsocket()
+
         let root = document.documentElement;
 
         let singleUserMode = true;

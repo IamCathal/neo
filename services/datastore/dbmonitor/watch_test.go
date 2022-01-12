@@ -5,8 +5,10 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/gorilla/websocket"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
@@ -84,4 +86,64 @@ func TestRemoveNewUserStreamWebsocketConnectionWithNonExistantReturnsAnError(t *
 
 	expectedErrorString := fmt.Sprintf("failed to remove non existant websocket %s from ws connection list", nonExistantID)
 	assert.EqualError(t, err, expectedErrorString)
+}
+
+func TestAddUserEventToMostRecent(t *testing.T) {
+	firstUserEvent := datastructures.AddUserEvent{
+		SteamID:   "12345",
+		CrawlTime: time.Now().Unix(),
+	}
+	secondUserEvent := datastructures.AddUserEvent{
+		SteamID:   "67890",
+		CrawlTime: time.Now().Unix(),
+	}
+	expectedUserEvents := []datastructures.AddUserEvent{
+		secondUserEvent,
+		firstUserEvent,
+	}
+
+	addUserEventToMostRecent(firstUserEvent)
+	addUserEventToMostRecent(secondUserEvent)
+
+	assert.Equal(t, expectedUserEvents, LastEightUserEvents)
+}
+
+func TestAddUserEventToMostRecentOnlyHoldsTheEightMostRecentEvents(t *testing.T) {
+	firstUserEvent := datastructures.AddUserEvent{
+		SteamID:   "12345",
+		CrawlTime: time.Now().Unix(),
+	}
+
+	LastEightUserEvents = []datastructures.AddUserEvent{
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+		{
+			CrawlTime: time.Now().Unix(),
+		},
+	}
+	addUserEventToMostRecent(firstUserEvent)
+
+	assert.Len(t, LastEightUserEvents, 8)
 }

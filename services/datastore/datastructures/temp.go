@@ -64,10 +64,12 @@ type GetCrawlingStatusDTO struct {
 }
 
 type AddUserEvent struct {
+	SteamID     string `json:"steamid"`
 	PersonaName string `json:"personaname"`
 	ProfileURL  string `json:"profileurl"`
 	Avatar      string `json:"avatar"`
 	CountryCode string `json:"countrycode"`
+	CrawlTime   int64  `json:"crawltime"`
 }
 
 type HasBeenCrawledBeforeInputDTO struct {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/IamCathal/neo/services/datastore/dbmonitor"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -44,12 +45,12 @@ func wsReader(ws *websocket.Conn, requestID string) {
 	for {
 		_, _, err := ws.ReadMessage()
 		if err != nil {
-			newUserSteamWebsockets, err := removeAWebsocketConnection(requestID, newUserStreamWebsockets, &newUserStreamLock)
+			newUserSteamWebsockets, err := dbmonitor.RemoveAWebsocketConnection(requestID, dbmonitor.NewUserStreamWebsockets, &dbmonitor.NewUserStreamLock)
 			if err != nil {
 				configuration.Logger.Fatal(err.Error())
 				panic(err)
 			}
-			SetNewUserStreamWebsocketConnections(newUserSteamWebsockets)
+			dbmonitor.SetNewUserStreamWebsocketConnections(newUserSteamWebsockets)
 			break
 		}
 	}

@@ -1,71 +1,16 @@
 package endpoints
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
-	"sync"
-	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/IamCathal/neo/services/datastore/dbmonitor"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 )
-
-var (
-	newUserStreamWebsockets []WebsocketConn
-	newUserStreamLock       sync.Mutex
-
-	crawlingStatsStreamWebsockets []WebsocketConn
-	crawlingStatsStreamLock       sync.Mutex
-)
-
-type WebsocketConn struct {
-	Ws      *websocket.Conn
-	ID      string
-	MatchOn string
-}
-
-func GetNewUserStreamWebsocketConnections() []WebsocketConn {
-	return newUserStreamWebsockets
-}
-func SetNewUserStreamWebsocketConnections(connections []WebsocketConn) {
-	newUserStreamWebsockets = connections
-}
-
-func GetCrawlingStatsStreamWebsocketConnections() []WebsocketConn {
-	return crawlingStatsStreamWebsockets
-}
-func SetCrawlingStatsStreamWebsocketConnections(connections []WebsocketConn) {
-	crawlingStatsStreamWebsockets = connections
-}
-
-func addNewStreamWebsocketConnection(conn WebsocketConn, connections []WebsocketConn, lock *sync.Mutex) []WebsocketConn {
-	lock.Lock()
-	connections = append(connections, conn)
-	configuration.Logger.Sugar().Infof("adding websocket connection %+v to websocket connections", conn)
-	lock.Unlock()
-	return connections
-}
-
-func removeAWebsocketConnection(websocketID string, connections []WebsocketConn, lock *sync.Mutex) ([]WebsocketConn, error) {
-	lock.Lock()
-	websocketFound := false
-	for i, currWebsock := range connections {
-		if currWebsock.ID == websocketID {
-			websocketFound = true
-			connections[i] = connections[len(connections)-1]
-			connections = connections[:len(connections)-1]
-			lock.Unlock()
-			configuration.Logger.Sugar().Infof("removing websocket connection %+v from websocket connections", currWebsock)
-		}
-	}
-	if websocketFound {
-		return connections, nil
-	}
-	return []WebsocketConn{}, fmt.Errorf("failed to remove non existant websocket %s from ws connection list", websocketID)
-}
 
 func (endpoints *Endpoints) NewUserStream(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -84,24 +29,27 @@ func (endpoints *Endpoints) NewUserStream(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	websocketConn := WebsocketConn{
+	websocketConn := dbmonitor.WebsocketConn{
 		Ws: ws,
 		ID: vars["requestid"],
 	}
-	newUserStreamWebsockets = addNewStreamWebsocketConnection(websocketConn, newUserStreamWebsockets, &newUserStreamLock)
+	websocketConnections := dbmonitor.AddNewStreamWebsocketConnection(websocketConn, dbmonitor.NewUserStreamWebsockets, &dbmonitor.NewUserStreamLock)
+	dbmonitor.SetNewUserStreamWebsocketConnections(websocketConnections)
 
-	err = ws.WriteMessage(1, []byte("HELLO WORLD"))
-	if err != nil {
-		configuration.Logger.Sugar().Errorf("error writing to websocket connection: %+v", err)
-		panic(err)
+	// Write the 8 most recent user events to have some content
+	// visible on page load
+	for _, event := range dbmonitor.LastEightUserEvents {
+		jsonEvent, err := json.Marshal(event)
+		if err != nil {
+			configuration.Logger.Sugar().Errorf("failed to marhsal recent user event %+v: %+v", event, err)
+			panic(err)
+		}
+		err = ws.WriteMessage(1, jsonEvent)
+		if err != nil {
+			configuration.Logger.Sugar().Errorf("error writing to websocket connection: %+v", err)
+			panic(err)
+		}
 	}
-	time.Sleep(600 * time.Millisecond)
-	err = ws.WriteMessage(1, []byte("HELLO EEEE"))
-	if err != nil {
-		configuration.Logger.Sugar().Errorf("error writing to websocket connection: %+v", err)
-		panic(err)
-	}
-
 	// go writer(ws, vars["requestid"])
 	wsReader(ws, vars["requestid"])
 }

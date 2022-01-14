@@ -428,3 +428,36 @@ input[type=text]:focus ~ .bar:before, input[type=text]:focus ~ .bar:after {
 
 .animatedFadeOutFromLeft { opacity: 1 }
 .fadeOutFromLeft {opacity: 1; animation-name: fadeInFromLeft; -webkit-animation-name: fadeInFromLeft; }
+
+
+
+.crawlingStatsMainText {
+  font-size: 3.5rem;
+}
+
+/* Crawl progress bar */
+.crawlProgressBar {
+  margin: 0rem 0.2rem;
+  height: 0.7rem;
+  background: #e1e4e8;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressBarSpan{
+  width: 95%;
+  display: block;
+  height: 100%;
+  background: linear-gradient(32deg,#ffd33d,#ea4aaa 20%,#b34bff 30%,#01feff 50%,#ffd33d 70%,#ea4aaa 80%,#b34bff);
+  background-size: 300% 100%;
+  animation: progress-animation 3s linear infinite;
+}
+
+@keyframes progress-animation {
+  0% {
+    background-position: 100%;
+  }
+  100% {
+    background-position: 0;
+  }
+}

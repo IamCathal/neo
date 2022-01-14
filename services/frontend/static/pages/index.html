@@ -99,210 +99,137 @@
             </div>
           </div>
 
-          <div class="row box">
-              <div class="col text-center pl-4">
-                  <div class="row">
+        <div class="row box">
+            <div class="col text-center pl-4 mb-3">
+                <div class="row">
                     <h4 style="font-weight:600" class="h4"> Recently Crawled Users </h4>
-                  </div> 
-                
-                  <div class="row mt-1 justify-content-md-center" id="newUserDiv">
-                  
-                    <!-- <script>
-                        initAndMonitorWebsocket()
-                    //     let wsConn = new WebSocket("ws://localhost:2590/ws/newuserstream");
-                    //     wsConn.addEventListener("close", (evt) => {
-                    //         console.log("CLOSED!");
-                    //         document.getElementById("newUserDiv").textContent += "CONNECTION CLOSED"
-                    //     })
-                    //     wsConn.addEventListener("message", (evt) => {
-                    //         newUser = JSON.parse(evt.data);
-                    //         fullResolutionProfiler = newUser.avatar.split(".jpg").join("") + "_full.jpg"
-                    //         newUserBox = `
-                    // <div class="col-2 ml-1 mr-1" style="border: 2px solid red">
-                    //     <div class="row mt-2">
-                    //         <img 
-                    //             src="${fullResolutionProfiler}"
-                    //             >
-                    //     </div>
-                    //     <div class="row text-center">
-                    //         <div class="col">
-                    //             <a href="${newUser.profileurl}" > ${newUser.personaname} </a>
-                    //         </div>
-                    //     </div>
-                    // </div>
-                    // `
-                    //         document.getElementById("newUserDiv").innerHTML += newUserBox;
-                    //     })
-                    </script>
-                  </div> -->
+                </div> 
+            
+                <div class="row mt-1 justify-content-md-center" id="newUserDiv"></div>  
+            </div>
+        </div>
 
-                <!-- <div class="row mt-1 justify-content-md-center">
+        <div class="row">
+            <!-- Left Spacing -->
+            <div class="col-3"></div>
+            <div class="col box pt-3 pl-4 pr-4">
 
-                    <div class="col-auto newUserEventBox animated animatedFadeFromLeft fadeInFromLeft">
-                        <div class="row-2" style="height: 11rem; width: 9rem">
-                            <div class="row" >
-                               <div class="col pt-2">
-                                    <a href="https://yuppa.com"> 
-                                        <img 
-                                            src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
-                                            style="height: 8.5rem; padding-left: 0.5rem"
-                                        >
-                                    </a>    
-                               </div>
-                            </div>
-                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
-                                <div class="col truncate" style="font-size: 0.9rem;">
-                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
+
+                <div class="row crawlingStatsMainText">
+                    <p class="text-center">583/1024</p>
+                </div>
+
+                  <!-- crawling progress bar -->
+                <div class="row crawlProgressBar">
+                    <span class="progressBarSpan"></span>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col">
+                        <div class="row text-center">
+                            <p> Status </p>
+                        </div>
+                        <div class="row text-center">
+                            <p style="font-size: 1.9rem; font-weight: 600;"> Crawling </p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row text-center">
+                            <p>  Crawl Time </p>
+                        </div>
+                        <div class="row text-center">
+                            <p style="font-size: 1.9rem; font-weight: 600;"> 3m </p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="mt-3 mb-4">
+
+                <!-- User info card -->
+                <div class="row mt-3 mb-3">
+                    <div class="col box">
+                        <div class="row ml-0">
+                            <div class="col-7">
+                                <div class="row">
+                                    <div class="col mb-2">
+                                        <p id="userUsername" class="skeleton" style="font-size: 3rem; font-weight: 700; width: 80%; height: 3rem" >
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Real name:
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="userRealName" style="font-weight: 500" class="skeleton skeleton-text"></p>
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Library: 
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="userLibrary" style="font-weight: 500; width: 90%" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Created:
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="userCreationDate" style="font-weight: 500" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            SteamID64: 
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="userSteamID" style="font-weight: 500; width: 83%" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
-                                    <p style="float: right" class="pr-1"> 6s ago </p> 
+                            
+                            <div class="col" id="userAvatarCol">
+                                <div class="userProfiler" style="position: relative">
+                                    <img class="mr-1 float-end skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="userAvatar"></img>
+                                </div>
+                                <div class="userCountry " style="position: absolute; bottom: 0; left: 12%;">
+                                    <img id="userCountryFlag" class="float-end" style="width: 50%"></img>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div> <!-- end user info card -->
 
-                    <div class="col-auto newUserEventBox animated animatedFadeFromLeft fadeInFromLeft">
-                        <div class="row-2" style="height: 11rem; width: 9rem">
-                            <div class="row" >
-                               <div class="col pt-2">
-                                    <img 
-                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
-                                        style="height: 8.5rem; padding-left: 0.5rem"
-                                    >
-                               </div>
-                            </div>
-                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
-                                <div class="col truncate" style="font-size: 0.9rem;">
-                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
-                                    <p style="float: right" class="pr-1"> 6s ago </p>
-                                </div>
-                            </div>
-                        </div>
+                <div class="row mt-2">
+                    <div class="col text-center">
+                        You will be redirected to x when all users have been processed
                     </div>
+                </div>
 
-                    <div class="col-auto newUserEventBox animated animatedFadeFromLeft fadeInFromLeft">
-                        <div class="row-2" style="height: 11rem; width: 9rem">
-                            <div class="row" >
-                               <div class="col pt-2">
-                                    <img 
-                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
-                                        style="height: 8.5rem; padding-left: 0.5rem"
-                                    >
-                               </div>
-                            </div>
-                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
-                                <div class="col truncate" style="font-size: 0.9rem;">
-                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
-                                    <p style="float: right" class="pr-1"> 6s ago </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-auto newUserEventBox">
-                        <div class="row-2" style="height: 11rem; width: 9rem">
-                            <div class="row" >
-                               <div class="col pt-2">
-                                    <img 
-                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
-                                        style="height: 8.5rem; padding-left: 0.5rem"
-                                    >
-                               </div>
-                            </div>
-                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
-                                <div class="col truncate" style="font-size: 0.9rem;">
-                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
-                                    <p style="float: right" class="pr-1"> 6s ago </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-auto newUserEventBox">
-                        <div class="row-2" style="height: 11rem; width: 9rem">
-                            <div class="row" >
-                               <div class="col pt-2">
-                                    <img 
-                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
-                                        style="height: 8.5rem; padding-left: 0.5rem"
-                                    >
-                               </div>
-                            </div>
-                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
-                                <div class="col truncate" style="font-size: 0.9rem;">
-                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
-                                    <p style="float: right" class="pr-1"> 6s ago </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-auto newUserEventBox">
-                        <div class="row-2" style="height: 11rem; width: 9rem">
-                            <div class="row" >
-                               <div class="col pt-2">
-                                    <img 
-                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
-                                        style="height: 8.5rem; padding-left: 0.5rem"
-                                    >
-                               </div>
-                            </div>
-                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
-                                <div class="col truncate" style="font-size: 0.9rem;">
-                                    <span class="bolder">Profile nameeeeeeeeeeeee</span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
-                                    <p style="float: right" class="pr-1"> 6s ago </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-auto newUserEventBox">
-                        <div class="row-2" style="height: 11rem; width: 9rem">
-                            <div class="row" >
-                               <div class="col pt-2">
-                                    <img 
-                                        src="https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0_full.jpg"
-                                        style="height: 8.5rem; padding-left: 0.5rem"
-                                    >
-                               </div>
-                            </div>
-                            <div class="row" style="width: 10.7rem; padding-left: 0.5rem">
-                                <div class="col truncate" style="font-size: 0.9rem;">
-                                    <span class="bolder">Hello </span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col" style="width: 8rem; font-size: 0.9rem;">
-                                    <p style="float: right" class="pr-1"> 6s ago </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                
-                </div> -->
-          </div>
+            </div>
+            <!-- Right spacing -->
+            <div class="col-3"></div>
+        </div>
+        
 
         <div class="row crawlConfigBox" id="crawlConfigBox">
             <div class="col sm-2"></div>
@@ -462,79 +389,81 @@
                         
                     </div>
                 </div>
-            </div>
-            <div class="col sm-2"></div>
+        </div>
+        
+        <div class="col sm-2"></div>
 
 
-            <div class="row mt-5 " id="faq">
-                <div class="col box ">
-                    <div>
-                        <p class="mt-0 mb-0 ml-1 pt-0 text-center display-4" style="font-weight: 400;">
-                            <b> FAQ </b>
-                            <hr>
-                        </p>
-                    </div>
+        <div class="row mt-5 " id="faq">
+            <div class="col box ">
+                <div>
+                    <p class="mt-0 mb-0 ml-1 pt-0 text-center display-4" style="font-weight: 400;">
+                        <b> FAQ </b>
+                        <hr>
+                    </p>
+                </div>
 
-                    <div class="row mb-3">
-                        <div class="col ml-3 ">
-                            <p class="mb-0 ">
-                                <h4>
-                                    <b> What is this project? </b></a>
-                            </h4>
-                            
-                                <div>
-                                Steam Friends Graphing is a NUIG Computer Science and Information Technology final year project built to experiment with the principle that <a href="https://en.wikipedia.org/wiki/Six_degrees_of_separation" style="display: inline">
-                                    six degrees of seperation</a> seperate any two given people in the world through social connections.
-                                </div>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col ml-3 ">
-                            <p class="mb-0 ">
-                                <h4>
-                                    <b> What stack does this project use? </b></a>
-                            </h4>
-                            
-                                <div>
-                                Golang, Docker, RabbitMQ, Grafana, InfluxDB, Elasticsearch, Logstash, Kibana and MongoDB
-                                </div>
-                            </p>
-                        </div>
-                    </div>
-
-
-                <div class="row mb-3" id="howToGetSteamID64">
+                <div class="row mb-3">
                     <div class="col ml-3 ">
                         <p class="mb-0 ">
                             <h4>
-                                <b> How do I get a steamID64 for a Steam account? </b></a>
-                            </h4>
+                                <b> What is this project? </b></a>
+                        </h4>
+                        
                             <div>
-                            Each Steam account has a ID associated with it thats used behind the scenes to uniquely identify a given account. The easiest way to get the associated steamID64 for a given account is through <a href="https://www.steamidfinder.com/" style="display: inline">steamIDFinder</a>
+                            Steam Friends Graphing is a NUIG Computer Science and Information Technology final year project built to experiment with the principle that <a href="https://en.wikipedia.org/wiki/Six_degrees_of_separation" style="display: inline">
+                                six degrees of seperation</a> seperate any two given people in the world through social connections.
                             </div>
                         </p>
                     </div>
                 </div>
-                
 
-                </div>
-            </div>
-        
-            <div class="row mt-3 special " id="projects">
-                <div class="col box ">
-                    <div>
-                        <p class="mt-0 mb-0 ml-1 pt-0 text-center display-4" style="font-weight: 400;">
-                            <b> Recently Generated Graphs </b>
-                            <hr>
+                <div class="row mb-3">
+                    <div class="col ml-3 ">
+                        <p class="mb-0 ">
+                            <h4>
+                                <b> What stack does this project use? </b></a>
+                        </h4>
+                        
+                            <div>
+                            Golang, Docker, RabbitMQ, Grafana, InfluxDB, Elasticsearch, Logstash, Kibana and MongoDB
+                            </div>
                         </p>
                     </div>
-                    <div class="row ">
+                </div>
 
-                    </div>
+
+            <div class="row mb-3" id="howToGetSteamID64">
+                <div class="col ml-3 ">
+                    <p class="mb-0 ">
+                        <h4>
+                            <b> How do I get a steamID64 for a Steam account? </b></a>
+                        </h4>
+                        <div>
+                        Each Steam account has a ID associated with it thats used behind the scenes to uniquely identify a given account. The easiest way to get the associated steamID64 for a given account is through <a href="https://www.steamidfinder.com/" style="display: inline">steamIDFinder</a>
+                        </div>
+                    </p>
                 </div>
             </div>
+            
+
+            </div>
+        </div>
+        
+        <div class="row mt-3 special " id="projects">
+            <div class="col box ">
+                <div>
+                    <p class="mt-0 mb-0 ml-1 pt-0 text-center display-4" style="font-weight: 400;">
+                        <b> Recently Generated Graphs </b>
+                        <hr>
+                    </p>
+                </div>
+                <div class="row ">
+
+                </div>
+            </div>
+        </div>
+
         </div>
     </div>
     <script src="/static/javascript/newUserFeed.js"></script>

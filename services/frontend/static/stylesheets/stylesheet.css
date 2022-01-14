@@ -445,7 +445,7 @@ input[type=text]:focus ~ .bar:before, input[type=text]:focus ~ .bar:after {
 }
 
 .progressBarSpan{
-  width: 95%;
+  /* width: 12%; */
   display: block;
   height: 100%;
   background: linear-gradient(32deg,#ffd33d,#ea4aaa 20%,#b34bff 30%,#01feff 50%,#ffd33d 70%,#ea4aaa 80%,#b34bff);

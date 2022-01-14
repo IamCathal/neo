@@ -114,14 +114,37 @@
             <div class="col-3"></div>
             <div class="col box pt-3 pl-4 pr-4">
 
-
-                <div class="row crawlingStatsMainText">
-                    <p class="text-center">583/1024</p>
+                <!-- ORIGINAL -->
+                <!-- <div class="row crawlingStatsMainText">
+                    <p class="text-center" id="crawlingStatNumberBox">583/1024</p>
+                </div> -->
+                <div class="row mt-2">
+                    <div class="col">
+                        <div class="row text-center">
+                            <p> Users Crawled </p>
+                        </div>
+                        <div class="row text-center mt-1">
+                            <p style="font-size: 4.3rem; font-weight: 600;" id="usersCrawled"> 784 </p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row text-center">
+                            <p>  Total Users To Crawl </p>
+                        </div>
+                        <div class="row text-center">
+                            <p style="font-size: 4.3rem; font-weight: 600;" id="totalUsersToCrawl" > 24607 </p>
+                        </div>
+                    </div>
                 </div>
 
                   <!-- crawling progress bar -->
                 <div class="row crawlProgressBar">
-                    <span class="progressBarSpan"></span>
+                    <span class="progressBarSpan" id="progressBarID"></span>
+                </div>
+
+                   <!-- crawling progress bar -->
+                <div class="row text-center mt-1">
+                    <div class="col" style="font-size: 0.9rem;" id="percentageDone"> 56% </div>
                 </div>
 
                 <div class="row mt-2">
@@ -135,13 +158,18 @@
                     </div>
                     <div class="col">
                         <div class="row text-center">
-                            <p>  Crawl Time </p>
+                            <p>  Started Crawl </p>
                         </div>
                         <div class="row text-center">
-                            <p style="font-size: 1.9rem; font-weight: 600;"> 3m </p>
+                            <p style="font-size: 1.9rem; font-weight: 600;" id="crawlTime"> 3m </p>
                         </div>
                     </div>
                 </div>
+                <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
+                <script>
+                    initAndMonitorCrawlingStatusWebsocket("23hW1jMz11ZQ0gLaeqOuY0QPB6l")
+                </script>
+
 
                 <hr class="mt-3 mb-4">
 

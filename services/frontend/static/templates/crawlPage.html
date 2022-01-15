@@ -118,7 +118,9 @@
                 </div>
                 <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
                 <script>
-                    initAndMonitorCrawlingStatusWebsocket("23kEg5cwmWROPIZUYvktRIEZUDX")
+                    const URLarr = window.location.href.split("/");
+                    const crawlID = URLarr[URLarr.length-1];
+                    initAndMonitorCrawlingStatusWebsocket(crawlID)
                 </script>
 
                 <!-- crawling progress bar -->
@@ -139,10 +141,10 @@
                 <div class="row mt-3 mb-3">
                     <div class="col box">
                         <div class="row ml-0">
-                            <div class="col-7">
+                            <div class="col-8">
                                 <div class="row">
                                     <div class="col mb-2">
-                                        <p id="userUsername" class="skeleton" style="font-size: 3rem; font-weight: 700; width: 80%; height: 3rem" >
+                                        <p id="userUsername" class="skeleton" style="font-size: 2rem; font-weight: 700; width: 80%; height: 3rem" >
                                             
                                         </p>
                                     </div>
@@ -162,11 +164,11 @@
                                 <div class="row">
                                     <div class="col-4">
                                         <p>
-                                            Library: 
+                                            Friends: 
                                         </p>
                                     </div>
                                     <div class="col">
-                                        <p id="userLibrary" style="font-weight: 500; width: 90%" class="skeleton skeleton-text">
+                                        <p id="userFriendCount" style="font-weight: 500; width: 90%" class="skeleton skeleton-text">
                                             
                                         </p>
                                     </div>
@@ -226,130 +228,29 @@
         
     </div>
 
+    <script src="/static/javascript/crawlingPage.js"></script>
+    <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
+
     <script>
-        let root = document.documentElement;
-
-        let singleUserMode = true;
-        let firstSteamIDInput = document.getElementById("firstSteamID").value = "";
-        let secondSteamIDInput = document.getElementById("secondSteamID").value = "";
-
-        document.getElementById("oneUserButton").addEventListener("click", function() {
-            const oneUserButton = document.getElementById("oneUserButton");
-            const twoUsersButton = document.getElementById("twoUsersButton");
-
-            document.getElementById("steamIDChoiceSecondErrorBox").style.display = "none";
-
-            // If it's not already active
-            if (!oneUserButton.classList.contains("btn-light")) {
-                oneUserButton.classList.add("btn-light");
-                oneUserButton.classList.remove("btn-outline-light");
-
-                twoUsersButton.classList.add("btn-outline-light");
-                twoUsersButton.classList.remove("btn-light");
-
-                document.getElementById("secondUserInputBox").style.animation = "contract .4s ease-in-out";
-
-                setTimeout(function() {
-                    document.getElementById("secondUserInputBox").style.visibility = "hidden";
-                }, 400);
-                singleUserMode = true;
-            }
-        });
-
-        document.getElementById("twoUsersButton").addEventListener("click", function() {
-            const oneUserButton = document.getElementById("oneUserButton");
-            const twoUsersButton = document.getElementById("twoUsersButton");
-
-            // If it's not already active
-            if (!twoUsersButton.classList.contains("btn-light")) {
-                twoUsersButton.classList.add("btn-light");
-                twoUsersButton.classList.remove("btn-outline-light");
-
-                oneUserButton.classList.add("btn-outline-light");
-                oneUserButton.classList.remove("btn-light");
-
-                document.getElementById("secondUserInputBox").style.visibility = "visible";
-                document.getElementById("secondUserInputBox").style.animation = "expand .2s ease-in-out";
-                singleUserMode = false;
-            }
-        });
-
-        document.getElementById("levelChoice").addEventListener("input", function(event) {
-            document.getElementById("chosenLevel").textContent = this.value;
-
-            const levelHelpTextMessages = [
-                "Crawl just the given user(s)",
-                "Crawl the given user(s) and all of their immediate friends",
-                "Crawl the given user(s), all of their immediate friends and all friends of these friends"
-            ]
-            const levelExampleImages = [
-                "https://i.imgur.com/eoSRDK6.png",
-                "https://i.imgur.com/6LbbJoV.png",
-                "https://i.imgur.com/blTUZPU.png"
-            ]
-
-            document.getElementById("levelChoiceInfoBox").style.display = "block";
-            document.getElementById("levelHelpText").textContent = levelHelpTextMessages[this.value-1];
-            document.getElementById("levelHelpImage").src = levelExampleImages[this.value-1];
-        });
-
-        document.getElementById("crawlButton").addEventListener("click", function(event) {
-            document.getElementById("crawlConfigLoadingElement").style.visibility = "visible";
-            document.getElementById("crawlConfigInnerBox").style.webkitFilter = "blur(4px)";
-
-            const firstSteamID = document.getElementById("firstSteamID").value;
-            const secondSteamID = document.getElementById("secondSteamID").value;
-            const level = document.getElementById("levelChoice").value;
-
-            requestData = {}
-
-            if (singleUserMode == true) {
-                requestData = {
-                    "firstSteamID": firstSteamID,
-                    "level": level
-                }
+        doesProcessedGraphDataExist(crawlID).then(doesExist => {
+            if (doesExist) {
+                console.log("did exist")
+                // forward to that page
+                // window.location.href = `/graph/${crawlID}`;
             } else {
-                requestData = {
-                    "firstSteamID": firstSteamID,
-                    "secondSteamID": secondSteamID,
-                    "level": level
-                }
+            // subscribe to crawling status updates
+            initAndMonitorCrawlingStatusWebsocket(crawlID)
+            getUser(crawlID).then(user => {
+                setUserCardDetails(user)
+            }, err => {
+                console.error(`error calling get user: ${err}`);
+            })
             }
-            
-            console.log(`Sending: ${JSON.stringify(requestData)}`);
-
-            document.getElementById("crawlingProgressText").textContent = "checking if profile is private";
-
-            setTimeout(function() {
-                document.getElementById("crawlingProgressText").textContent = "doing final checks";
-                    setTimeout(function() {
-                        document.getElementById("crawlingProgressText").textContent = "done!";
-                        setTimeout(function() {
-                            document.getElementById("crawlConfigLoadingElement").style.visibility = "hidden";
-                            document.getElementById("crawlConfigInnerBox").style.webkitFilter = "blur(0px)";
-                        }, 500);
-                    }, 3000);
-            }, 3000);
-
-            // displayErrorForInvalidSteamID(true, "Invalid format steamID64 given");
-            // displayErrorForInvalidSteamID(false, "bad second");
-        });
-
-        function displayErrorForInvalidSteamID(isFirstSteamID, errorMessage) {
-            let firstSteamIDInput = document.getElementById("firstSteamID");
-            let secondSteamIDInput = document.getElementById("secondSteamID");
-
-            if (isFirstSteamID == true) {
-                firstSteamIDInput.style.border = "3px solid red"
-                document.getElementById("steamIDChoiceFirstErrorBox").style.display = "block";
-                document.getElementById("steamIDChoiceFirstErrorBoxMessage").textContent = errorMessage;
-            } else {
-                secondSteamIDInput.style.border = "3px solid red"
-                document.getElementById("steamIDChoiceSecondErrorBox").style.display = "block";
-                document.getElementById("steamIDChoiceSecondErrorBoxMessage").textContent = errorMessage;
-            }
-        }
+        }, err => {
+            console.error(`error calling get finished graph data: ${err}`);
+        })
     </script>
+
 </body>
 
 </html>

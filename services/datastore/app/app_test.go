@@ -231,3 +231,50 @@ func TestGetCrawlingStatsFromDBReturnsAnErrorWhenControllerMethodDoes(t *testing
 	assert.Equal(t, expectedError, err)
 	mockController.AssertNumberOfCalls(t, "GetCrawlingStatusFromDBFromCrawlID", 1)
 }
+
+func TestIsCurrentlyBeingCrawledReturnsTrueForAnActiveCrawl(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	activeCrawlingStatus := datastructures.CrawlingStatus{
+		OriginalCrawlTarget: "steamID",
+		TotalUsersToCrawl:   140,
+		UsersCrawled:        95,
+	}
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything).Return(activeCrawlingStatus, nil)
+
+	isActive, username, err := IsCurrentlyBeingCrawled(mockController, "crawlID")
+
+	assert.True(t, isActive)
+	assert.Equal(t, activeCrawlingStatus.OriginalCrawlTarget, username)
+	assert.Nil(t, err)
+}
+
+func TestIsCurrentlyBeingCrawledReturnsAnErrorWhenAnErrorISReturnedSearchingForCrawlingStatus(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	randomError := errors.New("random error")
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything).Return(datastructures.CrawlingStatus{}, randomError)
+
+	isActive, username, err := IsCurrentlyBeingCrawled(mockController, "crawlID")
+
+	assert.False(t, isActive)
+	assert.Equal(t, "", username)
+	assert.NotNil(t, err)
+}
+
+func TestIsCurrentlyBeingCrawledReturnsAnEmptyUsernameAndNoErrorWhenTheCrawlIsNotFinished(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+	activeCrawlingStatus := datastructures.CrawlingStatus{
+		OriginalCrawlTarget: "steamID",
+		TotalUsersToCrawl:   140,
+		UsersCrawled:        140,
+	}
+
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything).Return(activeCrawlingStatus, nil)
+
+	isActive, username, err := IsCurrentlyBeingCrawled(mockController, "crawlID")
+
+	assert.False(t, isActive)
+	assert.Equal(t, "", username)
+	assert.Nil(t, err)
+}

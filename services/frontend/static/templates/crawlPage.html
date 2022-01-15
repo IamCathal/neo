@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;800;900&display=swap" rel="stylesheet"> 
+
+    <!-- MDB -->
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.6.0/mdb.min.css"
+        rel="stylesheet"
+    />
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+        rel="stylesheet"
+    />
+
+    <!-- Graph stuff-->
+    <script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+    <link href="https://go-echarts.github.io/go-echarts-assets/assets/bulma.min.css" rel="stylesheet">
+
+    <link href="../static/stylesheets/stylesheet.css" rel="stylesheet" type="text/css">
+
+
+    <link rel="apple-touch-icon" sizes="57x57" href="static/images/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="static/images/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="static/images/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="static/images/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="static/images/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="static/images/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="static/images/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="static/images/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="static/images/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="static/images/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="static/images/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/images/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="static/images/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script> 
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <meta property="og:image" content="https://avatars0.githubusercontent.com/u/6561327?s=460&v=4" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cathaloc.dev" />
+    <meta property="og:title" content="SteamFriendsGraphing, graph your network of friends on Steam" />
+    <meta property="og:description" content="NUIG Computer Science & IT Final Year Project 2021" />
+
+    <title>SteamFriendsGraphing</title>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="row">
+            <!-- Dont ask why this needs to be included -->
+        </div>
+
+        <p class="text-center mainText display-2 mt-3 mb-0" style="font-weight: 600;" id="titleText">
+            Steam Friends Graphing
+        </p>
+        <div class="mt-5">
+            <!-- God forgive me for these stupid fixes that just about work -->
+        </div>
+
+        <div class="row">
+            <!-- Left Spacing -->
+            <div class="col-3"></div>
+            <div class="col box pt-3 pl-4 pr-4">
+
+                <div class="row mt-2">
+                    <div class="col">
+                        <div class="row text-center">
+                            <p> Users Crawled </p>
+                        </div>
+                        <div class="row text-center mt-1">
+                            <p style="font-size: 4.3rem; font-weight: 600;" id="usersCrawled"> 784 </p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row text-center">
+                            <p>  Total Users To Crawl </p>
+                        </div>
+                        <div class="row text-center">
+                            <p style="font-size: 4.3rem; font-weight: 600;" id="totalUsersToCrawl" > 24607 </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col">
+                        <div class="row text-center">
+                            <p> Status </p>
+                        </div>
+                        <div class="row text-center">
+                            <p style="font-size: 1.9rem; font-weight: 600;"> Crawling </p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row text-center">
+                            <p>  Started Crawl </p>
+                        </div>
+                        <div class="row text-center">
+                            <p style="font-size: 1.9rem; font-weight: 600;" id="crawlTime"> 3m </p>
+                        </div>
+                    </div>
+                </div>
+                <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
+                <script>
+                    initAndMonitorCrawlingStatusWebsocket("23kEg5cwmWROPIZUYvktRIEZUDX")
+                </script>
+
+                <!-- crawling progress bar -->
+                <div class="row crawlProgressBar mt-4">
+                    <span class="progressBarSpan" id="progressBarID"></span>
+                </div>
+
+                <!-- crawling progress bar -->
+                <div class="row text-center mt-1">
+                    <div class="col" style="font-size: 0.9rem;" id="percentageDone"> 56% </div>
+                </div>
+                    
+
+
+                <hr class="mt-3 mb-4">
+
+                <!-- User info card -->
+                <div class="row mt-3 mb-3">
+                    <div class="col box">
+                        <div class="row ml-0">
+                            <div class="col-7">
+                                <div class="row">
+                                    <div class="col mb-2">
+                                        <p id="userUsername" class="skeleton" style="font-size: 3rem; font-weight: 700; width: 80%; height: 3rem" >
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Real name:
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="userRealName" style="font-weight: 500" class="skeleton skeleton-text"></p>
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Library: 
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="userLibrary" style="font-weight: 500; width: 90%" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Created:
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="userCreationDate" style="font-weight: 500" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            SteamID64: 
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="userSteamID" style="font-weight: 500; width: 83%" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col" id="userAvatarCol">
+                                <div class="userProfiler" style="position: relative">
+                                    <img class="mr-1 float-end skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="userAvatar"></img>
+                                </div>
+                                <div class="userCountry " style="position: absolute; bottom: 0; left: 12%;">
+                                    <img id="userCountryFlag" class="float-end" style="width: 50%"></img>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- end user info card -->
+
+                <div class="row mt-2">
+                    <div class="col text-center">
+                        Your finished graph will be available <a href="/graph/{{.CrawlID}}" style="display: inline">here</a>
+                    </div>
+                </div>
+
+            </div>
+            <!-- Right spacing -->
+            <div class="col-3"></div>
+        </div>
+
+        <div class="row" style="height: 50rem">
+
+        </div>
+        
+    </div>
+
+    <script>
+        let root = document.documentElement;
+
+        let singleUserMode = true;
+        let firstSteamIDInput = document.getElementById("firstSteamID").value = "";
+        let secondSteamIDInput = document.getElementById("secondSteamID").value = "";
+
+        document.getElementById("oneUserButton").addEventListener("click", function() {
+            const oneUserButton = document.getElementById("oneUserButton");
+            const twoUsersButton = document.getElementById("twoUsersButton");
+
+            document.getElementById("steamIDChoiceSecondErrorBox").style.display = "none";
+
+            // If it's not already active
+            if (!oneUserButton.classList.contains("btn-light")) {
+                oneUserButton.classList.add("btn-light");
+                oneUserButton.classList.remove("btn-outline-light");
+
+                twoUsersButton.classList.add("btn-outline-light");
+                twoUsersButton.classList.remove("btn-light");
+
+                document.getElementById("secondUserInputBox").style.animation = "contract .4s ease-in-out";
+
+                setTimeout(function() {
+                    document.getElementById("secondUserInputBox").style.visibility = "hidden";
+                }, 400);
+                singleUserMode = true;
+            }
+        });
+
+        document.getElementById("twoUsersButton").addEventListener("click", function() {
+            const oneUserButton = document.getElementById("oneUserButton");
+            const twoUsersButton = document.getElementById("twoUsersButton");
+
+            // If it's not already active
+            if (!twoUsersButton.classList.contains("btn-light")) {
+                twoUsersButton.classList.add("btn-light");
+                twoUsersButton.classList.remove("btn-outline-light");
+
+                oneUserButton.classList.add("btn-outline-light");
+                oneUserButton.classList.remove("btn-light");
+
+                document.getElementById("secondUserInputBox").style.visibility = "visible";
+                document.getElementById("secondUserInputBox").style.animation = "expand .2s ease-in-out";
+                singleUserMode = false;
+            }
+        });
+
+        document.getElementById("levelChoice").addEventListener("input", function(event) {
+            document.getElementById("chosenLevel").textContent = this.value;
+
+            const levelHelpTextMessages = [
+                "Crawl just the given user(s)",
+                "Crawl the given user(s) and all of their immediate friends",
+                "Crawl the given user(s), all of their immediate friends and all friends of these friends"
+            ]
+            const levelExampleImages = [
+                "https://i.imgur.com/eoSRDK6.png",
+                "https://i.imgur.com/6LbbJoV.png",
+                "https://i.imgur.com/blTUZPU.png"
+            ]
+
+            document.getElementById("levelChoiceInfoBox").style.display = "block";
+            document.getElementById("levelHelpText").textContent = levelHelpTextMessages[this.value-1];
+            document.getElementById("levelHelpImage").src = levelExampleImages[this.value-1];
+        });
+
+        document.getElementById("crawlButton").addEventListener("click", function(event) {
+            document.getElementById("crawlConfigLoadingElement").style.visibility = "visible";
+            document.getElementById("crawlConfigInnerBox").style.webkitFilter = "blur(4px)";
+
+            const firstSteamID = document.getElementById("firstSteamID").value;
+            const secondSteamID = document.getElementById("secondSteamID").value;
+            const level = document.getElementById("levelChoice").value;
+
+            requestData = {}
+
+            if (singleUserMode == true) {
+                requestData = {
+                    "firstSteamID": firstSteamID,
+                    "level": level
+                }
+            } else {
+                requestData = {
+                    "firstSteamID": firstSteamID,
+                    "secondSteamID": secondSteamID,
+                    "level": level
+                }
+            }
+            
+            console.log(`Sending: ${JSON.stringify(requestData)}`);
+
+            document.getElementById("crawlingProgressText").textContent = "checking if profile is private";
+
+            setTimeout(function() {
+                document.getElementById("crawlingProgressText").textContent = "doing final checks";
+                    setTimeout(function() {
+                        document.getElementById("crawlingProgressText").textContent = "done!";
+                        setTimeout(function() {
+                            document.getElementById("crawlConfigLoadingElement").style.visibility = "hidden";
+                            document.getElementById("crawlConfigInnerBox").style.webkitFilter = "blur(0px)";
+                        }, 500);
+                    }, 3000);
+            }, 3000);
+
+            // displayErrorForInvalidSteamID(true, "Invalid format steamID64 given");
+            // displayErrorForInvalidSteamID(false, "bad second");
+        });
+
+        function displayErrorForInvalidSteamID(isFirstSteamID, errorMessage) {
+            let firstSteamIDInput = document.getElementById("firstSteamID");
+            let secondSteamIDInput = document.getElementById("secondSteamID");
+
+            if (isFirstSteamID == true) {
+                firstSteamIDInput.style.border = "3px solid red"
+                document.getElementById("steamIDChoiceFirstErrorBox").style.display = "block";
+                document.getElementById("steamIDChoiceFirstErrorBoxMessage").textContent = errorMessage;
+            } else {
+                secondSteamIDInput.style.border = "3px solid red"
+                document.getElementById("steamIDChoiceSecondErrorBox").style.display = "block";
+                document.getElementById("steamIDChoiceSecondErrorBoxMessage").textContent = errorMessage;
+            }
+        }
+    </script>
+</body>
+
+</html>

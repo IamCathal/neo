@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/IamCathal/neo/services/frontend/configuration"
@@ -37,7 +37,8 @@ type responseWriter struct {
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/", endpoints.HomeHandler).Methods("GET")
-	r.HandleFunc("/graph/{graphID}", endpoints.ServeGraph).Methods("GET")
+	r.HandleFunc("/crawl/{crawlid}", endpoints.CrawlPage).Methods("GET")
+	r.HandleFunc("/graph/{crawlid}", endpoints.ServeGraph).Methods("GET")
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
 	r.HandleFunc("/createcrawlingstatus", endpoints.CreateCrawlingStatus).Methods("POST")
@@ -71,6 +72,10 @@ func (rw *responseWriter) WriteHeader(code int) {
 func (endpoints *Endpoints) DisallowFileBrowsing(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/static/templates") {
 			http.NotFound(w, r)
 			return
 		}
@@ -142,26 +147,48 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (endpoints *Endpoints) CrawlPage(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	// Validate crawlid
+	_, err := ksuid.Parse(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
+		return
+	}
+
+	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/crawlPage.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
+	if err != nil {
+		configuration.Logger.Sugar().Fatalf("could not generate crawl page: %+v", err)
+		panic(err)
+	}
+	templateData := struct {
+		CrawlID string
+	}{
+		vars["crawlid"],
+	}
+	tmpl.Execute(w, templateData)
+}
+
 func (endpoints *Endpoints) HomeHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, fmt.Sprintf("%s/pages/index.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
 }
 
-func (endpoints *Endpoints) ServeGraph(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	isValidFormatGraphID, err := util.IsValidFormatGraphID(path.Clean(vars["graphID"]))
-	if err != nil || !isValidFormatGraphID {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		response := struct {
-			Error string `json:"error"`
-		}{
-			"invalid graphID given",
-		}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
+func (endpoints *Endpoints) ServeGraph(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	// isValidFormatGraphID, err := util.IsValidFormatGraphID(path.Clean(vars["crawlid"]))
+	// if err != nil || !isValidFormatGraphID {
+	// 	util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+	// 	return
+	// }
 
-	http.ServeFile(w, req, fmt.Sprintf("%s/pages/%s.html", os.Getenv("STATIC_CONTENT_DIR_NAME"), vars["graphID"]))
+	// if isValidFormat := util.IsValidFormatSteamID(vars["crawlid"]); !isValidFormat {
+	// 	fmt.Println("REDIRECT")
+	// 	http.Redirect(w, r, "/", http.StatusNotFound)
+	// 	return
+	// }
+
+	http.ServeFile(w, r, fmt.Sprintf("%s/pages/%s.html", os.Getenv("STATIC_CONTENT_DIR_NAME"), vars["crawlid"]))
 }
 
 func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Request) {

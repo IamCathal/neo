@@ -4,6 +4,14 @@ Simple single table postgres instance used for storing and serving users process
 
 ## Configuration
 
+```sql
+CREATE TABLE graphdata (
+    crawlid text NOT NULL,
+    graphdata text NOT NULL,
+    PRIMARY KEY (crawlid)
+);
+
+```
 The following env vars are expected by postgres:
 
 | Variable     | Description |

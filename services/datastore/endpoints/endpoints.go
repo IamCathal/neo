@@ -63,6 +63,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
 	apiRouter.HandleFunc("/getdetailsforgames", endpoints.GetDetailsForGames).Methods("POST")
 	apiRouter.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
+	apiRouter.HandleFunc("/getcrawlinguser/{crawlid}", endpoints.GetCrawlingUser).Methods("GET")
 	apiRouter.HandleFunc("/hasbeencrawledbefore", endpoints.HasBeenCrawledBefore).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
 	apiRouter.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
@@ -73,6 +74,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 
 	wsRouter := r.PathPrefix("/ws").Subrouter()
 	wsRouter.HandleFunc("/newuserstream", endpoints.NewUserStream).Methods("GET")
+	wsRouter.HandleFunc("/crawlingstatstream/{crawlid}", endpoints.CrawlingStatsUpdateStream).Methods("GET")
 
 	return r
 }
@@ -280,6 +282,54 @@ func (endpoints *Endpoints) SaveCrawlingStatsToDB(w http.ResponseWriter, r *http
 	}{
 		"success",
 		"very good",
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) GetCrawlingUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	// Validate crawlid
+	_, err := ksuid.Parse(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
+		return
+	}
+	// If the user is a crawlTarget and crawling is in progress
+	isCurrentlyBeingCrawled, steamID, err := app.IsCurrentlyBeingCrawled(endpoints.Cntr, vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "could not check crawling progress", vars, http.StatusNotFound)
+		logMsg := fmt.Sprintf("could not check crawling progress: %+v", err)
+		configuration.Logger.Fatal(logMsg)
+		panic(logMsg)
+	}
+	if !isCurrentlyBeingCrawled {
+		util.SendBasicInvalidResponse(w, r, "User is not currently being crawled", vars, http.StatusNotFound)
+		return
+	}
+
+	user, err := app.GetUserFromDB(endpoints.Cntr, steamID)
+	if err == mongo.ErrNoDocuments {
+		util.SendBasicInvalidResponse(w, r, "user does not exist", vars, http.StatusNotFound)
+		return
+		// logMsg := fmt.Sprintf("User: %s crawlID: %s being currently crawled is not in DB", steamID, vars["crawlid"])
+		// configuration.Logger.Fatal(logMsg)
+		// panic(logMsg)
+	}
+
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "couldn't get user", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Fatalf("couldn't get user: %+v", err)
+		return
+	}
+	response := struct {
+		Status string              `json:"status"`
+		User   common.UserDocument `json:"user"`
+	}{
+		"success",
+		user,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

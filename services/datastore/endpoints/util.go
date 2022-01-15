@@ -9,7 +9,6 @@ import (
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/dbmonitor"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 )
 
@@ -35,24 +34,35 @@ func LogBasicInfo(msg string, req *http.Request, statusCode int) {
 	)
 }
 
-func wsReader(ws *websocket.Conn, requestID string) {
-	defer ws.Close()
-	ws.SetReadLimit(1024)
-	ws.SetPongHandler(func(string) error {
-		ws.SetReadDeadline(time.Now().Add(time.Duration(1 * time.Second)))
+func wsReader(ws dbmonitor.WebsocketConn, streamType string) {
+	defer ws.Ws.Close()
+	ws.Ws.SetReadLimit(1024)
+	ws.Ws.SetPongHandler(func(string) error {
+		ws.Ws.SetReadDeadline(time.Now().Add(time.Duration(1 * time.Second)))
 		return nil
 	})
 	for {
-		_, _, err := ws.ReadMessage()
+		_, _, err := ws.Ws.ReadMessage()
 		if err != nil {
-			newUserSteamWebsockets, err := dbmonitor.RemoveAWebsocketConnection(requestID, dbmonitor.NewUserStreamWebsockets, &dbmonitor.NewUserStreamLock)
-			if err != nil {
-				configuration.Logger.Fatal(err.Error())
-				panic(err)
+			switch streamType {
+			case "newuser":
+				newUserSteamWebsockets, err := dbmonitor.RemoveAWebsocketConnection(ws.ID, dbmonitor.NewUserStreamWebsockets, &dbmonitor.NewUserStreamLock)
+				if err != nil {
+					configuration.Logger.Fatal(err.Error())
+					panic(err)
+				}
+				dbmonitor.SetNewUserStreamWebsocketConnections(newUserSteamWebsockets)
+				configuration.Logger.Sugar().Infof("websocket %s is exiting", ws.ID)
+			case "crawlingstats":
+				crawlingStatWebsockets, err := dbmonitor.RemoveAWebsocketConnection(ws.ID, dbmonitor.CrawlingStatsStreamWebsockets, &dbmonitor.CrawlingStatsStreamLock)
+				if err != nil {
+					configuration.Logger.Fatal(err.Error())
+					panic(err)
+				}
+				dbmonitor.SetCrawlingStatsStreamWebsocketConnections(crawlingStatWebsockets)
+				configuration.Logger.Sugar().Infof("websocket %s is exiting", ws.ID)
 			}
-			dbmonitor.SetNewUserStreamWebsocketConnections(newUserSteamWebsockets)
 			break
 		}
 	}
-	configuration.Logger.Sugar().Infof("websocket %s is exiting", requestID)
 }

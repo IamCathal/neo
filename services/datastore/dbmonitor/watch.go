@@ -121,6 +121,25 @@ func emitRandomNewUsers() {
 	}
 }
 
+func emitRandomCrawlingStats() {
+
+	crawlID := ksuid.New().String()
+	timeStarted := time.Now().Unix()
+	fmt.Println(crawlID)
+	i := 0
+	for {
+		time.Sleep(150 * time.Millisecond)
+		crawlingStatUpdate := datastructures.CrawlingStatus{
+			TimeStarted:       timeStarted,
+			CrawlID:           crawlID,
+			TotalUsersToCrawl: 150 + (i * 2),
+			UsersCrawled:      89 + i,
+		}
+		writeCrawlingStatsUpdateToAllWebsockets(crawlingStatUpdate)
+		i++
+	}
+}
+
 func writeNewUserEventToAllWebsockets(event datastructures.AddUserEvent) error {
 	addUserEventToMostRecent(event)
 	websockets := GetNewUserStreamWebsocketConnections()
@@ -161,6 +180,8 @@ func watchCrawlingStatusUpdates() {
 		panic(err)
 	}
 
+	go emitRandomCrawlingStats()
+
 	configuration.Logger.Info("watching crawling stats collection")
 
 	for crawlingStatsCollectionStream.Next(context.TODO()) {
@@ -186,21 +207,24 @@ func watchCrawlingStatusUpdates() {
 	}
 }
 
-func writeCrawlingStatsUpdateToAllWebsockets(crawlingStat datastructures.CrawlingStatus) {
-	// websockets := endpoints.GetNewUserStreamWebsocketConnections()
+func writeCrawlingStatsUpdateToAllWebsockets(crawlingStat datastructures.CrawlingStatus) error {
+	websockets := GetCrawlingStatsStreamWebsocketConnections()
 
-	// jsonObj, err := json.Marshal(event)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to marshal addUserEvent for websocket serving: %+v", err)
-	// }
+	jsonObj, err := json.Marshal(crawlingStat)
+	if err != nil {
+		return fmt.Errorf("failed to marshal crawlingStatUpdate for websocket serving: %+v", err)
+	}
 
-	// for _, ws := range websockets {
-	// 	err := ws.Ws.WriteMessage(websocket.TextMessage, jsonObj)
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to write to websocket %s: %+v", ws.ID, err)
-	// 	}
-	// }
-	// return nil
+	for _, ws := range websockets {
+		if crawlingStat.CrawlID == ws.MatchOn {
+			fmt.Printf("matched on, sending: %+v\n", string(jsonObj))
+			err := ws.Ws.WriteMessage(websocket.TextMessage, jsonObj)
+			if err != nil {
+				return fmt.Errorf("failed to write to websocket %s: %+v", ws.ID, err)
+			}
+		}
+	}
+	return nil
 }
 
 func GetNewUserStreamWebsocketConnections() []WebsocketConn {

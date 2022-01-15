@@ -63,6 +63,11 @@ type GetCrawlingStatusDTO struct {
 	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
 }
 
+type HasBeenCrawledBeforeInputDTO struct {
+	Level   int    `json:"level"`
+	SteamID string `json:"steamid"`
+}
+
 type AddUserEvent struct {
 	SteamID     string `json:"steamid"`
 	PersonaName string `json:"personaname"`
@@ -70,9 +75,4 @@ type AddUserEvent struct {
 	Avatar      string `json:"avatar"`
 	CountryCode string `json:"countrycode"`
 	CrawlTime   int64  `json:"crawltime"`
-}
-
-type HasBeenCrawledBeforeInputDTO struct {
-	Level   int    `json:"level"`
-	SteamID string `json:"steamid"`
 }

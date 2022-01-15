@@ -107,3 +107,14 @@ func GetCrawlingStatsFromDBFromCrawlID(cntr controller.CntrInterface, crawlID st
 	}
 	return crawlingStatus, nil
 }
+
+func IsCurrentlyBeingCrawled(cntr controller.CntrInterface, crawlID string) (bool, string, error) {
+	crawlingStatus, err := cntr.GetCrawlingStatusFromDBFromCrawlID(context.TODO(), crawlID)
+	if err != nil {
+		return false, "", nil
+	}
+	if crawlingStatus.UsersCrawled < crawlingStatus.TotalUsersToCrawl {
+		return true, crawlingStatus.OriginalCrawlTarget, nil
+	}
+	return false, "", nil
+}

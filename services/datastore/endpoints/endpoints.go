@@ -63,13 +63,14 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/getuser/{steamid}", endpoints.GetUser).Methods("GET")
 	apiRouter.HandleFunc("/getdetailsforgames", endpoints.GetDetailsForGames).Methods("POST")
 	apiRouter.HandleFunc("/savecrawlingstats", endpoints.SaveCrawlingStatsToDB).Methods("POST")
-	apiRouter.HandleFunc("/getcrawlinguser/{crawlid}", endpoints.GetCrawlingUser).Methods("GET")
+	apiRouter.HandleFunc("/getcrawlinguser/{crawlid}", endpoints.GetCrawlingUser).Methods("GET", "OPTIONS")
 	apiRouter.HandleFunc("/hasbeencrawledbefore", endpoints.HasBeenCrawledBefore).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getcrawlingstatus/{crawlid}", endpoints.GetCrawlingStatus).Methods("GET")
 	apiRouter.HandleFunc("/getgraphabledata/{steamid}", endpoints.GetGraphableData).Methods("GET")
 	apiRouter.HandleFunc("/getusernamesfromsteamids", endpoints.GetUsernamesFromSteamIDs).Methods("POST")
 	apiRouter.HandleFunc("/saveprocessedgraphdata/{crawlid}", endpoints.SaveProcessedGraphData).Methods("POST")
-	apiRouter.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST")
+	apiRouter.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST", "OPTIONS")
+	apiRouter.HandleFunc("/doesprocessedgraphdataexist/{crawlid}", endpoints.DoesProcessedGraphDataExist).Methods("POST", "OPTIONS")
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
 	wsRouter := r.PathPrefix("/ws").Subrouter()
@@ -588,6 +589,37 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 		Status:        "success",
 		UserGraphData: usersProcessedGraphData,
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) DoesProcessedGraphDataExist(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	_, err := ksuid.Parse(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
+		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
+		return
+	}
+
+	exists, err := endpoints.Cntr.DoesProcessedGraphDataExist(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Couldn't get graph data", vars, http.StatusBadRequest)
+		errMsg := fmt.Errorf("failed to get processed graph data: %+v", err)
+		configuration.Logger.Error(errMsg.Error())
+		return
+	}
+	response := datastructures.DoesProcessedGraphDataExistDTO{
+		Status: "success",
+	}
+	if exists {
+		response.Exists = "yes"
+	} else {
+		response.Exists = "no"
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

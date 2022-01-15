@@ -76,3 +76,8 @@ type AddUserEvent struct {
 	CountryCode string `json:"countrycode"`
 	CrawlTime   int64  `json:"crawltime"`
 }
+
+type DoesProcessedGraphDataExistDTO struct {
+	Status string `json:"status"`
+	Exists string `json:"exists"`
+}

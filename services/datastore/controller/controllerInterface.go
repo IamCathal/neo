@@ -32,6 +32,7 @@ type CntrInterface interface {
 	// Postgresql related functions
 	SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error)
 	GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error)
+	DoesProcessedGraphDataExist(crawlID string) (bool, error)
 }
 
 func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error) {
@@ -232,9 +233,32 @@ func (control Cntr) GetProcessedGraphData(crawlID string) (datastructures.UsersG
 			return datastructures.UsersGraphData{}, fmt.Errorf("failed to scan returned row: %+v", err)
 		}
 	}
+	if len(graphDataJSON) == 0 {
+		return datastructures.UsersGraphData{}, nil
+	}
 	err = json.Unmarshal([]byte(graphDataJSON), &graphData)
 	if err != nil {
 		return datastructures.UsersGraphData{}, fmt.Errorf("failed to unmarshal returned data for crawlid %s: %+v", crawlID, err)
 	}
 	return graphData, nil
+}
+
+func (control Cntr) DoesProcessedGraphDataExist(crawlID string) (bool, error) {
+	queryString := `SELECT crawlid FROM graphdata WHERE crawlid = $1`
+	res, err := configuration.SQLClient.Query(queryString, crawlID)
+	if err != nil {
+		return false, err
+	}
+	crawlIDFromRow := ""
+	for res.Next() {
+		crawlID := ""
+		if err := res.Scan(&crawlID, &crawlIDFromRow); err != nil {
+			return false, fmt.Errorf("failed to scan returned row: %+v", err)
+		}
+	}
+	fmt.Println(len(crawlIDFromRow))
+	if len(crawlIDFromRow) == 0 {
+		return false, nil
+	}
+	return true, nil
 }

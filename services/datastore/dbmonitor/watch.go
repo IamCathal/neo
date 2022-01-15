@@ -123,7 +123,7 @@ func emitRandomNewUsers() {
 
 func emitRandomCrawlingStats() {
 
-	crawlID := ksuid.New().String()
+	crawlID := "23PxM8mLuAoNW4SImvYXllgCVbZ"
 	timeStarted := time.Now().Unix()
 	fmt.Println(crawlID)
 	i := 0
@@ -217,7 +217,7 @@ func writeCrawlingStatsUpdateToAllWebsockets(crawlingStat datastructures.Crawlin
 
 	for _, ws := range websockets {
 		if crawlingStat.CrawlID == ws.MatchOn {
-			fmt.Printf("matched on, sending: %+v\n", string(jsonObj))
+			// fmt.Printf("matched on, sending: %+v\n", string(jsonObj))
 			err := ws.Ws.WriteMessage(websocket.TextMessage, jsonObj)
 			if err != nil {
 				return fmt.Errorf("failed to write to websocket %s: %+v", ws.ID, err)

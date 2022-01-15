@@ -19,6 +19,27 @@ type MockCntrInterface struct {
 	mock.Mock
 }
 
+// DoesProcessedGraphDataExist provides a mock function with given fields: crawlID
+func (_m *MockCntrInterface) DoesProcessedGraphDataExist(crawlID string) (bool, error) {
+	ret := _m.Called(crawlID)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(crawlID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(crawlID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCrawlingStatusFromDBFromCrawlID provides a mock function with given fields: ctx, crawlID
 func (_m *MockCntrInterface) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (datastructures.CrawlingStatus, error) {
 	ret := _m.Called(ctx, crawlID)

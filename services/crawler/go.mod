@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/deepmap/oapi-codegen v1.9.0 // indirect
-	github.com/go-echarts/go-echarts v1.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/influxdata/influxdb-client-go v1.4.0
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect

@@ -35,11 +35,19 @@ type responseWriter struct {
 	wroteHeader bool
 }
 
+// TODO Move to commom
+func setupCORS(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
+
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
-	r.HandleFunc("/crawl", endpoints.CrawlUsers).Methods("POST")
-	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
+	r.HandleFunc("/crawl", endpoints.CrawlUsers).Methods("POST", "OPTIONS")
+	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET", "OPTIONS")
 	r.HandleFunc("/creategraph/{crawlid}", endpoints.CreateGraph).Methods("POST")
 
 	r.Use(endpoints.LoggingMiddleware)
@@ -65,6 +73,10 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		setupCORS(&w, r)
+		if (*r).Method == "OPTIONS" {
+			return
+		}
 		defer func() {
 			if err := recover(); err != nil {
 				vars := mux.Vars(r)
@@ -141,7 +153,7 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Change this to use
+	// TODO: Change this to use
 	// isValid := common.IsValidFormatSteamID()
 	validSteamIDs, err := worker.VerifyFormatOfSteamIDs(userInput)
 	if err != nil {

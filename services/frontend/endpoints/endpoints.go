@@ -176,19 +176,17 @@ func (endpoints *Endpoints) HomeHandler(w http.ResponseWriter, req *http.Request
 
 func (endpoints *Endpoints) ServeGraph(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	// isValidFormatGraphID, err := util.IsValidFormatGraphID(path.Clean(vars["crawlid"]))
-	// if err != nil || !isValidFormatGraphID {
-	// 	util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
-	// 	return
-	// }
-
-	// if isValidFormat := util.IsValidFormatSteamID(vars["crawlid"]); !isValidFormat {
-	// 	fmt.Println("REDIRECT")
-	// 	http.Redirect(w, r, "/", http.StatusNotFound)
-	// 	return
-	// }
-
-	http.ServeFile(w, r, fmt.Sprintf("%s/pages/%s.html", os.Getenv("STATIC_CONTENT_DIR_NAME"), vars["crawlid"]))
+	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/graphPage.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
+	if err != nil {
+		configuration.Logger.Sugar().Fatalf("could not generate crawl page: %+v", err)
+		panic(err)
+	}
+	templateData := struct {
+		CrawlID string
+	}{
+		vars["crawlid"],
+	}
+	tmpl.Execute(w, templateData)
 }
 
 func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Request) {

@@ -234,7 +234,6 @@
     <script>
         const URLarr = window.location.href.split("/");
         const crawlID = URLarr[URLarr.length-1];
-        let graphIsBeingProcessed = false
         
         doesProcessedGraphDataExist(crawlID).then(doesExist => {
             if (doesExist) {

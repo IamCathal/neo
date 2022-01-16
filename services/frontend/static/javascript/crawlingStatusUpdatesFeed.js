@@ -4,9 +4,35 @@ function initAndMonitorCrawlingStatusWebsocket(crawlID) {
     wsConn.addEventListener("close", (evt) => {
         console.log("CLOSED!");
     })
-    console.log(wsConn)
+
     wsConn.addEventListener("message", (evt) => {
         let crawlingStatUpdate = JSON.parse(evt.data);
+        if (crawlingStatUpdate.userscrawled === crawlingStatUpdate.totaluserstocrawl) {
+            graphIsBeingProcessed = true;
+            document.getElementById("crawlStatus").textContent = "Processing graph"
+
+            startCreateGraph(crawlingStatUpdate.crawlid).then(res => {
+              console.log(`create graph: ${res}`);
+              // graph is now being created. Wait for completion then redirect
+              
+              // Check every 400ms is the graph is done processing yet
+              setInterval(function() {
+                doesProcessedGraphDataExist(crawlingStatUpdate.crawlid).then(doesExist => {
+                  if (doesExist === true) {
+                    window.location.href = `/graph/${crawlingStatUpdate.crawlid}`;
+                  } else {
+                    console.log("graph not done processing")
+                  }
+                }, err => {
+                  console.error(`error checking if graph data is procced: ${err}`);
+                })
+              }, 500);
+
+              
+            }, err => {
+              console.error(`err from createGraph ${err}`)
+            });
+        }
         document.getElementById("usersCrawled").textContent = crawlingStatUpdate.userscrawled;
         document.getElementById("totalUsersToCrawl").textContent = crawlingStatUpdate.totaluserstocrawl;
         document.getElementById("percentageDone").textContent = `${Math.floor((crawlingStatUpdate.userscrawled/crawlingStatUpdate.totaluserstocrawl)*100)}%`;

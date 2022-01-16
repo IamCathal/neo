@@ -12,10 +12,25 @@ function doesProcessedGraphDataExist(crawlID) {
             } 
             resolve(false)
         }).catch(err => {
-            console.log("was eror")
             reject(err)
         })
     });
+}
+
+function startCreateGraph(crawlID) {
+    return new Promise((resolve, reject) => {
+        fetch(`http://localhost:2570/creategraph/${crawlID}`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+        }).then((res => res.json()))
+        .then(data => {
+            resolve(data)
+        }).catch(err => {
+            console.error(err);
+        })
+    })
 }
 
 function getUser(crawlID) {

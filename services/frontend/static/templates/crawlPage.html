@@ -85,7 +85,7 @@
                             <p> Users Crawled </p>
                         </div>
                         <div class="row text-center mt-1">
-                            <p style="font-size: 4.3rem; font-weight: 600;" id="usersCrawled"> 784 </p>
+                            <p style="font-size: 4.3rem; font-weight: 600;" id="usersCrawled"> 0 </p>
                         </div>
                     </div>
                     <div class="col">
@@ -93,7 +93,7 @@
                             <p>  Total Users To Crawl </p>
                         </div>
                         <div class="row text-center">
-                            <p style="font-size: 4.3rem; font-weight: 600;" id="totalUsersToCrawl" > 24607 </p>
+                            <p style="font-size: 4.3rem; font-weight: 600;" id="totalUsersToCrawl" > 0 </p>
                         </div>
                     </div>
                 </div>
@@ -104,7 +104,7 @@
                             <p> Status </p>
                         </div>
                         <div class="row text-center">
-                            <p style="font-size: 1.9rem; font-weight: 600;"> Crawling </p>
+                            <p style="font-size: 1.9rem; font-weight: 600;" id="crawlStatus"> Crawling </p>
                         </div>
                     </div>
                     <div class="col">
@@ -234,6 +234,7 @@
     <script>
         const URLarr = window.location.href.split("/");
         const crawlID = URLarr[URLarr.length-1];
+        let graphIsBeingProcessed = false
         
         doesProcessedGraphDataExist(crawlID).then(doesExist => {
             if (doesExist) {

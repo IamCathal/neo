@@ -99,7 +99,7 @@ func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 }
 
 func InitAMQPChannels() {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 2; i++ {
 		_, newChannel := InitRabbitMQConnection()
 		AmqpChannels = append(AmqpChannels, newChannel)
 	}

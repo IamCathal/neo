@@ -378,7 +378,7 @@ func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T)
 func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	expectedCrawlingStatus := datastructures.CrawlingStatus{
+	expectedCrawlingStatus := common.CrawlingStatus{
 		TimeStarted:         time.Now().Unix(),
 		CrawlID:             ksuid.New().String(),
 		OriginalCrawlTarget: "someuser",
@@ -389,7 +389,7 @@ func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *te
 
 	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(expectedCrawlingStatus, nil)
 
-	expectedResponse := datastructures.GetCrawlingStatusDTO{
+	expectedResponse := dtos.GetCrawlingStatusDTO{
 		Status:         "success",
 		CrawlingStatus: expectedCrawlingStatus,
 	}
@@ -410,7 +410,7 @@ func TestGetCrawlingStatsReturnsCouldntGetCrawlingStatusWhenDBReturnsAnError(t *
 	mockController, serverPort := initServerAndDependencies()
 
 	randomError := errors.New("hello world")
-	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(datastructures.CrawlingStatus{}, randomError)
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(common.CrawlingStatus{}, randomError)
 
 	expectedResponse := struct {
 		Message string `json:"error"`
@@ -599,9 +599,9 @@ func TestGetGraphableDataReturnsInvalidInputForInvalidFormatSteamIDs(t *testing.
 func TestSaveCrawlingStatsToDB(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	crawlingStatsInput := datastructures.SaveCrawlingStatsDTO{
+	crawlingStatsInput := dtos.SaveCrawlingStatsDTO{
 		CurrentLevel: 2,
-		CrawlingStatus: datastructures.CrawlingStatus{
+		CrawlingStatus: common.CrawlingStatus{
 			TimeStarted:       time.Now().Unix(),
 			MaxLevel:          3,
 			UsersCrawled:      5,
@@ -624,7 +624,7 @@ func TestSaveCrawlingStatsToDB(t *testing.T) {
 
 func TestInsertGame(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
-	bareGameInfo := datastructures.BareGameInfo{
+	bareGameInfo := common.BareGameInfo{
 		AppID: 10,
 		Name:  "Counter-Strike",
 	}
@@ -646,7 +646,7 @@ func TestInsertGame(t *testing.T) {
 func TestInsertGameReturnsCouldntInsertGameWhenAnErrorOccurs(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	bareGameInfo := datastructures.BareGameInfo{
+	bareGameInfo := common.BareGameInfo{
 		AppID: 10,
 		Name:  "Counter-Strike",
 	}
@@ -668,10 +668,10 @@ func TestInsertGameReturnsCouldntInsertGameWhenAnErrorOccurs(t *testing.T) {
 func TestGetDetailsForGames(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	input := datastructures.GetDetailsForGamesDTO{
+	input := dtos.GetDetailsForGamesInputDTO{
 		GameIDs: []int{90, 50},
 	}
-	expectedReturnedGameDetails := []datastructures.BareGameInfo{
+	expectedReturnedGameDetails := []common.BareGameInfo{
 		{
 			AppID: 90,
 			Name:  "Half-Life Dedicated Server",
@@ -682,8 +682,8 @@ func TestGetDetailsForGames(t *testing.T) {
 		},
 	}
 	expectedResponse := struct {
-		Status string                        `json:"status"`
-		Games  []datastructures.BareGameInfo `json:"games"`
+		Status string                `json:"status"`
+		Games  []common.BareGameInfo `json:"games"`
 	}{
 		"success",
 		expectedReturnedGameDetails,
@@ -713,7 +713,7 @@ func TestGetDetailsForGames(t *testing.T) {
 func TestGetDetailsForGamesReturnsErrorWhenNoneOrMoreThanTwentyGamesAreRequested(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	input := datastructures.GetDetailsForGamesDTO{
+	input := dtos.GetDetailsForGamesInputDTO{
 		GameIDs: []int{},
 	}
 	expectedResponse := struct {
@@ -745,7 +745,7 @@ func TestGetDetailsForGamesReturnsErrorWhenNoneOrMoreThanTwentyGamesAreRequested
 func TestGetDetailsForGamesReturnsAnErrorWhenGetGameDetailsReturnsAnError(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	input := datastructures.GetDetailsForGamesDTO{
+	input := dtos.GetDetailsForGamesInputDTO{
 		GameIDs: []int{90, 50},
 	}
 
@@ -756,7 +756,7 @@ func TestGetDetailsForGamesReturnsAnErrorWhenGetGameDetailsReturnsAnError(t *tes
 	}
 	expectedResponseJSON, _ := json.Marshal(expectedResponse)
 	randomError := errors.New("error")
-	mockController.On("GetDetailsForGames", mock.Anything, input.GameIDs).Return([]datastructures.BareGameInfo{}, randomError)
+	mockController.On("GetDetailsForGames", mock.Anything, input.GameIDs).Return([]common.BareGameInfo{}, randomError)
 
 	requestBodyJSON, err := json.Marshal(input)
 	if err != nil {
@@ -780,13 +780,13 @@ func TestGetDetailsForGamesReturnsAnErrorWhenGetGameDetailsReturnsAnError(t *tes
 func TestGetDetailsForGamesReturnsAnEmptyGameDetailsResponseWhenNoGameDetailsAreFound(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	input := datastructures.GetDetailsForGamesDTO{
+	input := dtos.GetDetailsForGamesInputDTO{
 		GameIDs: []int{90},
 	}
-	expectedReturnedGameDetails := []datastructures.BareGameInfo{}
+	expectedReturnedGameDetails := []common.BareGameInfo{}
 	expectedResponse := struct {
-		Status string                        `json:"status"`
-		Games  []datastructures.BareGameInfo `json:"games"`
+		Status string                `json:"status"`
+		Games  []common.BareGameInfo `json:"games"`
 	}{
 		"success",
 		expectedReturnedGameDetails,
@@ -817,15 +817,15 @@ func TestSaveProcessedGraphData(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
 	crawlID := ksuid.New().String()
-	input := datastructures.UsersGraphData{
-		UserDetails: datastructures.ResStruct{
+	input := common.UsersGraphData{
+		UserDetails: common.UsersGraphInformation{
 			User: common.UserDocument{
 				AccDetails: common.AccDetailsDocument{
 					Personaname: "cathal",
 				},
 			},
 		},
-		FriendDetails: []datastructures.ResStruct{
+		FriendDetails: []common.UsersGraphInformation{
 			{
 				User: common.UserDocument{
 					AccDetails: common.AccDetailsDocument{
@@ -881,7 +881,7 @@ func TestSaveProcessedGraphDataReturnsInvalidInputForInvalidFormatCrawlID(t *tes
 	expectedResponseJSON, _ := json.Marshal(expectedResponse)
 	mockController.On("SaveProcessedGraphData", mock.Anything, mock.Anything).Return(true, nil)
 
-	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	requestBodyJSON, err := json.Marshal(common.UsersGraphData{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -913,7 +913,7 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *t
 	err := errors.New("random error")
 	mockController.On("SaveProcessedGraphData", mock.Anything, mock.Anything).Return(false, err)
 
-	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	requestBodyJSON, err := json.Marshal(common.UsersGraphData{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -936,15 +936,15 @@ func TestGetProcessedGraphData(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
 	crawlID := ksuid.New().String()
-	input := datastructures.UsersGraphData{
-		UserDetails: datastructures.ResStruct{
+	input := common.UsersGraphData{
+		UserDetails: common.UsersGraphInformation{
 			User: common.UserDocument{
 				AccDetails: common.AccDetailsDocument{
 					Personaname: "cathal",
 				},
 			},
 		},
-		FriendDetails: []datastructures.ResStruct{
+		FriendDetails: []common.UsersGraphInformation{
 			{
 				User: common.UserDocument{
 					AccDetails: common.AccDetailsDocument{
@@ -968,7 +968,7 @@ func TestGetProcessedGraphData(t *testing.T) {
 	expectedResponseJSON, _ := json.Marshal(expectedResponse)
 	mockController.On("GetProcessedGraphData", mock.Anything, mock.Anything).Return(input, nil)
 
-	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	requestBodyJSON, err := json.Marshal(common.UsersGraphData{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -998,7 +998,7 @@ func TestGetProcessedGraphDataReturnsInvalidInputForInvalidFormatCrawlID(t *test
 	}
 	expectedResponseJSON, _ := json.Marshal(expectedResponse)
 
-	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	requestBodyJSON, err := json.Marshal(common.UsersGraphData{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1028,9 +1028,9 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 	}
 	expectedResponseJSON, _ := json.Marshal(expectedResponse)
 	err := errors.New("random error")
-	mockController.On("GetProcessedGraphData", mock.Anything, mock.Anything).Return(datastructures.UsersGraphData{}, err)
+	mockController.On("GetProcessedGraphData", mock.Anything, mock.Anything).Return(common.UsersGraphData{}, err)
 
-	requestBodyJSON, err := json.Marshal(datastructures.UsersGraphData{})
+	requestBodyJSON, err := json.Marshal(common.UsersGraphData{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1052,7 +1052,7 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 func TestHasBeenCrawledBefore(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 	expectedCrawlID := ksuid.New().String()
-	input := datastructures.HasBeenCrawledBeforeInputDTO{
+	input := dtos.HasBeenCrawledBeforeInputDTO{
 		Level:   2,
 		SteamID: validFormatSteamID,
 	}
@@ -1088,7 +1088,7 @@ func TestHasBeenCrawledBefore(t *testing.T) {
 func TestHasBeenCrawledBeforeWithInvalidFormatSteamIDReturnsInvalidInput(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	input := datastructures.HasBeenCrawledBeforeInputDTO{
+	input := dtos.HasBeenCrawledBeforeInputDTO{
 		Level:   2,
 		SteamID: invalidFormatSteamID,
 	}
@@ -1122,7 +1122,7 @@ func TestHasBeenCrawledBeforeWithInvalidFormatSteamIDReturnsInvalidInput(t *test
 func TestHasBeenCrawledBeforeReturnsNotFoundWhenNoCrawlingStatusExists(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	input := datastructures.HasBeenCrawledBeforeInputDTO{
+	input := dtos.HasBeenCrawledBeforeInputDTO{
 		Level:   2,
 		SteamID: validFormatSteamID,
 	}
@@ -1160,7 +1160,7 @@ func TestDoesProcessedGraphDataExist(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 	crawlID := ksuid.New().String()
 
-	expectedResponse := datastructures.DoesProcessedGraphDataExistDTO{
+	expectedResponse := dtos.DoesProcessedGraphDataExistDTO{
 		Status: "success",
 		Exists: "no",
 	}
@@ -1248,7 +1248,7 @@ func TestGetCrawlingUser(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 	crawlID := ksuid.New().String()
 
-	crawlingStatus := datastructures.CrawlingStatus{
+	crawlingStatus := common.CrawlingStatus{
 		OriginalCrawlTarget: testUser.AccDetails.SteamID,
 		TotalUsersToCrawl:   140,
 		UsersCrawled:        95,
@@ -1281,7 +1281,7 @@ func TestGetCrawlingUserReturnsNotBeingCrawledWhenUserIsNotBeingCrawled(t *testi
 	mockController, serverPort := initServerAndDependencies()
 	crawlID := ksuid.New().String()
 
-	crawlingStatus := datastructures.CrawlingStatus{
+	crawlingStatus := common.CrawlingStatus{
 		OriginalCrawlTarget: testUser.AccDetails.SteamID,
 		TotalUsersToCrawl:   140,
 		UsersCrawled:        140,
@@ -1312,7 +1312,7 @@ func TestGetCrawlingUserReturnsUserDoesNotExistWhenUserIsNotFound(t *testing.T) 
 	mockController, serverPort := initServerAndDependencies()
 	crawlID := ksuid.New().String()
 
-	crawlingStatus := datastructures.CrawlingStatus{
+	crawlingStatus := common.CrawlingStatus{
 		OriginalCrawlTarget: testUser.AccDetails.SteamID,
 		TotalUsersToCrawl:   140,
 		UsersCrawled:        90,

@@ -7,8 +7,6 @@ import (
 
 	common "github.com/neosteamfriendgraphing/common"
 
-	datastructures "github.com/IamCathal/neo/services/datastore/datastructures"
-
 	mock "github.com/stretchr/testify/mock"
 
 	mongo "go.mongodb.org/mongo-driver/mongo"
@@ -41,14 +39,14 @@ func (_m *MockCntrInterface) DoesProcessedGraphDataExist(crawlID string) (bool, 
 }
 
 // GetCrawlingStatusFromDBFromCrawlID provides a mock function with given fields: ctx, crawlID
-func (_m *MockCntrInterface) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (datastructures.CrawlingStatus, error) {
+func (_m *MockCntrInterface) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (common.CrawlingStatus, error) {
 	ret := _m.Called(ctx, crawlID)
 
-	var r0 datastructures.CrawlingStatus
-	if rf, ok := ret.Get(0).(func(context.Context, string) datastructures.CrawlingStatus); ok {
+	var r0 common.CrawlingStatus
+	if rf, ok := ret.Get(0).(func(context.Context, string) common.CrawlingStatus); ok {
 		r0 = rf(ctx, crawlID)
 	} else {
-		r0 = ret.Get(0).(datastructures.CrawlingStatus)
+		r0 = ret.Get(0).(common.CrawlingStatus)
 	}
 
 	var r1 error
@@ -62,15 +60,15 @@ func (_m *MockCntrInterface) GetCrawlingStatusFromDBFromCrawlID(ctx context.Cont
 }
 
 // GetDetailsForGames provides a mock function with given fields: ctx, IDList
-func (_m *MockCntrInterface) GetDetailsForGames(ctx context.Context, IDList []int) ([]datastructures.BareGameInfo, error) {
+func (_m *MockCntrInterface) GetDetailsForGames(ctx context.Context, IDList []int) ([]common.BareGameInfo, error) {
 	ret := _m.Called(ctx, IDList)
 
-	var r0 []datastructures.BareGameInfo
-	if rf, ok := ret.Get(0).(func(context.Context, []int) []datastructures.BareGameInfo); ok {
+	var r0 []common.BareGameInfo
+	if rf, ok := ret.Get(0).(func(context.Context, []int) []common.BareGameInfo); ok {
 		r0 = rf(ctx, IDList)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]datastructures.BareGameInfo)
+			r0 = ret.Get(0).([]common.BareGameInfo)
 		}
 	}
 
@@ -85,14 +83,14 @@ func (_m *MockCntrInterface) GetDetailsForGames(ctx context.Context, IDList []in
 }
 
 // GetProcessedGraphData provides a mock function with given fields: crawlID
-func (_m *MockCntrInterface) GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error) {
+func (_m *MockCntrInterface) GetProcessedGraphData(crawlID string) (common.UsersGraphData, error) {
 	ret := _m.Called(crawlID)
 
-	var r0 datastructures.UsersGraphData
-	if rf, ok := ret.Get(0).(func(string) datastructures.UsersGraphData); ok {
+	var r0 common.UsersGraphData
+	if rf, ok := ret.Get(0).(func(string) common.UsersGraphData); ok {
 		r0 = rf(crawlID)
 	} else {
-		r0 = ret.Get(0).(datastructures.UsersGraphData)
+		r0 = ret.Get(0).(common.UsersGraphData)
 	}
 
 	var r1 error
@@ -171,18 +169,18 @@ func (_m *MockCntrInterface) HasUserBeenCrawledBeforeAtLevel(ctx context.Context
 }
 
 // InsertGame provides a mock function with given fields: ctx, game
-func (_m *MockCntrInterface) InsertGame(ctx context.Context, game datastructures.BareGameInfo) (bool, error) {
+func (_m *MockCntrInterface) InsertGame(ctx context.Context, game common.BareGameInfo) (bool, error) {
 	ret := _m.Called(ctx, game)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, datastructures.BareGameInfo) bool); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, common.BareGameInfo) bool); ok {
 		r0 = rf(ctx, game)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, datastructures.BareGameInfo) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, common.BareGameInfo) error); ok {
 		r1 = rf(ctx, game)
 	} else {
 		r1 = ret.Error(1)
@@ -215,18 +213,18 @@ func (_m *MockCntrInterface) InsertOne(ctx context.Context, collection *mongo.Co
 }
 
 // SaveProcessedGraphData provides a mock function with given fields: crawlID, graphData
-func (_m *MockCntrInterface) SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {
+func (_m *MockCntrInterface) SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error) {
 	ret := _m.Called(crawlID, graphData)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(string, datastructures.UsersGraphData) bool); ok {
+	if rf, ok := ret.Get(0).(func(string, common.UsersGraphData) bool); ok {
 		r0 = rf(crawlID, graphData)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, datastructures.UsersGraphData) error); ok {
+	if rf, ok := ret.Get(1).(func(string, common.UsersGraphData) error); ok {
 		r1 = rf(crawlID, graphData)
 	} else {
 		r1 = ret.Error(1)
@@ -236,18 +234,18 @@ func (_m *MockCntrInterface) SaveProcessedGraphData(crawlID string, graphData da
 }
 
 // UpdateCrawlingStatus provides a mock function with given fields: ctx, collection, crawlingStatus
-func (_m *MockCntrInterface) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus datastructures.CrawlingStatus) (bool, error) {
+func (_m *MockCntrInterface) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error) {
 	ret := _m.Called(ctx, collection, crawlingStatus)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, datastructures.CrawlingStatus) bool); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *mongo.Collection, common.CrawlingStatus) bool); ok {
 		r0 = rf(ctx, collection, crawlingStatus)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, datastructures.CrawlingStatus) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *mongo.Collection, common.CrawlingStatus) error); ok {
 		r1 = rf(ctx, collection, crawlingStatus)
 	} else {
 		r1 = ret.Error(1)

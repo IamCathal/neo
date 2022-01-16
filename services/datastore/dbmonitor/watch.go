@@ -142,7 +142,7 @@ func watchCrawlingStatusUpdates() {
 	configuration.Logger.Info("watching crawling stats collection")
 
 	for crawlingStatsCollectionStream.Next(context.TODO()) {
-		var crawlingStat datastructures.CrawlingStatus
+		var crawlingStat common.CrawlingStatus
 		var event bson.M
 
 		if err := crawlingStatsCollectionStream.Decode(&event); err != nil {
@@ -164,7 +164,7 @@ func watchCrawlingStatusUpdates() {
 	}
 }
 
-func writeCrawlingStatsUpdateToAllWebsockets(crawlingStat datastructures.CrawlingStatus) error {
+func writeCrawlingStatsUpdateToAllWebsockets(crawlingStat common.CrawlingStatus) error {
 	websockets := GetCrawlingStatsStreamWebsocketConnections()
 
 	jsonObj, err := json.Marshal(crawlingStat)

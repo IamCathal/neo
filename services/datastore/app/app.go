@@ -8,7 +8,6 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
-	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/neosteamfriendgraphing/common"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -39,7 +38,7 @@ func SaveUserToDB(cntr controller.CntrInterface, userDocument common.UserDocumen
 	return err
 }
 
-func SaveCrawlingStatsToDB(cntr controller.CntrInterface, currentLevel int, crawlingStatus datastructures.CrawlingStatus) error {
+func SaveCrawlingStatsToDB(cntr controller.CntrInterface, currentLevel int, crawlingStatus common.CrawlingStatus) error {
 	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
 	if (currentLevel < crawlingStatus.MaxLevel) || (currentLevel == 1 && crawlingStatus.MaxLevel == 1) {
 		// Increment the users crawled counter by one and add len(friends) to
@@ -100,10 +99,10 @@ func GetUserFromDB(cntr controller.CntrInterface, steamID string) (common.UserDo
 	return user, nil
 }
 
-func GetCrawlingStatsFromDBFromCrawlID(cntr controller.CntrInterface, crawlID string) (datastructures.CrawlingStatus, error) {
+func GetCrawlingStatsFromDBFromCrawlID(cntr controller.CntrInterface, crawlID string) (common.CrawlingStatus, error) {
 	crawlingStatus, err := cntr.GetCrawlingStatusFromDBFromCrawlID(context.TODO(), crawlID)
 	if err != nil {
-		return datastructures.CrawlingStatus{}, err
+		return common.CrawlingStatus{}, err
 	}
 	return crawlingStatus, nil
 }

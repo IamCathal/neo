@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
-	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/lib/pq"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/pkg/errors"
@@ -22,16 +21,16 @@ type Cntr struct{}
 type CntrInterface interface {
 	// MongoDB related functions
 	InsertOne(ctx context.Context, collection *mongo.Collection, bson []byte) (*mongo.InsertOneResult, error)
-	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus datastructures.CrawlingStatus) (bool, error)
+	UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error)
 	GetUser(ctx context.Context, steamID string) (common.UserDocument, error)
-	GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (datastructures.CrawlingStatus, error)
+	GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (common.CrawlingStatus, error)
 	HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (string, error)
 	GetUsernames(ctx context.Context, steamIDs []string) (map[string]string, error)
-	InsertGame(ctx context.Context, game datastructures.BareGameInfo) (bool, error)
-	GetDetailsForGames(ctx context.Context, IDList []int) ([]datastructures.BareGameInfo, error)
+	InsertGame(ctx context.Context, game common.BareGameInfo) (bool, error)
+	GetDetailsForGames(ctx context.Context, IDList []int) ([]common.BareGameInfo, error)
 	// Postgresql related functions
-	SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error)
-	GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error)
+	SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error)
+	GetProcessedGraphData(crawlID string) (common.UsersGraphData, error)
 	DoesProcessedGraphDataExist(crawlID string) (bool, error)
 }
 
@@ -48,7 +47,7 @@ func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection,
 	return insertionResult, nil
 }
 
-func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus datastructures.CrawlingStatus) (bool, error) {
+func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.Collection, crawlingStatus common.CrawlingStatus) (bool, error) {
 	updatedDoc := collection.FindOneAndUpdate(context.TODO(),
 		bson.M{"crawlid": crawlingStatus.CrawlID},
 		bson.D{
@@ -84,14 +83,14 @@ func (control Cntr) GetUser(ctx context.Context, steamID string) (common.UserDoc
 	return userDoc, nil
 }
 
-func (control Cntr) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (datastructures.CrawlingStatus, error) {
+func (control Cntr) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, crawlID string) (common.CrawlingStatus, error) {
 	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
-	crawlingStatus := datastructures.CrawlingStatus{}
+	crawlingStatus := common.CrawlingStatus{}
 
 	if err := crawlingStatsCollection.FindOne(ctx, bson.M{
 		"crawlid": crawlID,
 	}).Decode(&crawlingStatus); err != nil {
-		return datastructures.CrawlingStatus{}, err
+		return common.CrawlingStatus{}, err
 	}
 
 	return crawlingStatus, nil
@@ -99,7 +98,7 @@ func (control Cntr) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, craw
 
 func (control Cntr) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (string, error) {
 	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
-	crawlStatus := datastructures.CrawlingStatus{}
+	crawlStatus := common.CrawlingStatus{}
 
 	projection := bson.D{
 		{Key: "crawlid", Value: 1},
@@ -154,7 +153,7 @@ func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[st
 	return steamIDToUsernameMap, nil
 }
 
-func (control Cntr) InsertGame(ctx context.Context, game datastructures.BareGameInfo) (bool, error) {
+func (control Cntr) InsertGame(ctx context.Context, game common.BareGameInfo) (bool, error) {
 	gamesCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection("games")
 
 	bsonObj, err := bson.Marshal(game)
@@ -174,22 +173,22 @@ func (control Cntr) InsertGame(ctx context.Context, game datastructures.BareGame
 	return true, nil
 }
 
-func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]datastructures.BareGameInfo, error) {
+func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]common.BareGameInfo, error) {
 	gamesCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection("games")
 
 	cursor, err := gamesCollection.Find(ctx,
 		bson.D{{Key: "appid", Value: bson.D{{Key: "$in", Value: IDList}}}})
 	if err != nil {
-		return []datastructures.BareGameInfo{}, err
+		return []common.BareGameInfo{}, err
 	}
 	defer cursor.Close(ctx)
 
-	var allGames []datastructures.BareGameInfo
-	var singleGame datastructures.BareGameInfo
+	var allGames []common.BareGameInfo
+	var singleGame common.BareGameInfo
 	for cursor.Next(ctx) {
 		err = cursor.Decode(&singleGame)
 		if err != nil {
-			return []datastructures.BareGameInfo{}, err
+			return []common.BareGameInfo{}, err
 		}
 		allGames = append(allGames, singleGame)
 	}
@@ -197,7 +196,7 @@ func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]dat
 	return allGames, nil
 }
 
-func (control Cntr) SaveProcessedGraphData(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {
+func (control Cntr) SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error) {
 	jsonBody, err := json.Marshal(graphData)
 	if err != nil {
 		return false, fmt.Errorf("failed to unmarshal graphdata json: %+v", err)
@@ -218,27 +217,27 @@ func (control Cntr) SaveProcessedGraphData(crawlID string, graphData datastructu
 	return true, nil
 }
 
-func (control Cntr) GetProcessedGraphData(crawlID string) (datastructures.UsersGraphData, error) {
-	graphData := datastructures.UsersGraphData{}
+func (control Cntr) GetProcessedGraphData(crawlID string) (common.UsersGraphData, error) {
+	graphData := common.UsersGraphData{}
 
 	queryString := `SELECT * FROM graphdata WHERE crawlid = $1`
 	res, err := configuration.SQLClient.Query(queryString, crawlID)
 	if err != nil {
-		return datastructures.UsersGraphData{}, err
+		return common.UsersGraphData{}, err
 	}
 	graphDataJSON := ""
 	for res.Next() {
 		crawlID := ""
 		if err := res.Scan(&crawlID, &graphDataJSON); err != nil {
-			return datastructures.UsersGraphData{}, fmt.Errorf("failed to scan returned row: %+v", err)
+			return common.UsersGraphData{}, fmt.Errorf("failed to scan returned row: %+v", err)
 		}
 	}
 	if len(graphDataJSON) == 0 {
-		return datastructures.UsersGraphData{}, nil
+		return common.UsersGraphData{}, nil
 	}
 	err = json.Unmarshal([]byte(graphDataJSON), &graphData)
 	if err != nil {
-		return datastructures.UsersGraphData{}, fmt.Errorf("failed to unmarshal returned data for crawlid %s: %+v", crawlID, err)
+		return common.UsersGraphData{}, fmt.Errorf("failed to unmarshal returned data for crawlid %s: %+v", crawlID, err)
 	}
 	return graphData, nil
 }

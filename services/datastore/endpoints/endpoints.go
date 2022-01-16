@@ -183,7 +183,7 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 
 func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	saveUserDTO := datastructures.SaveUserDTO{}
+	saveUserDTO := dtos.SaveUserDTO{}
 
 	err := json.NewDecoder(r.Body).Decode(&saveUserDTO)
 	if err != nil {
@@ -192,7 +192,7 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	crawlingStats := datastructures.CrawlingStatus{
+	crawlingStats := common.CrawlingStatus{
 		CrawlID:             saveUserDTO.CrawlID,
 		OriginalCrawlTarget: saveUserDTO.OriginalCrawlTarget,
 		MaxLevel:            saveUserDTO.MaxLevel,
@@ -232,7 +232,7 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 
 func (endpoints *Endpoints) InsertGame(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	bareGameInfo := datastructures.BareGameInfo{}
+	bareGameInfo := common.BareGameInfo{}
 
 	err := json.NewDecoder(r.Body).Decode(&bareGameInfo)
 	if err != nil {
@@ -261,7 +261,7 @@ func (endpoints *Endpoints) InsertGame(w http.ResponseWriter, r *http.Request) {
 
 func (endpoints *Endpoints) SaveCrawlingStatsToDB(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	crawlingStatusInput := datastructures.SaveCrawlingStatsDTO{}
+	crawlingStatusInput := dtos.SaveCrawlingStatsDTO{}
 
 	err := json.NewDecoder(r.Body).Decode(&crawlingStatusInput)
 	if err != nil {
@@ -339,7 +339,7 @@ func (endpoints *Endpoints) GetCrawlingUser(w http.ResponseWriter, r *http.Reque
 
 func (endpoints *Endpoints) HasBeenCrawledBefore(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	crawlDetails := datastructures.HasBeenCrawledBeforeInputDTO{}
+	crawlDetails := dtos.HasBeenCrawledBeforeInputDTO{}
 
 	err := json.NewDecoder(r.Body).Decode(&crawlDetails)
 	if err != nil {
@@ -410,7 +410,7 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	gamesInput := datastructures.GetDetailsForGamesDTO{}
+	gamesInput := dtos.GetDetailsForGamesInputDTO{}
 
 	err := json.NewDecoder(r.Body).Decode(&gamesInput)
 	if err != nil {
@@ -430,12 +430,12 @@ func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Re
 		return
 	}
 	if len(gameDetails) == 0 {
-		gameDetails = []datastructures.BareGameInfo{}
+		gameDetails = []common.BareGameInfo{}
 	}
 
 	response := struct {
-		Status string                        `json:"status"`
-		Games  []datastructures.BareGameInfo `json:"games"`
+		Status string                `json:"status"`
+		Games  []common.BareGameInfo `json:"games"`
 	}{
 		"success",
 		gameDetails,
@@ -460,7 +460,7 @@ func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Req
 		LogBasicInfo("couldn't get crawling status", r, http.StatusNotFound)
 		return
 	}
-	response := datastructures.GetCrawlingStatusDTO{
+	response := dtos.GetCrawlingStatusDTO{
 		Status:         "success",
 		CrawlingStatus: crawlingStatus,
 	}
@@ -544,7 +544,7 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 		return
 	}
 
-	graphData := datastructures.UsersGraphData{}
+	graphData := common.UsersGraphData{}
 	err = json.NewDecoder(r.Body).Decode(&graphData)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
@@ -611,7 +611,7 @@ func (endpoints *Endpoints) DoesProcessedGraphDataExist(w http.ResponseWriter, r
 		configuration.Logger.Error(errMsg.Error())
 		return
 	}
-	response := datastructures.DoesProcessedGraphDataExistDTO{
+	response := dtos.DoesProcessedGraphDataExistDTO{
 		Status: "success",
 	}
 	if exists {

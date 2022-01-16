@@ -48,7 +48,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/crawl", endpoints.CrawlUsers).Methods("POST", "OPTIONS")
 	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET", "OPTIONS")
-	r.HandleFunc("/creategraph/{crawlid}", endpoints.CreateGraph).Methods("POST")
+	r.HandleFunc("/creategraph/{crawlid}", endpoints.CreateGraph).Methods("POST", "OPTIONS")
 
 	r.Use(endpoints.LoggingMiddleware)
 	return r

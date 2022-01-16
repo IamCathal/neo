@@ -70,7 +70,7 @@ func LoadLoggingConfig() (common.LoggingFields, error) {
 		NodeDC:   os.Getenv("NODE_DC"),
 		LogPaths: []string{"stdout", os.Getenv("LOG_PATH")},
 		NodeIPV4: GetLocalIPAddress(),
-		Service:  "datastore",
+		Service:  os.Getenv("SERVICE"),
 	}
 	if logFieldsConfig.NodeName == "" || logFieldsConfig.NodeDC == "" ||
 		logFieldsConfig.LogPaths[1] == "" || logFieldsConfig.NodeIPV4 == "" {
@@ -89,6 +89,7 @@ func InitAndSetLogger(logFieldsConfig common.LoggingFields) {
 	globalLogFields["nodeName"] = logFieldsConfig.NodeName
 	globalLogFields["nodeDC"] = logFieldsConfig.NodeDC
 	globalLogFields["nodeIPV4"] = logFieldsConfig.NodeIPV4
+	globalLogFields["service"] = logFieldsConfig.Service
 	c.InitialFields = globalLogFields
 
 	log, err := c.Build()

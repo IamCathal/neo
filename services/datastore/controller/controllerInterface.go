@@ -250,8 +250,7 @@ func (control Cntr) DoesProcessedGraphDataExist(crawlID string) (bool, error) {
 	}
 	crawlIDFromRow := ""
 	for res.Next() {
-		crawlID := ""
-		if err := res.Scan(&crawlID, &crawlIDFromRow); err != nil {
+		if err := res.Scan(&crawlIDFromRow); err != nil {
 			return false, fmt.Errorf("failed to scan returned row: %+v", err)
 		}
 	}

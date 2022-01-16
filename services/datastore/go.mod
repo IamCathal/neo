@@ -13,7 +13,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.4
 	github.com/mackerelio/go-osstat v0.2.1
-	github.com/neosteamfriendgraphing/common v0.0.0-20220116194629-58e4b2fcc252
+	github.com/neosteamfriendgraphing/common v0.0.0-20220116220858-bd925944e855
 	github.com/pkg/errors v0.9.1
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/objx v0.3.0 // indirect

@@ -42,8 +42,7 @@ func TestMain(m *testing.M) {
 	}
 	initTestData()
 	c := zap.NewProductionConfig()
-	// c.OutputPaths = []string{"/dev/null"}
-	c.OutputPaths = []string{"stdout"}
+	c.OutputPaths = []string{"/dev/null"}
 	logger, err := c.Build()
 	if err != nil {
 		log.Fatal(err)
@@ -1155,4 +1154,187 @@ func TestHasBeenCrawledBeforeReturnsNotFoundWhenNoCrawlingStatusExists(t *testin
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
 	mockController.AssertNumberOfCalls(t, "HasUserBeenCrawledBeforeAtLevel", 1)
+}
+
+func TestDoesProcessedGraphDataExist(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	crawlID := ksuid.New().String()
+
+	expectedResponse := datastructures.DoesProcessedGraphDataExistDTO{
+		Status: "success",
+		Exists: "no",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	mockController.On("DoesProcessedGraphDataExist", crawlID).Return(false, nil)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/doesprocessedgraphdataexist/%s", serverPort, crawlID), "application/json", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestDoesProcessedGraphDataExistReturnsInvalidWhenGivenAnInvalidCrawlID(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	crawlID := "invalid crawlID"
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"invalid input",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/doesprocessedgraphdataexist/%s", serverPort, crawlID), "application/json", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	mockController.AssertNotCalled(t, "DoesProcessedGraphDataExist")
+}
+
+func TestDoesProcessedGraphDataExistReturnsInvalidWhenItCannotRetrieveGraphData(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	crawlID := ksuid.New().String()
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"Couldn't get graph data",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	randomError := errors.New("random error")
+	mockController.On("DoesProcessedGraphDataExist", crawlID).Return(false, randomError)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/doesprocessedgraphdataexist/%s", serverPort, crawlID), "application/json", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "DoesProcessedGraphDataExist", 1)
+}
+
+func TestGetCrawlingUser(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	crawlID := ksuid.New().String()
+
+	crawlingStatus := datastructures.CrawlingStatus{
+		OriginalCrawlTarget: testUser.AccDetails.SteamID,
+		TotalUsersToCrawl:   140,
+		UsersCrawled:        95,
+	}
+
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, crawlID).Return(crawlingStatus, nil)
+	mockController.On("GetUser", mock.Anything, testUser.AccDetails.SteamID).Return(testUser, nil)
+
+	expectedResponse := struct {
+		Status string              `json:"status"`
+		User   common.UserDocument `json:"user"`
+	}{
+		"success",
+		testUser,
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestGetCrawlingUserReturnsNotBeingCrawledWhenUserIsNotBeingCrawled(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	crawlID := ksuid.New().String()
+
+	crawlingStatus := datastructures.CrawlingStatus{
+		OriginalCrawlTarget: testUser.AccDetails.SteamID,
+		TotalUsersToCrawl:   140,
+		UsersCrawled:        140,
+	}
+	randomError := errors.New("random error")
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, crawlID).Return(crawlingStatus, nil)
+	mockController.On("GetUser", mock.Anything, testUser.AccDetails.SteamID).Return(common.UserDocument{}, randomError)
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"User is not currently being crawled",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+}
+
+func TestGetCrawlingUserReturnsUserDoesNotExistWhenUserIsNotFound(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	crawlID := ksuid.New().String()
+
+	crawlingStatus := datastructures.CrawlingStatus{
+		OriginalCrawlTarget: testUser.AccDetails.SteamID,
+		TotalUsersToCrawl:   140,
+		UsersCrawled:        90,
+	}
+
+	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, crawlID).Return(crawlingStatus, nil)
+	mockController.On("GetUser", mock.Anything, testUser.AccDetails.SteamID).Return(common.UserDocument{}, mongo.ErrNoDocuments)
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"user does not exist",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
 }

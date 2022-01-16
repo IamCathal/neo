@@ -116,12 +116,12 @@
                         </div>
                     </div>
                 </div>
-                <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
+                <!-- <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
                 <script>
                     const URLarr = window.location.href.split("/");
                     const crawlID = URLarr[URLarr.length-1];
                     initAndMonitorCrawlingStatusWebsocket(crawlID)
-                </script>
+                </script> -->
 
                 <!-- crawling progress bar -->
                 <div class="row crawlProgressBar mt-4">
@@ -232,6 +232,9 @@
     <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
 
     <script>
+        const URLarr = window.location.href.split("/");
+        const crawlID = URLarr[URLarr.length-1];
+        
         doesProcessedGraphDataExist(crawlID).then(doesExist => {
             if (doesExist) {
                 console.log("did exist")

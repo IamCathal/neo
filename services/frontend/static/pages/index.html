@@ -53,7 +53,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://cathaloc.dev" />
     <meta property="og:title" content="SteamFriendsGraphing, graph your network of friends on Steam" />
-    <meta property="og:description" content="NUIG Computer Science & IT Final Year Project 2021" />
+    <meta property="og:description" content="NUIG Computer Science & IT Final Year Project 2022" />
 
     <title>SteamFriendsGraphing</title>
 
@@ -427,7 +427,7 @@
             const secondSteamID = document.getElementById("secondSteamID").value;
             const level = document.getElementById("levelChoice").value;
 
-            requestData = {}
+            let requestData = {}
 
             if (singleUserMode == true) {
                 requestData = {
@@ -461,23 +461,28 @@
 
             document.getElementById("crawlingProgressText").textContent = "Checking if profile is public";
             isPublicProfile(firstSteamID).then((isPublic) => {
-                console.log(`the real deal was: ${isPublic}`)
                 if (!isPublic) {
                     hideCrawlLoadingElements()
                     displayErrorForInvalidSteamID(true, "Profile is private");
                     return
                 }
                 document.getElementById("crawlingProgressText").textContent = "Checking if profile has been crawled before";
-                hasBeenCrawled(firstSteamID, level).then((crawlID) => {
-                    if (crawlID === "") {
-                        // New crawl
-                    } else {
-                        // Crawl already exists, reroute to that page
-                    }
-                    hideCrawlLoadingElements()
-                }, (err) => {
-                    console.log(`err from hasBeenCrawl: ${err}`)
-                })
+                    hasBeenCrawled(firstSteamID, level).then((crawlID) => {
+                        if (crawlID === "") {
+                            // New crawl
+                            startCrawl(firstSteamID, level).then(crawlID => {
+                                window.location.href = `/crawl/${crawlID}`
+                            }, (err) => {
+                                console.error(`startCrawl: ${err}`);
+                            })
+                        } else {
+                            // Crawl already exists, reroute to that page
+                            window.location.href = `/graph/${crawlID}`;
+                        }
+                        hideCrawlLoadingElements()
+                    }, (err) => {
+                        console.log(`err from hasBeenCrawl: ${err}`)
+                    })
             }, (err) => {
                 console.log(`err from isPublic: ${err}`)
             })
@@ -487,7 +492,7 @@
         });
     </script>
 
-    <script src="/static/javascript/crawl.js"></script>
+    <script src="/static/javascript/startCrawl.js"></script>
 
 </body>
 </html>

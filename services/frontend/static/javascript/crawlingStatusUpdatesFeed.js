@@ -4,9 +4,8 @@ function initAndMonitorCrawlingStatusWebsocket(crawlID) {
     wsConn.addEventListener("close", (evt) => {
         console.log("CLOSED!");
     })
-
+    console.log(wsConn)
     wsConn.addEventListener("message", (evt) => {
-        
         let crawlingStatUpdate = JSON.parse(evt.data);
         document.getElementById("usersCrawled").textContent = crawlingStatUpdate.userscrawled;
         document.getElementById("totalUsersToCrawl").textContent = crawlingStatUpdate.totaluserstocrawl;

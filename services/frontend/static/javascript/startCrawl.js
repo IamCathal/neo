@@ -3,7 +3,7 @@ function isValidFormatSteamID(steamID) {
         return false
     }
     const regex = /([0-9]){17}/g
-    result = steamID.match(regex);
+    const result = steamID.match(regex);
     if (result.length == 1) {
         return true
     }
@@ -11,7 +11,6 @@ function isValidFormatSteamID(steamID) {
 }
 
 function displayErrorForInvalidSteamID(isFirstSteamID, errorMessage) {
-    console.log("display error")
     let firstSteamIDInput = document.getElementById("firstSteamID");
     let secondSteamIDInput = document.getElementById("secondSteamID");
 
@@ -27,8 +26,6 @@ function displayErrorForInvalidSteamID(isFirstSteamID, errorMessage) {
 }
 
 function hideSteamIDInputErrors() {
-    console.log("hiding errors")
-
     let firstSteamIDInput = document.getElementById("firstSteamID");
     let secondSteamIDInput = document.getElementById("secondSteamID");
     firstSteamIDInput.style.border = "1px solid white";
@@ -54,7 +51,6 @@ function isPublicProfile(steamID) {
         }
     }).then(res => res.json())
     .then(data => {
-        console.log(data);
         if (data.message === "public") {
             resolve(true)
         }
@@ -80,7 +76,27 @@ function hasBeenCrawled(steamID, level) {
             body: JSON.stringify(reqBody),
         }).then(res => res.json())
         .then(data => {
-            console.log(data)
+            resolve(data.message)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+} 
+
+function startCrawl(steamID, level) {
+    return new Promise((resolve, reject) => {
+        reqBody = {
+            "firstSteamID": steamID,
+            "level": parseInt(level)
+        }
+        fetch(`http://localhost:2570/crawl`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(reqBody),
+        }).then(res => res.json())
+        .then(data => {
             resolve(data.message)
         }).catch(err => {
             reject(err)

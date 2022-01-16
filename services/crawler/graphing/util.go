@@ -4,7 +4,7 @@ import (
 	"sort"
 
 	"github.com/iamcathal/neo/services/crawler/controller"
-	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/neosteamfriendgraphing/common"
 )
 
 func doesExistInMap(userMap map[string]bool, username string) bool {
@@ -15,7 +15,7 @@ func doesExistInMap(userMap map[string]bool, username string) bool {
 	return false
 }
 
-func getAllSteamIDsFromJobsWithNoAssociatedUsernames(jobs []datastructures.ResStruct) []string {
+func getAllSteamIDsFromJobsWithNoAssociatedUsernames(jobs []common.UsersGraphInformation) []string {
 	steamIDs := []string{}
 	for _, job := range jobs {
 		if job.User.AccDetails.Personaname == "" {
@@ -25,7 +25,7 @@ func getAllSteamIDsFromJobsWithNoAssociatedUsernames(jobs []datastructures.ResSt
 	return steamIDs
 }
 
-func getTopTenMostPopularGames(users []datastructures.ResStruct) []int {
+func getTopTenMostPopularGames(users []common.UsersGraphInformation) []int {
 	type tempGame struct {
 		appID      int
 		occurances int
@@ -66,11 +66,11 @@ func getTopTenMostPopularGames(users []datastructures.ResStruct) []int {
 	}
 }
 
-func getTopTenOverallGameNames(cntr controller.CntrInterface, users []datastructures.ResStruct) ([]datastructures.BareGameInfo, error) {
+func getTopTenOverallGameNames(cntr controller.CntrInterface, users []common.UsersGraphInformation) ([]common.BareGameInfo, error) {
 	topTenGameIDs := getTopTenMostPopularGames(users)
 	topTenGamesInfo, err := cntr.GetGameDetailsFromIDs(topTenGameIDs)
 	if err != nil {
-		return []datastructures.BareGameInfo{}, err
+		return []common.BareGameInfo{}, err
 	}
 	return topTenGamesInfo, nil
 }

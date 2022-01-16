@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/iamcathal/neo/services/crawler/controller"
-	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -26,7 +25,7 @@ func TestDoesExistInMapReturnsFalseForNonExistantElement(t *testing.T) {
 }
 
 func TestGetAllSteamIDsFromJobsWithNoAssociatedUsernames(t *testing.T) {
-	jobs := []datastructures.ResStruct{
+	jobs := []common.UsersGraphInformation{
 		{
 			User: common.UserDocument{
 				AccDetails: common.AccDetailsDocument{
@@ -51,7 +50,7 @@ func TestGetAllSteamIDsFromJobsWithNoAssociatedUsernames(t *testing.T) {
 }
 
 func TestGetTopTenMostPopularGames(t *testing.T) {
-	users := []datastructures.ResStruct{
+	users := []common.UsersGraphInformation{
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
@@ -93,7 +92,7 @@ func TestGetTopTenMostPopularGames(t *testing.T) {
 
 func TestGetTopTenOverallGameNames(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
-	users := []datastructures.ResStruct{
+	users := []common.UsersGraphInformation{
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
@@ -126,7 +125,7 @@ func TestGetTopTenOverallGameNames(t *testing.T) {
 			},
 		},
 	}
-	expected := []datastructures.BareGameInfo{
+	expected := []common.BareGameInfo{
 		{AppID: 200, Name: "CS:GO"},
 		{AppID: 80, Name: "Sunset Overdrive"},
 		{AppID: 90, Name: "Deep Rock Galactic"},

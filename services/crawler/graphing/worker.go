@@ -9,6 +9,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	"github.com/neosteamfriendgraphing/common"
 )
 
 type jobStruct struct {
@@ -31,7 +32,7 @@ type GraphWorkerConfig struct {
 	MaxLevel          int
 }
 
-func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, wg *sync.WaitGroup, workerConfig *GraphWorkerConfig, jobs <-chan datastructures.CrawlJob, res chan<- datastructures.ResStruct) {
+func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, wg *sync.WaitGroup, workerConfig *GraphWorkerConfig, jobs <-chan datastructures.CrawlJob, res chan<- common.UsersGraphInformation) {
 	configuration.Logger.Sugar().Infof("%d graphWorker starting...\n", id)
 	for {
 		select {
@@ -55,7 +56,7 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 			}
 
 			if currentJob.CurrentLevel <= workerConfig.MaxLevel {
-				newJob := datastructures.ResStruct{
+				newJob := common.UsersGraphInformation{
 					User:         userGraphData,
 					FromID:       currentJob.FromID,
 					CurrentLevel: currentJob.CurrentLevel,
@@ -74,9 +75,9 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 	}
 }
 
-func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig GraphWorkerConfig) ([]datastructures.ResStruct, error) {
+func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig GraphWorkerConfig) ([]common.UsersGraphInformation, error) {
 	jobsChan := make(chan datastructures.CrawlJob, 70000)
-	resChan := make(chan datastructures.ResStruct, 70000)
+	resChan := make(chan common.UsersGraphInformation, 70000)
 
 	var jobMutex sync.Mutex
 	var resMutex sync.Mutex
@@ -86,7 +87,7 @@ func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig Gr
 	workerConfig.resMutex = &resMutex
 	workerConfig.usersCrawledMutex = &usersCrawledMutex
 
-	allUsersGraphData := []datastructures.ResStruct{}
+	allUsersGraphData := []common.UsersGraphInformation{}
 
 	firstJob := datastructures.CrawlJob{
 		SteamID:      steamID,
@@ -162,7 +163,7 @@ func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig Gr
 		steamIDsWithoutAssociatedUsernames := getAllSteamIDsFromJobsWithNoAssociatedUsernames(allUsersGraphData)
 		steamIDsToUsernames, err := cntr.GetUsernamesForSteamIDs(steamIDsWithoutAssociatedUsernames)
 		if err != nil {
-			return []datastructures.ResStruct{}, err
+			return []common.UsersGraphInformation{}, err
 		}
 
 		for _, job := range allUsersGraphData {
@@ -181,7 +182,7 @@ func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, wo
 		panic(err)
 	}
 
-	usersDataForGraphWithOnlyTop5Games := []datastructures.ResStruct{}
+	usersDataForGraphWithOnlyTop5Games := []common.UsersGraphInformation{}
 	for _, friend := range usersDataForGraph {
 		if len(friend.User.GamesOwned) >= 5 {
 			friend.User.GamesOwned = friend.User.GamesOwned[:5]
@@ -195,7 +196,7 @@ func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, wo
 		panic(err)
 	}
 
-	usersDataForGraphWithFriends := datastructures.UsersGraphData{
+	usersDataForGraphWithFriends := common.UsersGraphData{
 		UserDetails:       usersDataForGraphWithOnlyTop5Games[0],
 		FriendDetails:     usersDataForGraphWithOnlyTop5Games[1:],
 		TopTenGameDetails: topTenOverallGameDetails,

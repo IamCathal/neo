@@ -26,7 +26,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	if userWasFoundInDB {
-		crawlingStatus := datastructures.CrawlingStatus{
+		crawlingStatus := common.CrawlingStatus{
 			OriginalCrawlTarget: job.OriginalTargetSteamID,
 			MaxLevel:            job.MaxLevel,
 			CrawlID:             job.CrawlID,

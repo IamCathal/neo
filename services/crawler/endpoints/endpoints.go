@@ -12,11 +12,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
-	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/graphing"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/iamcathal/neo/services/crawler/worker"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -141,7 +141,7 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	userInput := datastructures.CrawlUsersInput{}
+	userInput := dtos.CrawlUsersInputDTO{}
 	err := json.NewDecoder(r.Body).Decode(&userInput)
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)

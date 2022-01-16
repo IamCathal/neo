@@ -12,7 +12,6 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
-	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
@@ -32,12 +31,12 @@ type CntrInterface interface {
 	// Datastore related functions
 	SaveUserToDataStore(dtos.SaveUserDTO) (bool, error)
 	GetUserFromDataStore(steamID string) (common.UserDocument, error)
-	SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus datastructures.CrawlingStatus) (bool, error)
-	GetCrawlingStatsFromDataStore(crawlID string) (datastructures.CrawlingStatus, error)
+	SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error)
+	GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error)
 	GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error)
 	GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error)
-	SaveProcessedGraphDataToDataStore(crawlID string, graphData datastructures.UsersGraphData) (bool, error)
-	GetGameDetailsFromIDs(gameIDs []int) ([]datastructures.BareGameInfo, error)
+	SaveProcessedGraphDataToDataStore(crawlID string, graphData common.UsersGraphData) (bool, error)
+	GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo, error)
 }
 
 // CallGetFriends calls the steam web API to retrieve a list of
@@ -267,9 +266,9 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	return userDoc.User, nil
 }
 
-func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus datastructures.CrawlingStatus) (bool, error) {
+func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error) {
 	targetURL := fmt.Sprintf("%s/api/savecrawlingstats", os.Getenv("DATASTORE_URL"))
-	crawlingStatsDTO := datastructures.SaveCrawlingStatsDTO{
+	crawlingStatsDTO := dtos.SaveCrawlingStatsDTO{
 		CurrentLevel:   currentLevel,
 		CrawlingStatus: crawlingStatus,
 	}
@@ -321,7 +320,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	return false, util.MakeErr(fmt.Errorf("error saving crawling stats for existing user: %+v", APIRes))
 }
 
-func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (datastructures.CrawlingStatus, error) {
+func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
 	targetURL := fmt.Sprintf("%s/api/getcrawlingstatus/%s", os.Getenv("DATASTORE_URL"), crawlID)
 	req, err := http.NewRequest("GET", targetURL, nil)
 	req.Close = true
@@ -348,23 +347,23 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (datastructure
 	}
 	// Failed after all retries
 	if successfulRequest == false {
-		return datastructures.CrawlingStatus{}, util.MakeErr(callErr)
+		return common.CrawlingStatus{}, util.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return datastructures.CrawlingStatus{}, util.MakeErr(err)
+		return common.CrawlingStatus{}, util.MakeErr(err)
 	}
-	APIRes := datastructures.GetCrawlingStatusDTO{}
+	APIRes := dtos.GetCrawlingStatusDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return datastructures.CrawlingStatus{}, util.MakeErr(err)
+		return common.CrawlingStatus{}, util.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return APIRes.CrawlingStatus, nil
 	}
-	return datastructures.CrawlingStatus{}, util.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
+	return common.CrawlingStatus{}, util.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
 }
 
 func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {
@@ -471,7 +470,7 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 	return make(map[string]string), util.MakeErr(fmt.Errorf("error getting usernames for steamIDs: %+v", APIRes))
 }
 
-func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData datastructures.UsersGraphData) (bool, error) {
+func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData common.UsersGraphData) (bool, error) {
 	targetURL := fmt.Sprintf("%s/api/saveprocessedgraphdata/%s", os.Getenv("DATASTORE_URL"), crawlID)
 
 	jsonObj, err := json.Marshal(graphData)
@@ -524,15 +523,15 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 	return false, util.MakeErr(fmt.Errorf("error saving processed graphdata: %+v", APIRes))
 }
 
-func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]datastructures.BareGameInfo, error) {
+func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo, error) {
 	targetURL := fmt.Sprintf("%s/api/getdetailsforgames", os.Getenv("DATASTORE_URL"))
 
-	detailsForGamesInput := datastructures.GetDetailsForGamesInputDTO{
+	detailsForGamesInput := dtos.GetDetailsForGamesInputDTO{
 		GameIDs: gameIDs,
 	}
 	jsonObj, err := json.Marshal(detailsForGamesInput)
 	if err != nil {
-		return []datastructures.BareGameInfo{}, util.MakeErr(err)
+		return []common.BareGameInfo{}, util.MakeErr(err)
 	}
 
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
@@ -560,22 +559,22 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]datastructures.BareG
 	}
 	// Failed after all retries
 	if successfulRequest == false {
-		return []datastructures.BareGameInfo{}, util.MakeErr(callErr)
+		return []common.BareGameInfo{}, util.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return []datastructures.BareGameInfo{}, util.MakeErr(err)
+		return []common.BareGameInfo{}, util.MakeErr(err)
 	}
-	APIRes := datastructures.GetDetailsForGamesDTO{}
+	APIRes := dtos.GetDetailsForGamesDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return []datastructures.BareGameInfo{}, util.MakeErr(err)
+		return []common.BareGameInfo{}, util.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return APIRes.Games, nil
 	}
 
-	return []datastructures.BareGameInfo{}, util.MakeErr(fmt.Errorf("error when retrieving details for games: %+v", APIRes))
+	return []common.BareGameInfo{}, util.MakeErr(fmt.Errorf("error when retrieving details for games: %+v", APIRes))
 }

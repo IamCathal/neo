@@ -11,6 +11,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -173,7 +174,7 @@ func TestGetOwnedGamesAnErrorWhenAPIThrowsOne(t *testing.T) {
 }
 func TestVerifyFormatOfSteamIDsVerifiesTwoValidSteamIDs(t *testing.T) {
 	expectedSteamIDs := []string{"12345678901234456", "72348978301996243"}
-	inputData := datastructures.CrawlUsersInput{
+	inputData := dtos.CrawlUsersInputDTO{
 		FirstSteamID:  expectedSteamIDs[0],
 		SecondSteamID: expectedSteamIDs[1],
 	}
@@ -186,7 +187,7 @@ func TestVerifyFormatOfSteamIDsVerifiesTwoValidSteamIDs(t *testing.T) {
 
 func TestVerifyFormatOfSteamIDsReturnsNothingForTwoInvalidFormatSteamIDs(t *testing.T) {
 	expectedSteamIDs := []string{"12345634456", "0"}
-	inputData := datastructures.CrawlUsersInput{
+	inputData := dtos.CrawlUsersInputDTO{
 		FirstSteamID:  expectedSteamIDs[0],
 		SecondSteamID: expectedSteamIDs[1],
 	}

@@ -16,9 +16,9 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
-	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/segmentio/ksuid"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
@@ -141,7 +141,7 @@ func TestIsPrivateProfileReturnsInvalidResponseWhenCallGetFriendsReturnsAnError(
 func TestCrawlOneValidUser(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	userCrawlInput := datastructures.CrawlUsersInput{
+	userCrawlInput := dtos.CrawlUsersInputDTO{
 		FirstSteamID: validFormatSteamID,
 		Level:        3,
 	}
@@ -207,7 +207,7 @@ func TestCrawlUserReturnsInvalidLevelGivenWhenItGetsInvalidInput(t *testing.T) {
 func TestCrawlUserReturnsInvalidFormatSteamIDsForInvalidSteamIDs(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	invalidUserCrawlInput := datastructures.CrawlUsersInput{
+	invalidUserCrawlInput := dtos.CrawlUsersInputDTO{
 		FirstSteamID: "uachtar reoite",
 		Level:        3,
 	}
@@ -241,7 +241,7 @@ func TestCrawlUserReturnsInvalidFormatSteamIDsForInvalidSteamIDs(t *testing.T) {
 func TestCreateGraph(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	returnedCrawlingStatus := datastructures.CrawlingStatus{
+	returnedCrawlingStatus := common.CrawlingStatus{
 		TimeStarted: time.Now().Unix(),
 		CrawlID:     ksuid.New().String(),
 	}

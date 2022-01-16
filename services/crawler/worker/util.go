@@ -10,6 +10,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/dtos"
 )
 
 func InitWorkerConfig() datastructures.WorkerConfig {
@@ -24,7 +25,7 @@ func StartUpWorkers(cntr controller.CntrInterface) {
 	}
 }
 
-func VerifyFormatOfSteamIDs(input datastructures.CrawlUsersInput) ([]string, error) {
+func VerifyFormatOfSteamIDs(input dtos.CrawlUsersInputDTO) ([]string, error) {
 	validSteamIDs := []string{}
 	match, err := regexp.MatchString("([0-9]){17}", input.FirstSteamID)
 	if err != nil {

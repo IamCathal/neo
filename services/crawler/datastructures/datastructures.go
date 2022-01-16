@@ -4,15 +4,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/neosteamfriendgraphing/common"
 	"github.com/streadway/amqp"
 )
 
-type CrawlUsersInput struct {
-	FirstSteamID  string `json:"firstSteamID"`
-	SecondSteamID string `json:"secondSteamID"`
-	Level         int    `json:"level"`
-}
+// type CrawlUsersInput struct {
+// 	FirstSteamID  string `json:"firstSteamID"`
+// 	SecondSteamID string `json:"secondSteamID"`
+// 	Level         int    `json:"level"`
+// }
 
 type WorkerConfig struct {
 	WorkerAmount int
@@ -42,15 +41,15 @@ type AmqpChannel struct {
 	Lock    *sync.Mutex
 }
 
-type CreateGraph struct {
-	CrawlID string `json:"crawlid"`
-}
+// type CreateGraph struct {
+// 	CrawlID string `json:"crawlid"`
+// }
 
-type UsersGraphData struct {
-	UserDetails       ResStruct      `json:"userdetails"`
-	FriendDetails     []ResStruct    `json:"frienddetails"`
-	TopTenGameDetails []BareGameInfo `json:"toptengamedetails"`
-}
+// type UsersGraphData struct {
+// 	UserDetails       ResStruct      `json:"userdetails"`
+// 	FriendDetails     []ResStruct    `json:"frienddetails"`
+// 	TopTenGameDetails []BareGameInfo `json:"toptengamedetails"`
+// }
 
 type CrawlJob struct {
 	SteamID string
@@ -60,46 +59,46 @@ type CrawlJob struct {
 	CurrentLevel int
 }
 
-type ResStruct struct {
-	// data frields
-	User common.UserDocument
-	// Job fields
-	FromID       string
-	MaxLevel     int
-	CurrentLevel int
-}
+// type ResStruct struct {
+// 	// data frields
+// 	User common.UserDocument
+// 	// Job fields
+// 	FromID       string
+// 	MaxLevel     int
+// 	CurrentLevel int
+// }
 
-type BareGameInfo struct {
-	AppID int    `json:"appid"`
-	Name  string `json:"name"`
-}
+// type BareGameInfo struct {
+// 	AppID int    `json:"appid"`
+// 	Name  string `json:"name"`
+// }
 
-type GetDetailsForGamesDTO struct {
-	Status string         `json:"status"`
-	Games  []BareGameInfo `json:"games"`
-}
+// type GetDetailsForGamesDTO struct {
+// 	Status string         `json:"status"`
+// 	Games  []BareGameInfo `json:"games"`
+// }
 
-type GetDetailsForGamesInputDTO struct {
-	GameIDs []int `json:"gameids"`
-}
+// type GetDetailsForGamesInputDTO struct {
+// 	GameIDs []int `json:"gameids"`
+// }
 
-// TEMP
+// // TEMP
 
-type CrawlingStatus struct {
-	TimeStarted         int64  `json:"timestarted"`
-	CrawlID             string `json:"crawlid"`
-	OriginalCrawlTarget string `json:"originalcrawltarget"`
-	MaxLevel            int    `json:"maxlevel"`
-	TotalUsersToCrawl   int    `json:"totaluserstocrawl"`
-	UsersCrawled        int    `json:"userscrawled"`
-}
+// type CrawlingStatus struct {
+// 	TimeStarted         int64  `json:"timestarted"`
+// 	CrawlID             string `json:"crawlid"`
+// 	OriginalCrawlTarget string `json:"originalcrawltarget"`
+// 	MaxLevel            int    `json:"maxlevel"`
+// 	TotalUsersToCrawl   int    `json:"totaluserstocrawl"`
+// 	UsersCrawled        int    `json:"userscrawled"`
+// }
 
-type SaveCrawlingStatsDTO struct {
-	CurrentLevel   int            `json:"currentlevel"`
-	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
-}
+// type SaveCrawlingStatsDTO struct {
+// 	CurrentLevel   int            `json:"currentlevel"`
+// 	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
+// }
 
-type GetCrawlingStatusDTO struct {
-	Status         string         `json:"status"`
-	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
-}
+// type GetCrawlingStatusDTO struct {
+// 	Status         string         `json:"status"`
+// 	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
+// }

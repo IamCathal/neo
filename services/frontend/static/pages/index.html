@@ -228,7 +228,10 @@
                
                 </div>
                 <div class="crawlConfigLoadingElement" id="crawlConfigLoadingElement" style="visibility: hidden; z-index: 20;" >
-                    <svg class="gegga">
+                <div class="row" style="height: 20rem"></div>
+                <!-- Old loading icon -->
+                    <!-- <div class="crawlConfigLoadingElement" id="crawlConfigLoadingElement" style="z-index: 20;" > -->
+                    <!-- <svg class="gegga">
                         <defs>
                         <filter id="gegga">
                             <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
@@ -263,9 +266,22 @@
                             d="m 164,100 c 0,-35.346224 -28.65378,-64 -64,-64 -35.346224,0 -64,28.653776 -64,64 0,35.34622 28.653776,64 64,64 35.34622,0 64,-26.21502 64,-64 0,-37.784981 -26.92058,-64 -64,-64 -37.079421,0 -65.267479,26.922736 -64,64 1.267479,37.07726 26.703171,65.05317 64,64 37.29683,-1.05317 64,-64 64,-64"
                             />
                             <circle class="strecken" cx="100" cy="100" r="64" />
-                    </svg>
-                    <div class="text-center" id="crawlingProgressText" style="color: black">
-                        
+                    </svg> -->
+                    <div class="text-center" styl>
+                        <div class="row box ml-4 mr-4 pl-4 pr-1" style="background-color: #161616b8">
+                            <div class="row">
+                                <div class="col">
+                                    <img id="isPrivateCheckMark" src="/static/images/checkmark.svg" style="width: 5rem; filter: invert(50%)">
+                                </div>
+                                <div class="col">
+                                    <img id="isCrawledBeforeCheckMark" src="/static/images/checkmark.svg" style="width: 5rem; filter: invert(50%)">
+                                </div>
+                            </div>
+                            <div class="row mb-2 text-center" style="height: 2rem">
+                                <p style="font-size: 1.2rem">Verifying user details </p>
+                            </div>
+                         
+                        </div>
                     </div>
                 </div>
         </div>
@@ -459,30 +475,30 @@
 
             console.log(`Sending: ${JSON.stringify(requestData)}`);
 
-            document.getElementById("crawlingProgressText").textContent = "Checking if profile is public";
             isPublicProfile(firstSteamID).then((isPublic) => {
                 if (!isPublic) {
                     hideCrawlLoadingElements()
                     displayErrorForInvalidSteamID(true, "Profile is private");
                     return
                 }
-                document.getElementById("crawlingProgressText").textContent = "Checking if profile has been crawled before";
-                    hasBeenCrawled(firstSteamID, level).then((crawlID) => {
-                        if (crawlID === "") {
-                            // New crawl
-                            startCrawl(firstSteamID, level).then(crawlID => {
-                                window.location.href = `/crawl/${crawlID}`
-                            }, (err) => {
-                                console.error(`startCrawl: ${err}`);
-                            })
-                        } else {
-                            // Crawl already exists, reroute to that page
-                            window.location.href = `/graph/${crawlID}`;
-                        }
-                        hideCrawlLoadingElements()
-                    }, (err) => {
-                        console.log(`err from hasBeenCrawl: ${err}`)
-                    })
+                document.getElementById("isPrivateCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
+                hasBeenCrawled(firstSteamID, level).then((crawlID) => {
+                    if (crawlID === "") {
+                        document.getElementById("isCrawledBeforeCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
+                        // New crawl
+                        startCrawl(firstSteamID, level).then(crawlID => {
+                            window.location.href = `/crawl/${crawlID}`
+                        }, (err) => {
+                            console.error(`startCrawl: ${err}`);
+                        })
+                    } else {
+                        // Crawl already exists, reroute to that page
+                        window.location.href = `/graph/${crawlID}`;
+                    }
+                    hideCrawlLoadingElements()
+                }, (err) => {
+                    console.log(`err from hasBeenCrawl: ${err}`)
+                })
             }, (err) => {
                 console.log(`err from isPublic: ${err}`)
             })

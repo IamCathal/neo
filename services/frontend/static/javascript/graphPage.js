@@ -84,34 +84,31 @@ function initWorldMap(countriesData) {
         chart: {
             map: 'custom/world'
         },
-
         title: {
             text: ''
         },
-
         mapNavigation: {
             enabled: true,
             buttonOptions: {
                 verticalAlign: 'bottom'
             }
         },
-
         colorAxis: {
-            min: 0
+            min: 0,
+            stops: [
+                [0, '#b5f2b3'],
+                [0.5, "#0c5c0a"],
+                [1, "#065e03"]
+            ]
         },
-
         series: [{
             data: countriesData,
             name: 'Random data',
             states: {
                 hover: {
-                    color: '#BADA55'
+                    color: '#2cb851'
                 }
             },
-            // dataLabels: {
-            //     enabled: true,
-            //     format: '{point.name}'
-            // }
         }]
     });
 }

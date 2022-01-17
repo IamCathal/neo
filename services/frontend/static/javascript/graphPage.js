@@ -112,3 +112,33 @@ function initWorldMap(countriesData) {
         }]
     });
 }
+
+function fillInFlagsDiv(friends) {
+    let allCountryCodes = []
+    friends.forEach(friend => {
+        if (friend.User.accdetails.loccountrycode != "") {
+            allCountryCodes.push(friend.User.accdetails.loccountrycode)
+        }
+    });
+
+    // Get rid of duplicates
+    allCountryCodes = [...new Set(allCountryCodes)]
+    
+    allCountryCodes.forEach(countryCode => {
+        document.getElementById("allFlagsDiv").innerHTML += `
+        <div class="col-1">
+            <p style="font-size: 1.7rem">${getFlagEmoji(countryCode)}</p>
+        </div>
+        `;
+    });
+}
+
+// https://dev.to/jorik/country-code-to-flag-emoji-a21
+function getFlagEmoji(countryCode) {
+    const codePoints = countryCode
+      .toUpperCase()
+      .split('')
+      .map(char =>  127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
+  }
+  

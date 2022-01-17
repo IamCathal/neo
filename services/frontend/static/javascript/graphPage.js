@@ -13,7 +13,6 @@ function getProcessedGraphData(crawlID) {
 
 // COMMON
 function setUserCardDetailZ(userObj) {
-    console.log(userObj)
     document.getElementById("userUsername").textContent = userObj.User.accdetails.personaname;
     document.getElementById("userRealName").textContent = "idk";
     document.getElementById("userFriendCount").textContent = userObj.User.friendids.length;
@@ -58,4 +57,24 @@ function timezSince2(targetDate) {
       return Math.floor(interval) + "m ago";
     }
     return Math.floor(seconds) + "s";
+}
+
+// COMMON
+function doesProcessedGraphDataExistz(crawlID) {
+    return new Promise((resolve, reject) => {
+        fetch(`http://localhost:2590/api/doesprocessedgraphdataexist/${crawlID}`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+        }).then((res => res.json()))
+        .then(data => {
+            if (data.exists == "yes") {
+                resolve(true)
+            } 
+            resolve(false)
+        }).catch(err => {
+            reject(err)
+        })
+    });
 }

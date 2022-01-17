@@ -332,12 +332,22 @@
     <script>
         const URLarr = window.location.href.split("/");
         const crawlID = URLarr[URLarr.length-1];
+        let crawlData = {}
 
-        getProcessedGraphData(crawlID).then(crawlData => {
-            console.log(crawlData)
-            setUserCardDetailZ(crawlData.usergraphdata.userdetails);
+
+        doesProcessedGraphDataExistz(crawlID).then(doesExist => {
+            if (doesExist === false) {
+                window.location.href = "/"
+            }
+            getProcessedGraphData(crawlID).then(crawlDataObj => {
+                console.log(crawlDataObj)
+                crawlData = crawlDataObj
+                setUserCardDetailZ(crawlData.usergraphdata.userdetails);
+            }, err => {
+                console.error(`error retrieving processed graph data: ${err}`)
+            })
         }, err => {
-            console.error(`error retrieving processed graph data: ${err}`)
+            console.error(`error calling does processed graphdata exist: ${err}`)
         })
     </script>
 </body>

@@ -320,8 +320,11 @@
                 <img class="ml-1 mt-2" style="height:28rem" src="https://i.imgur.com/bodlf4b.png">
             </div>
         </div>
-      
+        
         <div class="row" style="height:15rem"></div>
+
+        <script src="/static/javascript/graphPage.js"></script>
+        <script src="/static/javascript/userCard.js"></script>
 
     </div>
         
@@ -330,6 +333,12 @@
         const URLarr = window.location.href.split("/");
         const crawlID = URLarr[URLarr.length-1];
 
+        getProcessedGraphData(crawlID).then(crawlData => {
+            console.log(crawlData)
+            setUserCardDetailZ(crawlData.usergraphdata.userdetails);
+        }, err => {
+            console.error(`error retrieving processed graph data: ${err}`)
+        })
     </script>
 </body>
 </html>

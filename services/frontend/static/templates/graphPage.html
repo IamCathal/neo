@@ -365,7 +365,7 @@
                         countryFrequencies[countryCode.toLowerCase()] = countryFrequencies[countryCode.toLowerCase()] ? countryFrequencies[countryCode.toLowerCase()] + 1 : 1;
                     }
                 });
-                
+
                 for (let property in countryFrequencies) {
                     if (Object.prototype.hasOwnProperty.call(countryFrequencies, property)) {
                         countryFrequenciesArr.push([property, countryFrequencies[property]])

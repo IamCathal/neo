@@ -5,3 +5,7 @@
 .gameLeaderBoardText {
     font-size: 1.1rem;
 }
+
+.highcharts-background {
+    fill: #24292d;
+}

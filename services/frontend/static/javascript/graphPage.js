@@ -114,23 +114,49 @@ function initWorldMap(countriesData) {
 }
 
 function fillInFlagsDiv(friends) {
+    let uniqueCountryCode = extractUniqueCountryCodesFromFriends(friends)
+    let i = 0;
+    uniqueCountryCode.forEach(countryCode => {
+        if (i == 48) {
+            return
+        }
+        document.getElementById("allFlagsDiv").innerHTML += `
+        <div class="col-1">
+            <p style="font-size: 1.7rem">${getFlagEmoji(countryCode)}</p>
+        </div>
+        `;
+        i++;
+    });
+}
+
+function fillInTopStatBoxes(graphData) {
+    const UNCountries = 195;
+    let uniqueCountryCodes = extractUniqueCountryCodesFromFriends(graphData.usergraphdata.frienddetails)
+
+    document.getElementById("statBoxFriendCount").textContent = graphData.usergraphdata.userdetails.User.friendids.length;
+    document.getElementById("statBoxUniqueCountries").textContent = uniqueCountryCodes.length;
+    document.getElementById("statBoxGlobalCoverage").textContent = Math.floor((uniqueCountryCodes.length/195)*100) + "%";
+
+
+    removeSkeletonClasses(["statBoxFriendCount", "statBoxUniqueCountries", "statBoxGlobalCoverage"])
+}
+
+function removeSkeletonClasses(elementIDs) {
+    elementIDs.forEach(ID => {
+        document.getElementById(ID).classList.remove("skeleton");
+        document.getElementById(ID).classList.remove("skeleton-text");
+    })
+}
+function extractUniqueCountryCodesFromFriends(friends) {
     let allCountryCodes = []
     friends.forEach(friend => {
         if (friend.User.accdetails.loccountrycode != "") {
             allCountryCodes.push(friend.User.accdetails.loccountrycode)
         }
     });
-
     // Get rid of duplicates
     allCountryCodes = [...new Set(allCountryCodes)]
-    
-    allCountryCodes.forEach(countryCode => {
-        document.getElementById("allFlagsDiv").innerHTML += `
-        <div class="col-1">
-            <p style="font-size: 1.7rem">${getFlagEmoji(countryCode)}</p>
-        </div>
-        `;
-    });
+    return allCountryCodes;
 }
 
 // https://dev.to/jorik/country-code-to-flag-emoji-a21
@@ -140,5 +166,5 @@ function getFlagEmoji(countryCode) {
       .split('')
       .map(char =>  127397 + char.charCodeAt());
     return String.fromCodePoint(...codePoints);
-  }
+}
   

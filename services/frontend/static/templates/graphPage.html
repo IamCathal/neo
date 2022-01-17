@@ -302,16 +302,26 @@
 
             <div class="col">
                 <div class="row ml-2 mr-2">
-                    <div class="col-3 box pl-3 pr-2" style="border: 3px solid orange">
-                        <p style="font-size: 4rem; font-weight: 600">267 </p> <p> friends</p>
+                    <div class="col-3 box pl-3 pr-2">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxFriendCount"></p> 
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">friends</p>
+                        </div>
                     </div>
-                    <div class="col-3 box pl-3 pr-2 ml-2" style="border: 3px solid orange">
-                        <p style="font-size: 4rem; font-weight: 600">15 </p> <p> unique countries</p>
+                    <div class="col-3 box pl-3 pr-2 ml-2">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxUniqueCountries"></p> 
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">unique countries</p>
+                        </div>
                     </div>
-                    <div class="col-3 box pl-3 pr-2 ml-2" style="border: 3px solid orange">
-                        <p style="font-size: 4rem; font-weight: 600">16% </p> <p> global coverage</p>
+                    <div class="col-3 box pl-3 pr-2 ml-2">
+                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxGlobalCoverage"></p> <p> global coverage</p>
                     </div>
-                    <div class="col box pl-3 pr-2 ml-2" style="border: 3px solid orange">
+                    <div class="col box pl-3 pr-2 ml-2">
                         <p style="font-size: 4rem; font-weight: 600">56% </p> <p> another metric</p>
                     </div>
                 </div>
@@ -423,6 +433,7 @@
 
                 initWorldMap(countryFrequenciesArr)
                 fillInFlagsDiv(crawlDataObj.usergraphdata.frienddetails)
+                fillInTopStatBoxes(crawlData)
             }, err => {
                 console.error(`error retrieving processed graph data: ${err}`)
             })

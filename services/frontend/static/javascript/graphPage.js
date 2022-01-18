@@ -142,6 +142,24 @@ function fillInTopStatBoxes(graphData) {
             "statBoxGlobalCoverage", "statBoxDictatorships"])
 }
 
+function fillInFromYourCountryStatBox(graphDataObj, countryFreq) {
+    let alsoFromCountry = 0;
+    const usersCountry = graphDataObj.usergraphdata.userdetails.User.accdetails.loccountrycode;
+    if (usersCountry === undefined) {
+        document.getElementById("statBoxAlsoFromYourCountry").textContent = alsoFromCountry;
+        removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
+        return
+    }
+    const otherFriendsInUsersCountry = countryFreq[usersCountry.toLowerCase()];
+    if (!isNaN(otherFriendsInUsersCountry)) {
+        document.getElementById("statBoxAlsoFromYourCountry").textContent = otherFriendsInUsersCountry;
+        removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
+        return
+    }
+    document.getElementById("statBoxAlsoFromYourCountry").textContent = alsoFromCountry;
+    removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
+}
+
 function fillInTop10Countries(countriesFreq) {
     const topTenCountryNames = getTopTenCountries(countriesFreq);
     let i = 1;

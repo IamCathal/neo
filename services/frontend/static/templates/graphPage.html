@@ -202,25 +202,17 @@
         </div>
 
         <div class="row mt-3 mb-3">
-            <div class="col-3 box ml-2" style="height: 25rem" >
-                <div class="row">
+            <div class="col-3 box ml-2" style="height: 29.5rem" >
+                <div class="row mb-2">
                     <div class="col text-center">
                         <p style="font-size: 1.8rem;">Top 10 Countries</p>
                     </div>
                  </div>
-                 <hr class="mt-1 mb-1">
+                 <hr class="mt-1 mb-4">
 
                  <div id="topTenCountriesList">
                     
                  </div>
-                
-
-                 <!-- <div class="row ml-2 mr-2 mt-2" style="border: 4px solid white">
-                     <div class="col">
-                         <p> You're from Ireland and the most common country among your friends is Ireland</p>
-                         <p> You've got friends in 42% of all countries</p>
-                     </div>
-                 </div> -->
             </div>
 
             <div class="col">
@@ -261,35 +253,37 @@
 
                 <!-- Flag emoji box -->
                 <div class="row ml-2 mr-2">
-                    <div class="col-5 box pt-0">
-
-                        <p class="text-center" style="font-size: 1.8rem;">Top 3 Countries</p>
-
-                        <div class="row pl-3 pr-2 pt-0" >
-                            <div class="row text-center" >
-                               <p style="font-size: 4rem">1. 🇮🇪</p>
+                    <div class="col-3">
+                        <div class="row">
+                            <div class="col">
+                                <div class="col box pl-3 pr-2">
+                                    <div class="row pl-1 mr-1">
+                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxAlsoFromYourCountry"></p> 
+                                    </div>
+                                    <div class="row">
+                                        <p style="bottom: 0">friends are from your country</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="row pl-3 pr-2 text-center" >
-                            <div class="col" >
-                                <p style="font-size: 2rem">2. 🇩🇪</p>
-                            </div>  
-                            <div class="col"> 
-                                <p style="font-size: 2rem">3. 🇳🇱</p>
-                            </div> 
+                        <div class="row mt-4">
+                            <div class="col">
+                                <div class="col box pl-3 pr-2">
+                                    <div class="row pl-1 mr-1">
+                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxAlsoFromYourCountry"></p> 
+                                    </div>
+                                    <div class="row">
+                                        <p style="bottom: 0">friends are from your country</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        
                     </div>
 
-                    <div class="col box ml-2">
+                    <div class="col box ml-2" style="height: 20rem">
                         <p class="text-center" style="font-size: 1.2rem;">You've got friends from around the world</p>
-                        <div class="row ml-2 mr-2" id="allFlagsDiv">
-
-                        </div>
-                       
+                        <div class="row ml-2 mr-2" id="allFlagsDiv"></div>
                     </div>
-                    
                 </div>
             </div>
         </div>
@@ -358,11 +352,12 @@
                     }
                 });
                 countryFrequenciesArr = Object.entries(countryFrequencies)
-                
+                console.log(crawlDataObj)
                 initWorldMap(countryFrequenciesArr)
                 fillInFlagsDiv(crawlDataObj.usergraphdata.frienddetails)
                 fillInTopStatBoxes(crawlData)
                 fillInTop10Countries(countryFrequencies)
+                fillInFromYourCountryStatBox(crawlDataObj, countryFrequencies)
 
             }, err => {
                 console.error(`error retrieving processed graph data: ${err}`)

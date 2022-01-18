@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/iamcathal/neo/services/crawler/amqpchannelmanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
@@ -207,6 +208,24 @@ func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int
 	if err != nil {
 		return fmt.Errorf("failed to marshal initial crawl job: %+v", err)
 	}
+
+	crawlingStatus := common.CrawlingStatus{
+		TimeStarted:         time.Now().Unix(),
+		OriginalCrawlTarget: newJob.OriginalTargetSteamID,
+		MaxLevel:            newJob.MaxLevel,
+		CrawlID:             newJob.CrawlID,
+		TotalUsersToCrawl:   0,
+	}
+	success, err := cntr.SaveCrawlingStatsToDataStore(newJob.CurrentLevel, crawlingStatus)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !success {
+		configuration.Logger.Sugar().Fatalf("failed to save crawling stats to DB for existing user: %+v", err)
+		log.Fatal(err)
+	}
+	configuration.Logger.Sugar().Infof("created crawling %+v", crawlingStatus)
+
 	err = amqpchannelmanager.PublishToJobsQueue(cntr, jsonObj)
 	if err != nil {
 		logMsg := fmt.Sprintf("failed to publish new crawl user job with steamID: %s level: %d to queue: %+v",

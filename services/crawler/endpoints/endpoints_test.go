@@ -151,6 +151,7 @@ func TestCrawlOneValidUser(t *testing.T) {
 	}
 
 	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(nil)
+	mockController.On("SaveCrawlingStatsToDataStore", 1, mock.Anything).Return(true, nil)
 
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/crawl", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {

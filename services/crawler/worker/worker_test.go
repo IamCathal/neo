@@ -380,13 +380,14 @@ func TestInitWorkerConfig(t *testing.T) {
 func TestCrawlUser(t *testing.T) {
 	mockController := controller.MockCntrInterface{}
 	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(nil)
-
+	mockController.On("SaveCrawlingStatsToDataStore", 1, mock.Anything).Return(true, nil)
 	CrawlUser(&mockController, "testSteamID", "testcrawlID", 4)
 }
 
 func TestCrawlUserWhenErrorIsReturnedPublishingJobToQueue(t *testing.T) {
 	mockController := controller.MockCntrInterface{}
 	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(errors.New("test error"))
+	mockController.On("SaveCrawlingStatsToDataStore", 1, mock.Anything).Return(true, nil)
 
 	CrawlUser(&mockController, "testSteamID", "testcrawlID", 4)
 }

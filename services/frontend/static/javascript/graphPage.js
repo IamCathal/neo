@@ -136,9 +136,10 @@ function fillInTopStatBoxes(graphData) {
     document.getElementById("statBoxFriendCount").textContent = graphData.usergraphdata.userdetails.User.friendids.length;
     document.getElementById("statBoxUniqueCountries").textContent = uniqueCountryCodes.length;
     document.getElementById("statBoxGlobalCoverage").textContent = Math.floor((uniqueCountryCodes.length/195)*100) + "%";
+    document.getElementById("statBoxDictatorships").textContent = ruledByDictatorCountries(uniqueCountryCodes)
 
-
-    removeSkeletonClasses(["statBoxFriendCount", "statBoxUniqueCountries", "statBoxGlobalCoverage"])
+    removeSkeletonClasses(["statBoxFriendCount", "statBoxUniqueCountries", 
+            "statBoxGlobalCoverage", "statBoxDictatorships"])
 }
 
 function removeSkeletonClasses(elementIDs) {
@@ -167,4 +168,22 @@ function getFlagEmoji(countryCode) {
       .map(char =>  127397 + char.charCodeAt());
     return String.fromCodePoint(...codePoints);
 }
-  
+
+// https://worldpopulationreview.com/country-rankings/dictatorship-countries  
+function ruledByDictatorCountries(countries) {
+    let dictatorRuledCountryCount = 0
+    const dictatorRuledCountries = [
+        "AF", "AL", "AO", "AZ", "BH", "BD", "BY", "BN", "BI", "KH",
+        "CM", "CF", "TD", "CN", "CU", "DJ", "CD", "EG", "GQ", "ER", 
+        "SZ", "ET", "GA", "IR", "IQ", "KZ", "LA", "LY", "MM", "NI",
+        "KP", "OM", "QA", "CD", "RU", "RW", "SA", "SO", "SD", "SY",
+        "SS", "TJ", "TR", "TM", "UG", "AE", "UZ", "VE", "VN", "EH",
+        "YE"
+    ]
+    countries.forEach(countryCode => {
+        if (dictatorRuledCountries.includes(countryCode.toUpperCase())) {
+            dictatorRuledCountryCount++;
+        }
+    })
+    return dictatorRuledCountryCount;
+}

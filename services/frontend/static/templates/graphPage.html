@@ -210,87 +210,10 @@
                  </div>
                  <hr class="mt-1 mb-1">
 
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">1.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">Counter Strike: Global Offensive</p>
-                     </div>  
+                 <div id="topTenCountriesList">
+                    
                  </div>
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">2.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">Terraria</p>
-                     </div>  
-                 </div>
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">3.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">Grand Theft Auto V</p>
-                     </div>  
-                 </div>
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">4.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">Rocket League</p>
-                     </div>  
-                 </div>
-
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">5.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">Sunset Overdrive</p>
-                     </div>  
-                 </div>
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">6.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">Deep Rock Galactic</p>
-                     </div>  
-                 </div>
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">7.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">Cyberpunk 2077</p>
-                     </div>  
-                 </div>
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">8.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">Garry's Mod</p>
-                     </div>  
-                 </div>
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">9.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">The Outer Worlds</p>
-                     </div>  
-                 </div>
-                 <div class="row ml-1 mr-1" >
-                     <div class="col-1">
-                         <p class="gameLeaderBoardText">10.</p> 
-                     </div>
-                     <div class="col">
-                         <p class="gameLeaderBoardText">DiRT 3</p>
-                     </div>  
-                 </div>
+                
 
                  <!-- <div class="row ml-2 mr-2 mt-2" style="border: 4px solid white">
                      <div class="col">
@@ -434,16 +357,13 @@
                         countryFrequencies[countryCode.toLowerCase()] = countryFrequencies[countryCode.toLowerCase()] ? countryFrequencies[countryCode.toLowerCase()] + 1 : 1;
                     }
                 });
-
-                for (let property in countryFrequencies) {
-                    if (Object.prototype.hasOwnProperty.call(countryFrequencies, property)) {
-                        countryFrequenciesArr.push([property, countryFrequencies[property]])
-                    }
-                }
-
+                countryFrequenciesArr = Object.entries(countryFrequencies)
+                
                 initWorldMap(countryFrequenciesArr)
                 fillInFlagsDiv(crawlDataObj.usergraphdata.frienddetails)
                 fillInTopStatBoxes(crawlData)
+                fillInTop10Countries(countryFrequencies)
+
             }, err => {
                 console.error(`error retrieving processed graph data: ${err}`)
             })

@@ -16,14 +16,16 @@ function initAndMonitorCrawlingStatusWebsocket(crawlID) {
               // graph is now being created. Wait for completion then redirect
               
               // Check every 400ms is the graph is done processing yet
-              setInterval(function() {
+              let interval = setInterval(function() {
                 doesProcessedGraphDataExist(crawlingStatUpdate.crawlid).then(doesExist => {
                   if (doesExist === true) {
+                    clearInterval(interval);
                     window.location.href = `/graph/${crawlingStatUpdate.crawlid}`;
                   } else {
                     console.log("graph not done processing")
                   }
                 }, err => {
+                  clearInterval(interval);
                   console.error(`error checking if graph data is procced: ${err}`);
                 })
               }, 500);
@@ -33,11 +35,11 @@ function initAndMonitorCrawlingStatusWebsocket(crawlID) {
               console.error(`err from createGraph ${err}`)
             });
         }
+
         document.getElementById("usersCrawled").textContent = crawlingStatUpdate.userscrawled;
         document.getElementById("totalUsersToCrawl").textContent = crawlingStatUpdate.totaluserstocrawl;
         document.getElementById("percentageDone").textContent = `${Math.floor((crawlingStatUpdate.userscrawled/crawlingStatUpdate.totaluserstocrawl)*100)}%`;
         document.getElementById("crawlTime").textContent = timeSince(new Date(crawlingStatUpdate.timestarted*1000));
-        
         document.getElementById("progressBarID").style.width = `${Math.floor((crawlingStatUpdate.userscrawled/crawlingStatUpdate.totaluserstocrawl)*100)}%`;
     })
 }

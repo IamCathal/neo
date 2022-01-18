@@ -231,6 +231,7 @@
     <script src="/static/javascript/crawlingPage.js"></script>
     <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
     <script src="/static/javascript/userCard.js"></script>
+    <script src="/static/javascript/temp.js"></script>
 
     <script>
         const URLarr = window.location.href.split("/");
@@ -244,10 +245,8 @@
             } else {
             // subscribe to crawling status updates
             initAndMonitorCrawlingStatusWebsocket(crawlID)
-            getUser(crawlID).then(user => {
-                setUserCardDetails(user)
-            }, err => {
-                console.error(`error calling get user: ${err}`);
+            getCrawlingUserWhenAvailable().then(res => {}, err => {
+                console.error(`error getting crawling user: ${err}`)
             })
             }
         }, err => {

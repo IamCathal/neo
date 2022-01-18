@@ -1,6 +1,6 @@
 function setUserCardDetails(userObj) {
     console.log(userObj)
-    document.getElementById("userUsername").textContent = userObj.User.accdetails.personaname;
+    document.getElementById("userUsername").textContent = userObj.user.accdetails.personaname;
     document.getElementById("userRealName").textContent = "idk";
     document.getElementById("userFriendCount").textContent = userObj.user.friendids.length;
     

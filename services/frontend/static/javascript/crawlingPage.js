@@ -42,6 +42,9 @@ function getUser(crawlID) {
             },
         }).then((res => res.json()))
         .then(data => {
+            if (data.error) {
+                reject(data)
+            }
             resolve(data)
         }).catch(err => {
             console.error(err);
@@ -94,4 +97,21 @@ function timezSince(targetDate) {
       return Math.floor(interval) + "m ago";
     }
     return Math.floor(seconds) + "s";
+}
+
+function getCrawlingUserWhenAvailable() {
+    return new Promise((resolve, reject) => {
+      setInterval(() => {
+        console.log("stuck in a loop man")
+        if (!isNaN((parseInt(document.getElementById("usersCrawled"))))) {
+            getUser(crawlID).then(user => {
+              console.log("got user!")
+                setUserCardDetails(user)
+                resolve(true)
+            }, err => {
+                reject(err)
+            })
+        }
+      }, 50);
+    });
 }

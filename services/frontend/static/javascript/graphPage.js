@@ -490,3 +490,44 @@ const countryCodeToNameObj = {
     'ZM' : 'Zambia',
     'ZW' : 'Zimbabwe'
 };
+
+const continents = {
+    "asia": [
+        "CN", "IN", "ID", "PK", "BD", "JP", "PH", "VN", "TR", "IR", "TH",
+        "IR", "MM", "KR", "IQ", "AF", "SA", "UZ", "MY", "YE", "NP", "TW",
+        "LK", "KZ", "SY", "KH", "JO", "AZ", "AE", "TJ", "IL", "HK", "LA",
+        "LB", "KG", "TM", "SG", "OM", "PS", "KW", "GE", "MN", "AM", "QA",
+        "BH", "TL", "CY", "BT", "MO", "MV", "BN"
+    ],
+    "africa": [
+        "NG", "ET", "EG", "CD", "CG", "TZ", "SA", "KE", "UG", "DZ", "SD",
+        "MA", "AO", "MZ", "GH", "MG", "CM", "CI", "NE", "BF", "ML", "MW",
+        "ZM", "SN", "TD", "SO", "ZW", "GN", "RW", "BJ", "BI", "TN", "TG",
+        "SL", "LY", "CG", "LR", "CF", "MR", "ER", "NA", "GM", "BW", "GA",
+        "LS", "GW", "GQ", "MU", "DJ", "RE", "KM", "EH", "YT", "ST", "SC",
+        "SH"
+    ],
+    "europe": [
+        "RU", "DE", "GB", "FR", "IT", "ES", "UA", "PL", "RO", "NL", "BE", "CZ",
+        "GR", "PT", "SE", "HU", "BY", "AT", "RS", "CH", "BG", "DK", "FI", "SK",
+        "NO", "HR", "IE", "MD", "BA", "AL", "LT", "MK", "SI", "LV", "EE", "ME",
+        "LU", "MT", "IS", "AD", "FO", "MC", "LI", "SM", "GI", "VA"
+    ],
+    "north america": [
+        "US", "MX", "CA", "GT", "HT", "CU", "DO", "HN", "NI", "SV", "CR", "PA",
+        "JM", "PR", "TT", "GP", "BZ", "BS", "MQ", "BB", "LC", "GD", "VC", "AW",
+        "VI", "AG", "DM", "KY", "BM", "GL", "KN", "MF", "VG", "AN", "AI", "BL",
+        "PM", "MS"
+    ],
+    "south america": [
+        "BR", "CO", "AR", "PE", "VE", "CL", "EC", "BO", "PY", "UY", "SR", "GF",
+        "FK"
+    ],
+    "australia": [
+        "AU", "PG", "NZ", "FJ", "SB", "FM", "VU", "NC", "PF", "WS", "GU", "KI",
+        "TO", "MH", "MP", "AS", "PW", "CK", "TB", "WF", "NR", "NU", "TK"
+    ],
+    "antarctica": [
+
+    ],
+}

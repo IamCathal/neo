@@ -252,7 +252,7 @@
                 </div>
 
                 <!-- Flag emoji box -->
-                <div class="row ml-2 mr-2">
+                <div class="row ml-1 mr-2">
                     <div class="col-3">
                         <div class="row">
                             <div class="col">
@@ -270,10 +270,10 @@
                             <div class="col">
                                 <div class="col box pl-3 pr-2">
                                     <div class="row pl-1 mr-1">
-                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxAlsoFromYourCountry"></p> 
+                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxContinentCoverage"></p> 
                                     </div>
                                     <div class="row">
-                                        <p style="bottom: 0">friends are from your country</p>
+                                        <p style="bottom: 0">continent coverage</p>
                                     </div>
                                 </div>
                             </div>
@@ -358,6 +358,7 @@
                 fillInTopStatBoxes(crawlData)
                 fillInTop10Countries(countryFrequencies)
                 fillInFromYourCountryStatBox(crawlDataObj, countryFrequencies)
+                fillInContinentCoverage(countryFrequencies)
 
             }, err => {
                 console.error(`error retrieving processed graph data: ${err}`)

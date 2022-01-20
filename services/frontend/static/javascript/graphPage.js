@@ -178,6 +178,15 @@ function fillInTop10Countries(countriesFreq) {
     });
 }
 
+function fillInContinentCoverage(countryFreqs) {
+    const allCountryCodes = Object.keys(countryFreqs)
+    const continentCoverage = getContinentsCovered(allCountryCodes)
+
+    document.getElementById("statBoxContinentCoverage").textContent = Math.floor(continentCoverage*100)+"%";
+    removeSkeletonClasses(["statBoxContinentCoverage"])
+    return
+}
+
 function removeSkeletonClasses(elementIDs) {
     elementIDs.forEach(ID => {
         document.getElementById(ID).classList.remove("skeleton");
@@ -203,6 +212,57 @@ function getFlagEmoji(countryCode) {
       .split('')
       .map(char =>  127397 + char.charCodeAt());
     return String.fromCodePoint(...codePoints);
+}
+
+function getContinentsCovered(countryCodes) {
+    const TOTAL_CONTINENTS = 7
+    let continentCoverage = 0
+    let asiaMatch = false;
+    let africaMatch = false;
+    let australiaMatch = false;
+    let europeMatch = false;
+    let northAmericaMatch = false;
+    let southAmericaMatch = false
+
+    countryCodes.forEach(countryCode => {
+        if (!asiaMatch) {
+            if (continents["asia"].includes(countryCode.toUpperCase())) {
+                continentCoverage++
+                asiaMatch = true
+            }
+        }
+        if (!africaMatch) {
+            if (continents["africa"].includes(countryCode.toUpperCase())) {
+                continentCoverage++
+                africaMatch = true
+            }
+        }
+        if (!australiaMatch) {
+            if (continents["australia"].includes(countryCode.toUpperCase())) {
+                continentCoverage++
+                australiaMatch = true
+            }
+        }
+        if (!europeMatch) {
+            if (continents["europe"].includes(countryCode.toUpperCase())) {
+                continentCoverage++
+                europeMatch = true
+            }
+        }
+        if (!northAmericaMatch) {
+            if (continents["north america"].includes(countryCode.toUpperCase())) {
+                continentCoverage++
+                northAmericaMatch = true
+            }
+        }
+        if (!southAmericaMatch) {
+            if (continents["south america"].includes(countryCode.toUpperCase())) {
+                continentCoverage++
+                southAmericaMatch = true
+            }
+        }
+    })
+    return continentCoverage / TOTAL_CONTINENTS
 }
 
 // https://worldpopulationreview.com/country-rankings/dictatorship-countries  

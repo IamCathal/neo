@@ -411,7 +411,6 @@ func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Re
 	vars := mux.Vars(r)
 
 	gamesInput := dtos.GetDetailsForGamesInputDTO{}
-
 	err := json.NewDecoder(r.Body).Decode(&gamesInput)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
@@ -427,6 +426,11 @@ func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Error retrieving games", vars, http.StatusBadRequest)
 		configuration.Logger.Sugar().Errorf("error retrieving games: %+v", err)
+		return
+	}
+	if len(gamesInput.GameIDs) != len(gameDetails) {
+		util.SendBasicInvalidResponse(w, r, "Error retrieving games", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Errorf("could not find details for all IDs: '%+v': %+v", gamesInput.GameIDs, err)
 		return
 	}
 	if len(gameDetails) == 0 {
@@ -589,6 +593,15 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 		Status:        "success",
 		UserGraphData: usersProcessedGraphData,
 	}
+
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "failed to return JSON response", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Fatalf("failed to marshal processedgraphdata: %+v", err)
+		return
+	}
+
+	w.Header().Set("Content-Length", strconv.Itoa(len(string(jsonResponse))+1))
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)

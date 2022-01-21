@@ -783,7 +783,9 @@ func TestGetDetailsForGamesReturnsAnEmptyGameDetailsResponseWhenNoGameDetailsAre
 	input := dtos.GetDetailsForGamesInputDTO{
 		GameIDs: []int{90},
 	}
-	expectedReturnedGameDetails := []common.BareGameInfo{}
+	expectedReturnedGameDetails := []common.BareGameInfo{
+		{Name: "Deep Rock Galactic", AppID: 90},
+	}
 	expectedResponse := struct {
 		Status string                `json:"status"`
 		Games  []common.BareGameInfo `json:"games"`

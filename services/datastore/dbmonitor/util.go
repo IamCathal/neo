@@ -18,7 +18,7 @@ func emitRandomNewUsers() {
 		"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/a4/a4e137a8dc641f3ed0234cd78fb4384961cae133.jpg",
 		"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/4b/4b9fa2d19b4fce90de72afe78b35e4b3225b89c7.jpg",
 	}
-
+	randomCountries := []string{"IE", "DE", "SK", "IT", "CN", "AU", "CA", "MX", "GL", "AR", "BR", "PK"}
 	usernames := []string{"Ricky", "Bobandy", "Lahey", "Bubbles The Great", "The baby motel", "Barb", "Julian", "Trinity", "Ray", "Cyrus", "Sam", "Patrick Swayze", "Phil Collins"}
 	i := 0
 	for {
@@ -28,7 +28,7 @@ func emitRandomNewUsers() {
 			PersonaName: usernames[rand.Intn(len(profilers))],
 			ProfileURL:  "https://cathaloc.dev",
 			Avatar:      profilers[rand.Intn(len(profilers))],
-			CountryCode: "IE",
+			CountryCode: randomCountries[rand.Intn(len(randomCountries))],
 			CrawlTime:   time.Now().Unix(),
 		}
 		writeNewUserEventToAllWebsockets(addUserEvent)

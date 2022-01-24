@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/lib/pq"
@@ -78,6 +80,9 @@ func (control Cntr) GetUser(ctx context.Context, steamID string) (common.UserDoc
 	if err := userCollection.FindOne(ctx, bson.M{
 		"accdetails.steamid": steamID,
 	}).Decode(&userDoc); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return common.UserDocument{}, nil
+		}
 		return common.UserDocument{}, err
 	}
 	return userDoc, nil
@@ -90,10 +95,19 @@ func (control Cntr) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, craw
 	if err := crawlingStatsCollection.FindOne(ctx, bson.M{
 		"crawlid": crawlID,
 	}).Decode(&crawlingStatus); err != nil {
-		return common.CrawlingStatus{}, err
+		if err == mongo.ErrNoDocuments {
+			return common.CrawlingStatus{}, nil
+		}
+		return common.CrawlingStatus{}, MakeErr(err)
 	}
 
 	return crawlingStatus, nil
+}
+
+func MakeErr(err error, msg ...string) error {
+	_, file, line, _ := runtime.Caller(1)
+	path, _ := os.Getwd()
+	return fmt.Errorf("%s:%d %s %s", strings.TrimPrefix(file, path), line, msg, err)
 }
 
 func (control Cntr) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (string, error) {
@@ -129,6 +143,9 @@ func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[st
 	cursor, err := userCollection.Find(ctx,
 		bson.D{{Key: "accdetails.steamid", Value: bson.D{{Key: "$in", Value: steamIDs}}}}, options.Find().SetProjection(projection))
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return make(map[string]string), nil
+		}
 		return make(map[string]string), err
 	}
 	defer cursor.Close(ctx)
@@ -179,6 +196,9 @@ func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]com
 	cursor, err := gamesCollection.Find(ctx,
 		bson.D{{Key: "appid", Value: bson.D{{Key: "$in", Value: IDList}}}})
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return []common.BareGameInfo{}, nil
+		}
 		return []common.BareGameInfo{}, err
 	}
 	defer cursor.Close(ctx)
@@ -254,7 +274,6 @@ func (control Cntr) DoesProcessedGraphDataExist(crawlID string) (bool, error) {
 			return false, fmt.Errorf("failed to scan returned row: %+v", err)
 		}
 	}
-	fmt.Println(len(crawlIDFromRow))
 	if len(crawlIDFromRow) == 0 {
 		return false, nil
 	}

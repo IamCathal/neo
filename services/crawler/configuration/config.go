@@ -86,7 +86,7 @@ func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 		log.Fatal(err)
 	}
 	err = channel.Qos(
-		4,     // prefetch count
+		2,     // prefetch count
 		0,     // prefetch size
 		false, // global
 	)
@@ -99,7 +99,7 @@ func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 }
 
 func InitAMQPChannels() {
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 4; i++ {
 		_, newChannel := InitRabbitMQConnection()
 		AmqpChannels = append(AmqpChannels, newChannel)
 	}

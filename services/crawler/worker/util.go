@@ -20,7 +20,7 @@ func InitWorkerConfig() datastructures.WorkerConfig {
 }
 
 func StartUpWorkers(cntr controller.CntrInterface) {
-	for i := 0; i < 40; i++ {
+	for i := 0; i < 10; i++ {
 		go ControlFunc(cntr)
 	}
 }

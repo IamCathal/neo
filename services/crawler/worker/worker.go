@@ -214,7 +214,8 @@ func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int
 		OriginalCrawlTarget: newJob.OriginalTargetSteamID,
 		MaxLevel:            newJob.MaxLevel,
 		CrawlID:             newJob.CrawlID,
-		TotalUsersToCrawl:   0,
+		UsersCrawled:        0,
+		TotalUsersToCrawl:   1,
 	}
 	success, err := cntr.SaveCrawlingStatsToDataStore(newJob.CurrentLevel, crawlingStatus)
 	if err != nil {

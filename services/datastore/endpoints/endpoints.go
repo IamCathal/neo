@@ -188,7 +188,6 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&saveUserDTO)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
-		LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 
@@ -201,19 +200,17 @@ func (endpoints *Endpoints) SaveUser(w http.ResponseWriter, r *http.Request) {
 
 	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, saveUserDTO.CurrentLevel, crawlingStats)
 	if err != nil {
-		configuration.Logger.Sugar().Errorf("failed to save crawling stats to DB: %+v", err)
-		util.SendBasicInvalidResponse(w, r, "cannot save crawling stats", vars, http.StatusBadRequest)
-		return
+		logMsg := fmt.Sprintf("failed to save crawling stats to DB: %+v", err)
+		configuration.Logger.Sugar().Error(logMsg)
+		panic(logMsg)
 	}
 
 	err = app.SaveUserToDB(endpoints.Cntr, saveUserDTO.User)
 	if err != nil {
-		configuration.Logger.Sugar().Errorf("failed to save user to DB: %+v", err)
-		util.SendBasicInvalidResponse(w, r, "cannot save user", vars, http.StatusBadRequest)
-		return
+		logMsg := fmt.Sprintf("failed to save user to DB: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
-
-	// Then save the games to the game table
 
 	configuration.Logger.Sugar().Infof("successfully saved user %s to db", saveUserDTO.User.AccDetails.SteamID)
 
@@ -242,9 +239,9 @@ func (endpoints *Endpoints) InsertGame(w http.ResponseWriter, r *http.Request) {
 
 	success, err := endpoints.Cntr.InsertGame(context.TODO(), bareGameInfo)
 	if err != nil || success != true {
-		util.SendBasicInvalidResponse(w, r, "couldn't insert game", vars, http.StatusBadRequest)
-		LogBasicInfo("couldn't insert game", r, http.StatusBadRequest)
-		return
+		logMsg := fmt.Sprintf("failed to insert game: %+v", err)
+		configuration.Logger.Sugar().Error(logMsg)
+		panic(logMsg)
 	}
 
 	response := struct {
@@ -266,15 +263,14 @@ func (endpoints *Endpoints) SaveCrawlingStatsToDB(w http.ResponseWriter, r *http
 	err := json.NewDecoder(r.Body).Decode(&crawlingStatusInput)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
-		LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 
 	err = app.SaveCrawlingStatsToDB(endpoints.Cntr, crawlingStatusInput.CurrentLevel, crawlingStatusInput.CrawlingStatus)
 	if err != nil {
-		LogBasicErr(err, r, http.StatusBadRequest)
-		util.SendBasicInvalidResponse(w, r, "cannot save crawling stats", vars, http.StatusBadRequest)
-		return
+		logMsg := fmt.Sprintf("failed to save crawling stats: %+v", err)
+		configuration.Logger.Sugar().Error(logMsg)
+		panic(logMsg)
 	}
 
 	response := struct {
@@ -301,9 +297,8 @@ func (endpoints *Endpoints) GetCrawlingUser(w http.ResponseWriter, r *http.Reque
 	// If the user is a crawlTarget and crawling is in progress
 	isCurrentlyBeingCrawled, steamID, err := app.IsCurrentlyBeingCrawled(endpoints.Cntr, vars["crawlid"])
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "could not check crawling progress", vars, http.StatusNotFound)
 		logMsg := fmt.Sprintf("could not check crawling progress: %+v", err)
-		configuration.Logger.Fatal(logMsg)
+		configuration.Logger.Sugar().Error(logMsg)
 		panic(logMsg)
 	}
 	if !isCurrentlyBeingCrawled {
@@ -315,16 +310,13 @@ func (endpoints *Endpoints) GetCrawlingUser(w http.ResponseWriter, r *http.Reque
 	if err == mongo.ErrNoDocuments {
 		util.SendBasicInvalidResponse(w, r, "user does not exist", vars, http.StatusNotFound)
 		return
-		// logMsg := fmt.Sprintf("User: %s crawlID: %s being currently crawled is not in DB", steamID, vars["crawlid"])
-		// configuration.Logger.Fatal(logMsg)
-		// panic(logMsg)
+	}
+	if err != nil {
+		logMsg := fmt.Sprintf("couldn't get user: %+v", err)
+		configuration.Logger.Sugar().Error(logMsg)
+		panic(logMsg)
 	}
 
-	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "couldn't get user", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Fatalf("couldn't get user: %+v", err)
-		return
-	}
 	response := struct {
 		Status string              `json:"status"`
 		User   common.UserDocument `json:"user"`
@@ -354,8 +346,8 @@ func (endpoints *Endpoints) HasBeenCrawledBefore(w http.ResponseWriter, r *http.
 
 	crawlID, err := endpoints.Cntr.HasUserBeenCrawledBeforeAtLevel(context.TODO(), crawlDetails.Level, crawlDetails.SteamID)
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "Could not lookup crawling status", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Fatalf("couldn't lookup has user been crawled before: %+v", err)
+		logMsg := fmt.Sprintf("couldn't lookup has user been crawled before: %+v", err)
+		configuration.Logger.Error(logMsg)
 		panic(err)
 	}
 
@@ -378,22 +370,20 @@ func (endpoints *Endpoints) GetUser(w http.ResponseWriter, r *http.Request) {
 	// Validate steamid
 	if isValid := util.IsValidFormatSteamID(vars["steamid"]); !isValid {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
-		LogBasicInfo("invalid steamID given", r, http.StatusBadRequest)
 		return
 	}
 
 	user, err := app.GetUserFromDB(endpoints.Cntr, vars["steamid"])
 	if err == mongo.ErrNoDocuments {
 		util.SendBasicInvalidResponse(w, r, "user does not exist", vars, http.StatusNotFound)
-		LogBasicInfo("user was not found in DB", r, http.StatusNotFound)
 		return
+	}
+	if err != nil {
+		logMsg := fmt.Sprintf("couldn't get user: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 
-	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "couldn't get user", vars, http.StatusBadRequest)
-		LogBasicInfo(fmt.Sprintf("couldn't get user: %+v", err), r, http.StatusBadRequest)
-		return
-	}
 	response := struct {
 		Status string              `json:"status"`
 		User   common.UserDocument `json:"user"`
@@ -424,14 +414,14 @@ func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Re
 
 	gameDetails, err := endpoints.Cntr.GetDetailsForGames(context.TODO(), gamesInput.GameIDs)
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "Error retrieving games", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Errorf("error retrieving games: %+v", err)
-		return
+		logMsg := fmt.Sprintf("error retrieving games: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 	if len(gamesInput.GameIDs) != len(gameDetails) {
-		util.SendBasicInvalidResponse(w, r, "Error retrieving games", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Errorf("could not find details for all IDs: '%+v': %+v", gamesInput.GameIDs, err)
-		return
+		logMsg := fmt.Sprintf("could not find details for all game IDs: '%+v': %+v", gamesInput.GameIDs, err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 	if len(gameDetails) == 0 {
 		gameDetails = []common.BareGameInfo{}
@@ -455,14 +445,13 @@ func (endpoints *Endpoints) GetCrawlingStatus(w http.ResponseWriter, r *http.Req
 	_, err := ksuid.Parse(vars["crawlid"])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
-		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
 	crawlingStatus, err := app.GetCrawlingStatsFromDBFromCrawlID(endpoints.Cntr, vars["crawlid"])
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "couldn't get crawling status", vars, http.StatusNotFound)
-		LogBasicInfo("couldn't get crawling status", r, http.StatusNotFound)
-		return
+		logMsg := fmt.Sprintf("couldn't get crawling status: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 	response := dtos.GetCrawlingStatusDTO{
 		Status:         "success",
@@ -518,9 +507,9 @@ func (endpoints *Endpoints) GetUsernamesFromSteamIDs(w http.ResponseWriter, r *h
 
 	steamIDsToUsernames, err := endpoints.Cntr.GetUsernames(context.TODO(), steamIDsInput.SteamIDs)
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "couldn't get usernames from steamIDs", vars, http.StatusNotFound)
-		configuration.Logger.Error(err.Error())
-		return
+		logMsg := fmt.Sprintf("couldn't get usernames: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 	configuration.Logger.Sugar().Infof("retrieved %d usernames from steamIDs", len(steamIDsToUsernames))
 
@@ -544,7 +533,6 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 	_, err := ksuid.Parse(vars["crawlid"])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
-		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
 
@@ -556,10 +544,10 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 	}
 
 	success, err := endpoints.Cntr.SaveProcessedGraphData(vars["crawlid"], graphData)
-	if success == false || err != nil {
-		util.SendBasicInvalidResponse(w, r, "could not retrieve graph data", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Errorf("could not retrieve graph data: %+v", err)
-		return
+	if err != nil || success == false {
+		logMsg := fmt.Sprintf("could not retrieve graph data: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 
 	response := struct {
@@ -584,10 +572,9 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 
 	usersProcessedGraphData, err := endpoints.Cntr.GetProcessedGraphData(vars["crawlid"])
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "Couldn't get graph data", vars, http.StatusBadRequest)
-		errMsg := fmt.Errorf("failed to get processed graph data: %+v", err)
-		configuration.Logger.Error(errMsg.Error())
-		return
+		logMsg := fmt.Sprintf("failed to get processed graph data: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 	response := datastructures.GetProcessedGraphDataDTO{
 		Status:        "success",
@@ -596,9 +583,9 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "failed to return JSON response", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Fatalf("failed to marshal processedgraphdata: %+v", err)
-		return
+		logMsg := fmt.Sprintf("failed to marshal processedgraphdata: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 
 	w.Header().Set("Content-Length", strconv.Itoa(len(string(jsonResponse))+1))
@@ -613,16 +600,14 @@ func (endpoints *Endpoints) DoesProcessedGraphDataExist(w http.ResponseWriter, r
 	_, err := ksuid.Parse(vars["crawlid"])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
-		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
 
 	exists, err := endpoints.Cntr.DoesProcessedGraphDataExist(vars["crawlid"])
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "Couldn't get graph data", vars, http.StatusBadRequest)
-		errMsg := fmt.Errorf("failed to get processed graph data: %+v", err)
-		configuration.Logger.Error(errMsg.Error())
-		return
+		logMsg := fmt.Sprintf("failed to get processed graph data: %+v", err)
+		configuration.Logger.Error(logMsg)
+		panic(logMsg)
 	}
 	response := dtos.DoesProcessedGraphDataExistDTO{
 		Status: "success",

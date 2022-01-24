@@ -30,10 +30,11 @@ import (
 )
 
 var (
-	testUser             common.UserDocument
-	testSaveUserDTO      dtos.SaveUserDTO
-	validFormatSteamID   = "76561197960287930"
-	invalidFormatSteamID = validFormatSteamID + "zzz"
+	testUser                        common.UserDocument
+	testSaveUserDTO                 dtos.SaveUserDTO
+	validFormatSteamID              = "76561197960287930"
+	invalidFormatSteamID            = validFormatSteamID + "zzz"
+	defaultPanicErrorMessageStarter = "Give the code monkeys this ID:"
 )
 
 func TestMain(m *testing.M) {
@@ -179,15 +180,6 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 		mock.Anything,
 		mock.Anything).Return(false, errors.New("random error from UpdateCrawlingStatus"))
 
-	expectedResponse := struct {
-		Error string `json:"error"`
-	}{
-		"cannot save crawling stats",
-	}
-	expectedJSONResponse, err := json.Marshal(expectedResponse)
-	if err != nil {
-		log.Fatal(err)
-	}
 	requestBodyJSON, err := json.Marshal(testSaveUserDTO)
 	if err != nil {
 		log.Fatal(err)
@@ -202,8 +194,8 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, res.StatusCode, 400)
-	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
 }
 
 func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing.T) {
@@ -220,15 +212,6 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 		mock.Anything,
 		mock.Anything).Return(&insertResult, errors.New("random error from SaveUserToDB"))
 
-	expectedResponse := struct {
-		Error string `json:"error"`
-	}{
-		"cannot save user",
-	}
-	expectedJSONResponse, err := json.Marshal(expectedResponse)
-	if err != nil {
-		log.Fatal(err)
-	}
 	requestBodyJSON, err := json.Marshal(testSaveUserDTO)
 	if err != nil {
 		log.Fatal(err)
@@ -243,8 +226,8 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, res.StatusCode, 400)
-	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
 }
 
 func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
@@ -323,24 +306,16 @@ func TestGetUser(t *testing.T) {
 func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	expectedError := errors.New("couldn't get user")
-	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, expectedError)
-	expectedResponse := struct {
-		Error string `json:"error"`
-	}{
-		expectedError.Error(),
-	}
-	expectedJSONResponse, err := json.Marshal(expectedResponse)
-	if err != nil {
-		log.Fatal(err)
-	}
+	getUserError := errors.New("couldn't get user")
+	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, getUserError)
 
 	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+	assert.Contains(t, string(res), defaultPanicErrorMessageStarter)
+	fmt.Print(string(res))
 }
 
 func TestGetUserReturnsInvalidResponseWhenGivenAnInvalidSteamID(t *testing.T) {
@@ -412,22 +387,12 @@ func TestGetCrawlingStatsReturnsCouldntGetCrawlingStatusWhenDBReturnsAnError(t *
 	randomError := errors.New("hello world")
 	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(common.CrawlingStatus{}, randomError)
 
-	expectedResponse := struct {
-		Message string `json:"error"`
-	}{
-		"couldn't get crawling status",
-	}
-	expectedJSONResponse, err := json.Marshal(expectedResponse)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/%s", serverPort, ksuid.New().String()))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+	assert.Contains(t, string(res), defaultPanicErrorMessageStarter)
 }
 
 func TestGetUsernamesFromSteamIDsReturnsUsernamesForSteamID(t *testing.T) {
@@ -515,7 +480,7 @@ func TestGetUsernamesFromSteamIDsReturnsInvalidRequestWhenCallToDataStoreFails(t
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusNotFound, res.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 }
 
 func TestGetGraphableDataReturnsGraphableDataForAValidUser(t *testing.T) {
@@ -661,7 +626,7 @@ func TestInsertGameReturnsCouldntInsertGameWhenAnErrorOccurs(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 	mockController.AssertNumberOfCalls(t, "InsertGame", 1)
 }
 
@@ -749,12 +714,6 @@ func TestGetDetailsForGamesReturnsAnErrorWhenGetGameDetailsReturnsAnError(t *tes
 		GameIDs: []int{90, 50},
 	}
 
-	expectedResponse := struct {
-		Error string `json:"error"`
-	}{
-		"Error retrieving games",
-	}
-	expectedResponseJSON, _ := json.Marshal(expectedResponse)
 	randomError := errors.New("error")
 	mockController.On("GetDetailsForGames", mock.Anything, input.GameIDs).Return([]common.BareGameInfo{}, randomError)
 
@@ -772,8 +731,8 @@ func TestGetDetailsForGamesReturnsAnErrorWhenGetGameDetailsReturnsAnError(t *tes
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
 	mockController.AssertNumberOfCalls(t, "GetDetailsForGames", 1)
 }
 
@@ -906,12 +865,6 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *t
 	mockController, serverPort := initServerAndDependencies()
 
 	crawlID := ksuid.New().String()
-	expectedResponse := struct {
-		Error string `json:"error"`
-	}{
-		"could not retrieve graph data",
-	}
-	expectedResponseJSON, _ := json.Marshal(expectedResponse)
 	err := errors.New("random error")
 	mockController.On("SaveProcessedGraphData", mock.Anything, mock.Anything).Return(false, err)
 
@@ -929,8 +882,8 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *t
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
 	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
 }
 
@@ -1023,12 +976,6 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 	mockController, serverPort := initServerAndDependencies()
 
 	crawlID := ksuid.New().String()
-	expectedResponse := struct {
-		Error string `json:"error"`
-	}{
-		"Couldn't get graph data",
-	}
-	expectedResponseJSON, _ := json.Marshal(expectedResponse)
 	err := errors.New("random error")
 	mockController.On("GetProcessedGraphData", mock.Anything, mock.Anything).Return(common.UsersGraphData{}, err)
 
@@ -1046,8 +993,8 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
 	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
 }
 
@@ -1219,15 +1166,6 @@ func TestDoesProcessedGraphDataExistReturnsInvalidWhenItCannotRetrieveGraphData(
 	mockController, serverPort := initServerAndDependencies()
 	crawlID := ksuid.New().String()
 
-	expectedResponse := struct {
-		Error string `json:"error"`
-	}{
-		"Couldn't get graph data",
-	}
-	expectedJSONResponse, err := json.Marshal(expectedResponse)
-	if err != nil {
-		log.Fatal(err)
-	}
 	randomError := errors.New("random error")
 	mockController.On("DoesProcessedGraphDataExist", crawlID).Return(false, randomError)
 
@@ -1241,8 +1179,8 @@ func TestDoesProcessedGraphDataExistReturnsInvalidWhenItCannotRetrieveGraphData(
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
 	mockController.AssertNumberOfCalls(t, "DoesProcessedGraphDataExist", 1)
 }
 

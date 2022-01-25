@@ -99,19 +99,19 @@ function timezSince(targetDate) {
     return Math.floor(seconds) + "s";
 }
 
-function getCrawlingUserWhenAvailable() {
-    return new Promise((resolve, reject) => {
-      setInterval(() => {
-        console.log("stuck in a loop man")
-        if (!isNaN((parseInt(document.getElementById("usersCrawled"))))) {
-            getUser(crawlID).then(user => {
-              console.log("got user!")
-                setUserCardDetails(user)
-                resolve(true)
-            }, err => {
-                reject(err)
-            })
-        }
-      }, 50);
-    });
-}
+// function getCrawlingUserWhenAvailable() {
+//     return new Promise((resolve, reject) => {
+//       setInterval(() => {
+//         console.log("stuck in a loop man")
+//         if (!isNaN((parseInt(document.getElementById("usersCrawled"))))) {
+//             getUser(crawlID).then(user => {
+//               console.log("got user!")
+//                 setUserCardDetails(user)
+//                 resolve(true)
+//             }, err => {
+//                 reject(err)
+//             })
+//         }
+//       }, 50);
+//     });
+// }

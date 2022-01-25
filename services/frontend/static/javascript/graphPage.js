@@ -11,6 +11,44 @@ function getProcessedGraphData(crawlID) {
     });
 }
 
+function getDataInGraphFormat(gData) {
+    let nodes = []
+    let links = []
+
+    nodes.push({
+        "id": gData.userdetails.User.accdetails.steamid,
+        "name": gData.userdetails.User.accdetails.personaname,
+        "value": gData.userdetails.User.accdetails.profileurl,
+        "category": 0,
+        "symbol": `image://${gData.userdetails.User.accdetails.avatar}`
+    })
+    gData.frienddetails.forEach((friend) => {
+        nodes.push({
+            "id": friend.User.accdetails.steamid,
+            "name": friend.User.accdetails.personaname,
+            "value": friend.User.accdetails.profileurl,
+            "category": 0,
+            "symbol": `image://${friend.User.accdetails.avatar}`
+        });
+    });
+
+    gData.userdetails.User.friendids.forEach(ID => {
+        links.push({"source":gData.userdetails.User.accdetails.steamid, "target": `${ID}`})
+    })
+    gData.frienddetails.forEach(friend => {
+        friend.User.friendids.forEach(friendID => {
+            links.push({"source":friend.User.accdetails.steamid, "target": `${friendID}`})
+        })
+    })
+
+    const echartsData = {
+        "nodes": nodes,
+        "links": links,
+        "categories": [{"name": "A"}]
+    }
+    return echartsData
+}
+
 // COMMON
 function setUserCardDetailZ(userObj) {
     document.getElementById("userUsername").textContent = userObj.User.accdetails.personaname;

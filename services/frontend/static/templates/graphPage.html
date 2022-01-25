@@ -53,6 +53,7 @@
     <script src="https://code.highcharts.com/maps/highmaps.js"></script>
     <script src="https://code.highcharts.com/maps/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/mapdata/custom/world.js"></script>
+    <script src="/static/data/echarts.js"></script>
 
     <meta property="og:image" content="https://avatars0.githubusercontent.com/u/6561327?s=460&v=4" />
     <meta property="og:type" content="website" />
@@ -86,6 +87,14 @@
 
         <div class="row box pt-3 pb-3" id="graphBox">
             <div class="col">
+                <div id="graphContainer" style="width: 100%; height: 800px">
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- <div class="row box pt-3 pb-3" id="graphBox">
+            <div class="col">
                 <div class="graphContainer">
                     <div class="item" id="hbormgGDGNiz" style="width:100%;height:48.5rem;"></div>
                 </div>
@@ -104,7 +113,7 @@
                     myChart_hbormgGDGNiz.setOption(option_hbormgGDGNiz);
                 </script>
             </div>
-        </div>
+        </div> -->
 
         <div class="row mt-3 mb-3">
             <div class="col text-center">
@@ -359,6 +368,69 @@
                 fillInTop10Countries(countryFrequencies)
                 fillInFromYourCountryStatBox(crawlDataObj, countryFrequencies)
                 fillInContinentCoverage(countryFrequencies)
+
+                // drawGraph(getDataInGraphFormat(crawlDataObj.usergraphdata))
+                var myChart = echarts.init(document.getElementById('graphContainer'));
+                const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
+                console.log(graph)
+    var option;
+    myChart.showLoading();
+    myChart.hideLoading()
+    graph.nodes.forEach(function (node) {
+        node.symbolSize = 10;
+    });
+    option = {
+        title: {
+        text: 'Les Miserables',
+        subtext: 'Default layout',
+        top: 'bottom',
+        left: 'right'
+        },
+        tooltip: {
+            show: true,
+            showContent: true,
+            triggerOn: 'click',
+            enterable: true,
+            renderMode: 'html',
+            formatter: function(params, ticket, callback) {
+                return `<div>
+                            <p style="font-weight: bold" class="tooltipText">${params["name"]}:</p> 
+                            <a href="${params["data"].value}" target="_blank">
+                                <button class="tooltipButton">Profile</button>
+                            </a>
+                        </div>`
+            }
+        },
+        legend: [
+        {
+            // selectedMode: 'single',
+            data: graph.categories.map(function (a) {
+            return a.name;
+            })
+        }
+        ],
+        series: [
+        {
+            name: 'Friend Network',
+            type: 'graph',
+            layout: 'force',
+            data: graph.nodes,
+            links: graph.links,
+            categories: graph.categories,
+            roam: true,
+            label: {
+                position: 'right'
+            },
+            force: {
+                gravity: 0.5,
+                repulsion: 270,
+                friction: 0.2
+            }
+        }
+        ]
+    };
+    myChart.setOption(option);
+    option && myChart.setOption(option);
 
             }, err => {
                 console.error(`error retrieving processed graph data: ${err}`)

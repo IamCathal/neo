@@ -500,3 +500,11 @@ input[type=text]:focus ~ .bar:before, input[type=text]:focus ~ .bar:after {
   animation-iteration-count: 1;
   animation-name: buttonTransition;
 } */
+
+.tooltipText {
+  color: black
+}
+
+.tooltipButton {
+  background-color: #00b3c8;
+}

@@ -418,12 +418,9 @@ func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Re
 		configuration.Logger.Error(logMsg)
 		panic(logMsg)
 	}
-	if len(gamesInput.GameIDs) != len(gameDetails) {
-		logMsg := fmt.Sprintf("could not find details for all game IDs: '%+v': %+v", gamesInput.GameIDs, err)
-		configuration.Logger.Error(logMsg)
-		panic(logMsg)
-	}
+
 	if len(gameDetails) == 0 {
+		configuration.Logger.Info("No game details were found")
 		gameDetails = []common.BareGameInfo{}
 	}
 

@@ -1,8 +1,6 @@
 package graphing
 
 import (
-	"encoding/json"
-	"os"
 	"sync"
 	"time"
 
@@ -190,21 +188,16 @@ func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, wo
 		usersDataForGraphWithOnlyTop5Games = append(usersDataForGraphWithOnlyTop5Games, friend)
 	}
 
-	topTenOverallGameDetails, err := getTopTenOverallGameNames(cntr, usersDataForGraphWithOnlyTop5Games)
+	topOverallGameDetails, err := getTopTenOverallGameNames(cntr, usersDataForGraphWithOnlyTop5Games)
 	if err != nil {
 		configuration.Logger.Sugar().Fatalf("failed to get top 10 game detail: %+v", err)
 		panic(err)
 	}
 
 	usersDataForGraphWithFriends := common.UsersGraphData{
-		UserDetails:       usersDataForGraphWithOnlyTop5Games[0],
-		FriendDetails:     usersDataForGraphWithOnlyTop5Games[1:],
-		TopTenGameDetails: topTenOverallGameDetails,
-	}
-	jsonObj, err := json.Marshal(&usersDataForGraphWithFriends)
-	if err != nil {
-		configuration.Logger.Sugar().Fatalf("err marshaling data: %+v", err)
-		panic(err)
+		UserDetails:    usersDataForGraphWithOnlyTop5Games[0],
+		FriendDetails:  usersDataForGraphWithOnlyTop5Games[1:],
+		TopGameDetails: topOverallGameDetails,
 	}
 
 	success, err := cntr.SaveProcessedGraphDataToDataStore(crawlID, usersDataForGraphWithFriends)
@@ -213,10 +206,4 @@ func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, wo
 		panic(err)
 	}
 	configuration.Logger.Sugar().Infof("successfully collected graph data for crawlID: %s", crawlID)
-
-	err = os.WriteFile("helloJson.json", jsonObj, 0644)
-	if err != nil {
-		configuration.Logger.Sugar().Fatalf("err writing json file: %+v", err)
-		panic(err)
-	}
 }

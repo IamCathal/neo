@@ -193,6 +193,7 @@ func (control Cntr) InsertGame(ctx context.Context, game common.BareGameInfo) (b
 func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]common.BareGameInfo, error) {
 	gamesCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection("games")
 
+	configuration.Logger.Sugar().Infof("searching for details for the following %d games: %+v", len(IDList), IDList)
 	cursor, err := gamesCollection.Find(ctx,
 		bson.D{{Key: "appid", Value: bson.D{{Key: "$in", Value: IDList}}}})
 	if err != nil {
@@ -212,7 +213,7 @@ func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]com
 		}
 		allGames = append(allGames, singleGame)
 	}
-
+	configuration.Logger.Sugar().Infof("found these %d games: %+v", len(allGames), allGames)
 	return allGames, nil
 }
 

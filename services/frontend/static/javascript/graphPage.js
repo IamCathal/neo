@@ -1,3 +1,105 @@
+import { countUpElement } from '/static/javascript/countUpScript.js';
+import { setUserCardDetails } from '/static/javascript/userCard.js';
+
+const URLarr = window.location.href.split("/");
+const crawlID = URLarr[URLarr.length-1];
+let crawlData = {}
+
+doesProcessedGraphDataExistz(crawlID).then(doesExist => {
+    if (doesExist === false) {
+        window.location.href = "/"
+    }
+    getProcessedGraphData(crawlID).then(crawlDataObj => {
+        console.log(crawlDataObj)
+        crawlData = crawlDataObj
+        setUserCardDetails(crawlData.usergraphdata.userdetails);
+        let countryFrequencies = {}
+        var countryFrequenciesArr = []
+
+        crawlDataObj.usergraphdata.frienddetails.forEach(friend => {
+            const countryCode = friend.User.accdetails.loccountrycode;
+            if (countryCode != "") {
+                countryFrequencies[countryCode.toLowerCase()] = countryFrequencies[countryCode.toLowerCase()] ? countryFrequencies[countryCode.toLowerCase()] + 1 : 1;
+            }
+        });
+
+        countryFrequenciesArr = Object.entries(countryFrequencies)
+        initWorldMap(countryFrequenciesArr)
+        fillInFlagsDiv(crawlDataObj.usergraphdata.frienddetails)
+        fillInTopStatBoxes(crawlData, countryFrequencies)
+        fillInTop10Countries(countryFrequencies)
+        fillInFromYourCountryStatBox(crawlDataObj, countryFrequencies)
+        fillInContinentCoverage(countryFrequencies)
+
+        var myChart = echarts.init(document.getElementById('graphContainer'));
+        const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
+        console.log(graph)
+        var option;
+        myChart.showLoading();
+        myChart.hideLoading()
+        graph.nodes.forEach(function (node) {
+            node.symbolSize = 10;
+        });
+        option = {
+            title: {
+            text: 'Les Miserables',
+            subtext: 'Default layout',
+            top: 'bottom',
+            left: 'right'
+            },
+            tooltip: {
+                show: true,
+                showContent: true,
+                triggerOn: 'click',
+                enterable: true,
+                renderMode: 'html',
+                formatter: function(params, ticket, callback) {
+                    return `<div>
+                                <p style="font-weight: bold" class="tooltipText">${params["name"]}:</p> 
+                                <a href="${params["data"].value}" target="_blank">
+                                    <button class="tooltipButton">Profile</button>
+                                </a>
+                            </div>`
+                }
+            },
+            legend: [
+            {
+                // selectedMode: 'single',
+                data: graph.categories.map(function (a) {
+                    return a.name;
+                })
+            }
+            ],
+            series: [
+            {
+                name: 'Friend Network',
+                type: 'graph',
+                layout: 'force',
+                data: graph.nodes,
+                links: graph.links,
+                categories: graph.categories,
+                roam: true,
+                label: {
+                    position: 'right'
+                },
+                force: {
+                    gravity: 0.5,
+                    repulsion: 270,
+                    friction: 0.2
+                }
+            }
+            ]
+        };
+        myChart.setOption(option);
+        option && myChart.setOption(option);
+                }, err => {
+                    console.error(`error retrieving processed graph data: ${err}`)
+                })
+            }, err => {
+                console.error(`error calling does processed graphdata exist: ${err}`)
+            })
+
+
 function getProcessedGraphData(crawlID) {
     return new Promise((resolve, reject) => {
         fetch(`http://localhost:2590/api/getprocessedgraphdata/${crawlID}`, {
@@ -47,28 +149,6 @@ function getDataInGraphFormat(gData) {
         "categories": [{"name": "A"}]
     }
     return echartsData
-}
-
-// COMMON
-function setUserCardDetailZ(userObj) {
-    document.getElementById("userUsername").textContent = userObj.User.accdetails.personaname;
-    document.getElementById("userRealName").textContent = "idk";
-    document.getElementById("userFriendCount").textContent = userObj.User.friendids.length;
-    
-    const creationDate = new Date(userObj.User.accdetails.timecreated*1000);
-    const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    const timeSinceString = `(${timezSince2(creationDate)} ago)`
-    document.getElementById("userCreationDate").textContent = `${dateString} ${timeSinceString}`;
-    
-    document.getElementById("userSteamID").textContent = userObj.User.accdetails.steamid;
-    document.getElementById("userAvatar").src = userObj.User.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
-
-    document.getElementById("userUsername").classList.remove("skeleton");
-    document.getElementById("userRealName").classList.remove("skeleton");
-    document.getElementById("userFriendCount").classList.remove("skeleton");
-    document.getElementById("userCreationDate").classList.remove("skeleton");
-    document.getElementById("userSteamID").classList.remove("skeleton");
-    document.getElementById("userAvatar").classList.remove("skeleton");
 }
 
 // COMMON
@@ -167,17 +247,18 @@ function fillInFlagsDiv(friends) {
     });
 }
 
-function fillInTopStatBoxes(graphData) {
+function fillInTopStatBoxes(graphData, countryFreqs) {
     const UNCountries = 195;
     let uniqueCountryCodes = extractUniqueCountryCodesFromFriends(graphData.usergraphdata.frienddetails)
 
-    document.getElementById("statBoxFriendCount").textContent = graphData.usergraphdata.userdetails.User.friendids.length;
-    document.getElementById("statBoxUniqueCountries").textContent = uniqueCountryCodes.length;
-    document.getElementById("statBoxGlobalCoverage").textContent = Math.floor((uniqueCountryCodes.length/195)*100) + "%";
-    document.getElementById("statBoxDictatorships").textContent = ruledByDictatorCountries(uniqueCountryCodes)
+    countUpElement('statBoxFriendCount', graphData.usergraphdata.userdetails.User.friendids.length)
+    countUpElement('statBoxUniqueCountries', uniqueCountryCodes.length)
+    countUpElement('statBoxGlobalCoverage', Math.floor((uniqueCountryCodes.length/UNCountries)*100), {suffix: "%"})
+    countUpElement('statBoxDictatorships', ruledByDictatorCountries(uniqueCountryCodes))
+    countUpElement('statBoxContinentCoverage', getContinentCoverage(countryFreqs), {suffix: "%"})
 
     removeSkeletonClasses(["statBoxFriendCount", "statBoxUniqueCountries", 
-            "statBoxGlobalCoverage", "statBoxDictatorships"])
+            "statBoxGlobalCoverage", "statBoxDictatorships", "statBoxContinentCoverage"])
 }
 
 function fillInFromYourCountryStatBox(graphDataObj, countryFreq) {
@@ -216,6 +297,10 @@ function fillInTop10Countries(countriesFreq) {
     });
 }
 
+function getContinentCoverage(countryFreqs) {
+    const allCountryCodes = Object.keys(countryFreqs)
+    return getContinentsCovered(allCountryCodes);
+}
 function fillInContinentCoverage(countryFreqs) {
     const allCountryCodes = Object.keys(countryFreqs)
     const continentCoverage = getContinentsCovered(allCountryCodes)

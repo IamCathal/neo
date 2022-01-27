@@ -30,7 +30,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         fillInTop10Countries(countryFrequencies)
         fillInFromYourCountryStatBox(crawlDataObj, countryFrequencies)
         fillInContinentCoverage(countryFrequencies)
-        initAndRenderGamesBarChart()
+        initAndRenderGamesBarChart(getDataForGamesBarChart(crawlDataObj.usergraphdata))
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
         const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
@@ -154,7 +154,101 @@ function getDataInGraphFormat(gData) {
     return echartsData
 }
 
-function initAndRenderGamesBarChart() {
+function getDataForGamesBarChart(gData) {
+    let yourPlaytimeForTopGames = []
+    let networkAveragePlaytimeForTopGames = []
+    let topFriendPlaytimeForTopGames = []
+    const topOverallGameIDs = gData.topgamedetails.map(game => game.appid)
+
+    // Get your playtime for each of the top games
+    for (let i = 0; i < topOverallGameIDs.length; i++) {
+        const topCurrGameID = topOverallGameIDs[i]
+        let userPlayTimeOfCurrTopGame = 0
+        if (i >= gData.userdetails.User.gamesowned.length) {
+            yourPlaytimeForTopGames.push(userPlayTimeOfCurrTopGame)
+            continue
+        }
+
+        gData.userdetails.User.gamesowned.forEach(game => {
+            if (topCurrGameID === game.appid) {
+                userPlayTimeOfCurrTopGame = game.playtime_forever;
+            }
+        })        
+        yourPlaytimeForTopGames.push(userPlayTimeOfCurrTopGame)
+    }
+
+    // Get your networks average and max for each of the top games
+    for (let i = 0; i < topOverallGameIDs.length; i++) {
+        let topPlaytimeForCurrTopGame = 0
+        let totalPlaytimeForThisGame = 0
+        let usersWhoHavePlayedThisGame = 0
+
+        gData.frienddetails.forEach(friendObj => {
+            // console.log(`looking at ${friendObj.User.accdetails.personaname}`)
+            const friend = friendObj.User;
+            for (let k = 0; k < friend.gamesowned.length; k++) {
+                // console.log(`${friend.accdetails.personaname} has ${friend.gamesowned.length} games`)
+                // console.log(`comparing ${friend.gamesowned[k].appid} to ${topOverallGameIDs[i]}`)
+
+                if (friend.gamesowned[k].appid === topOverallGameIDs[i]) {
+                    if (friend.gamesowned[k].playtime_forever > topPlaytimeForCurrTopGame) {
+                        topPlaytimeForCurrTopGame = friend.gamesowned[k].playtime_forever
+                    }
+                    totalPlaytimeForThisGame += friend.gamesowned[k].playtime_forever
+                    usersWhoHavePlayedThisGame += 1
+                }
+            }
+        })
+        const averageNetworkPlaytime = Math.floor(totalPlaytimeForThisGame/usersWhoHavePlayedThisGame)
+        networkAveragePlaytimeForTopGames.push(averageNetworkPlaytime)
+        topFriendPlaytimeForTopGames.push(topPlaytimeForCurrTopGame)
+    }
+
+    // Turn into hours instead of minutes
+    yourPlaytimeForTopGames = yourPlaytimeForTopGames.map(minutes => Math.floor(minutes/60))
+    networkAveragePlaytimeForTopGames = networkAveragePlaytimeForTopGames.map(minutes => Math.floor(minutes/60))
+    topFriendPlaytimeForTopGames = topFriendPlaytimeForTopGames.map(minutes => Math.floor(minutes/60))
+    
+    const barChartData = {
+        xAxisData: gData.topgamedetails.map(game => game.name),
+        legend: {
+            data: ['You', 'Network Average', 'Top Friend']
+        },
+        yourPlayTimeForTopGamesSeriesObj: {
+            name: "You",
+            type: 'bar',
+            barGap: 0,
+            label: "eee",
+            emphasis: {
+                focus: 'series'
+            },
+            data: yourPlaytimeForTopGames
+        },
+        averageNetworkPlayTimeForGameSeriesObj: {
+            name: "Network Average",
+            type: 'bar',
+            barGap: 0,
+            label: "eee",
+            emphasis: {
+                focus: 'series'
+            },
+            data: networkAveragePlaytimeForTopGames
+        },
+        topFriendPlayTimeForGameSeriesObj: {
+            name: "Top Friend",
+            type: 'bar',
+            barGap: 0,
+            label: "eee",
+            emphasis: {
+                focus: 'series'
+            },
+            data: topFriendPlaytimeForTopGames
+        }
+    }
+    return barChartData;
+}
+
+function initAndRenderGamesBarChart(barChartData) {
     console.log("renduing")
     let app = {};
 
@@ -216,11 +310,11 @@ function initAndRenderGamesBarChart() {
         distance: 15,
         onChange: function () {
             const labelOption = {
-            rotate: app.config.rotate,
-            align: app.config.align,
-            verticalAlign: app.config.verticalAlign,
-            position: app.config.position,
-            distance: app.config.distance
+                rotate: app.config.rotate,
+                align: app.config.align,
+                verticalAlign: app.config.verticalAlign,
+                position: app.config.position,
+                distance: app.config.distance
             };
             myChart.setOption({
             series: [
@@ -252,9 +346,7 @@ function initAndRenderGamesBarChart() {
         type: 'shadow'
         }
     },
-    legend: {
-        data: ['Forest', 'Steppe', 'Desert', 'Wetland']
-    },
+    legend: barChartData.legend,
     toolbox: {
         show: true,
         orient: 'vertical',
@@ -272,7 +364,7 @@ function initAndRenderGamesBarChart() {
         {
         type: 'category',
         axisTick: { show: false },
-        data: ['2012', '2013', '2014', '2015', '2016']
+        data: barChartData.xAxisData
         }
     ],
     yAxis: [
@@ -281,43 +373,9 @@ function initAndRenderGamesBarChart() {
         }
     ],
     series: [
-        {
-        name: 'Forest',
-        type: 'bar',
-        barGap: 0,
-        label: labelOption,
-        emphasis: {
-            focus: 'series'
-        },
-        data: [320, 332, 301, 334, 390]
-        },
-        {
-        name: 'Steppe',
-        type: 'bar',
-        label: labelOption,
-        emphasis: {
-            focus: 'series'
-        },
-        data: [220, 182, 191, 234, 290]
-        },
-        {
-        name: 'Desert',
-        type: 'bar',
-        label: labelOption,
-        emphasis: {
-            focus: 'series'
-        },
-        data: [150, 232, 201, 154, 190]
-        },
-        {
-        name: 'Wetland',
-        type: 'bar',
-        label: labelOption,
-        emphasis: {
-            focus: 'series'
-        },
-        data: [98, 77, 101, 99, 40]
-        }
+        barChartData.yourPlayTimeForTopGamesSeriesObj,
+        barChartData.averageNetworkPlayTimeForGameSeriesObj,
+        barChartData.topFriendPlayTimeForGameSeriesObj
     ]
     };
     option && myChart.setOption(option);

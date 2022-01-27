@@ -212,7 +212,10 @@ function getDataForGamesBarChart(gData) {
     const barChartData = {
         xAxisData: gData.topgamedetails.map(game => game.name),
         legend: {
-            data: ['You', 'Network Average', 'Top Friend']
+            data: ['You', 'Network Average', 'Top Friend'],
+            textStyle: {
+                color: '#ffffff'
+            }
         },
         yourPlayTimeForTopGamesSeriesObj: {
             name: "You",
@@ -273,34 +276,34 @@ function initAndRenderGamesBarChart(barChartData) {
         'insideBottomRight'
     ];
     app.configParameters = {
-    rotate: {
-        min: -90,
-        max: 90
-    },
-    align: {
-        options: {
-            left: 'left',
-            center: 'center',
-            right: 'right'
+        rotate: {
+            min: -90,
+            max: 90
+        },
+        align: {
+            options: {
+                left: 'left',
+                center: 'center',
+                right: 'right'
+            }
+        },
+        verticalAlign: {
+            options: {
+                top: 'top',
+                middle: 'middle',
+                bottom: 'bottom'
+            }
+        },
+        position: {
+            options: posList.reduce(function (map, pos) {
+                map[pos] = pos;
+                return map;
+            }, {})
+        },
+        distance: {
+            min: 0,
+            max: 100
         }
-    },
-    verticalAlign: {
-        options: {
-            top: 'top',
-            middle: 'middle',
-            bottom: 'bottom'
-        }
-    },
-    position: {
-        options: posList.reduce(function (map, pos) {
-            map[pos] = pos;
-            return map;
-        }, {})
-    },
-    distance: {
-        min: 0,
-        max: 100
-    }
     };
     app.config = {
         rotate: 90,
@@ -327,56 +330,65 @@ function initAndRenderGamesBarChart(barChartData) {
         }
     };
     const labelOption = {
-    show: true,
-    position: app.config.position,
-    distance: app.config.distance,
-    align: app.config.align,
-    verticalAlign: app.config.verticalAlign,
-    rotate: app.config.rotate,
-    formatter: '{c}  {name|{a}}',
-    fontSize: 16,
-    rich: {
-        name: {}
-    }
+        show: true,
+        position: app.config.position,
+        distance: app.config.distance,
+        align: app.config.align,
+        verticalAlign: app.config.verticalAlign,
+        rotate: app.config.rotate,
+        formatter: '{c}  {name|{a}}',
+        fontSize: 16,
+        rich: {
+            name: {}
+        }
     };
     option = {
-    tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-        type: 'shadow'
-        }
-    },
-    legend: barChartData.legend,
-    toolbox: {
-        show: true,
-        orient: 'vertical',
-        left: 'right',
-        top: 'center',
-        feature: {
-        mark: { show: true },
-        dataView: { show: true, readOnly: false },
-        magicType: { show: true, type: ['line', 'bar', 'stack'] },
-        restore: { show: true },
-        saveAsImage: { show: true }
-        }
-    },
-    xAxis: [
-        {
-        type: 'category',
-        axisTick: { show: false },
-        data: barChartData.xAxisData
-        }
-    ],
-    yAxis: [
-        {
-        type: 'value'
-        }
-    ],
-    series: [
-        barChartData.yourPlayTimeForTopGamesSeriesObj,
-        barChartData.averageNetworkPlayTimeForGameSeriesObj,
-        barChartData.topFriendPlayTimeForGameSeriesObj
-    ]
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+            type: 'shadow'
+            },
+            textStyle: {
+                color: 'black'
+            }
+        },
+        legend: barChartData.legend,
+        toolbox: {
+            show: true,
+            orient: 'vertical',
+            left: 'right',
+            top: 'center',
+            feature: {
+            mark: { show: true },
+            dataView: { show: true, readOnly: false },
+            magicType: { show: true, type: ['line', 'bar', 'stack'] },
+            restore: { show: true },
+            saveAsImage: { show: true }
+            }
+        },
+        xAxis: [{
+            type: 'category',
+            axisTick: { show: false },
+            data: barChartData.xAxisData,
+            axisLine: {
+                lineStyle: {
+                    color: '#ffffff'
+                }
+            }
+        }],
+        yAxis: [{
+            type: 'value',
+            axisLine: {
+                lineStyle: {
+                    color: '#ffffff'
+                }
+            }
+        }],
+        series: [
+            barChartData.yourPlayTimeForTopGamesSeriesObj,
+            barChartData.averageNetworkPlayTimeForGameSeriesObj,
+            barChartData.topFriendPlayTimeForGameSeriesObj
+        ]
     };
     option && myChart.setOption(option);
 }

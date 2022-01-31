@@ -331,6 +331,187 @@
                 </div>
             </div>
         </div>
+
+
+
+        <!-- Friend creation year chart -->
+        <div class="row mt-3 mb-3">
+            <div class="col ml-1 box" style="height: 30rem">
+                <div class="row text-center">
+                    <p style="font-size: 1.4rem"> Creation year </p>
+                </div>
+
+                <div class="row" style="height: 100%">
+                    <div id="creationYearBarChartContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Friend creation month chart -->
+        <div class="row mt-3 mb-3">
+            <div class="col box">
+                <div class="row text-center">
+                    <p style="font-size: 1.4rem"> Creation Month </p>
+                </div>
+
+                <div class="row" style="height:16rem">
+                    <div id="creationMonthHeatMapContainer"></div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Friend creation year stats -->
+        <div class="row mt-3 mb-3">
+            <div class="col">
+                <div class="row">
+                    <div class="col-3 box pl-3 pr-2">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxHoursAcrossLibrary"></p> 
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">most of your friends joined Steam</p>
+                        </div>
+                    </div>
+                    <div class="col box pl-3 pr-2 ml-2">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxUniqueCountries"></p> 
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">your oldest friend joined Steam</p>
+                        </div>
+                    </div>
+                    <div class="col-3 box pl-3 pr-2 ml-2">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxGlobalCoverage"></p>
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">joined Steam before you</p>
+                        </div>
+                    </div>
+                    <div class="col-3 box pl-3 pr-2 ml-2 mb-4">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxDictatorships"></p>
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">xxxxxx</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flag emoji box -->
+                <div class="row ml-1 mr-2">
+                    <div class="col-3">
+                        <div class="row">
+                            <div class="col">
+                                <div class="col box pl-3 pr-2">
+                                    <div class="row pl-1 mr-1">
+                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxAlsoFromYourCountry"></p> 
+                                    </div>
+                                    <div class="row">
+                                        <p style="bottom: 0">friends are from your country</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col">
+                                <div class="col box pl-3 pr-2">
+                                    <div class="row pl-1 mr-1">
+                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxContinentCoverage"></p> 
+                                    </div>
+                                    <div class="row">
+                                        <p style="bottom: 0">continent coverage</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col box ml-2" style="height: 20rem">
+                        <p class="text-center" style="font-size: 1.2rem;">You've got friends from around the world</p>
+                        <div class="row ml-2 mr-2" id="allFlagsDiv"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="row mt-3 mb-3">
+            <div class="col">
+                <div class="row">
+                    <div class="col-3 box pl-3 pr-2">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxHoursAcrossLibrary"></p> 
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">hours across your library</p>
+                        </div>
+                    </div>
+                    <div class="col-2 box pl-3 pr-2 ml-2">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxUniqueCountries"></p> 
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">entire days of playtime</p>
+                        </div>
+                    </div>
+                    <div class="col-3 box pl-3 pr-2 ml-2">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxGlobalCoverage"></p>
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">of your friends have less hours played</p>
+                        </div>
+                    </div>
+                    <div class="col box pl-3 pr-2 ml-2 mb-4">
+                        <div class="row pl-1 mr-1">
+                            <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxDictatorships"></p>
+                        </div>
+                        <div class="row">
+                            <p style="bottom: 0">earned if gaming was a minimum wage job</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flag emoji box -->
+                <div class="row ml-1 mr-2">
+                    <div class="col-3">
+                        <div class="row">
+                            <div class="col">
+                                <div class="col box pl-3 pr-2">
+                                    <div class="row pl-1 mr-1">
+                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxAlsoFromYourCountry"></p> 
+                                    </div>
+                                    <div class="row">
+                                        <p style="bottom: 0">friends are from your country</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col">
+                                <div class="col box pl-3 pr-2">
+                                    <div class="row pl-1 mr-1">
+                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxContinentCoverage"></p> 
+                                    </div>
+                                    <div class="row">
+                                        <p style="bottom: 0">continent coverage</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col box ml-2" style="height: 20rem">
+                        <p class="text-center" style="font-size: 1.2rem;">You've got friends from around the world</p>
+                        <div class="row ml-2 mr-2" id="allFlagsDiv"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div class="row" style="height:15rem"></div>
 

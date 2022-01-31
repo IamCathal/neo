@@ -1,5 +1,6 @@
 import { countUpElement } from '/static/javascript/countUpScript.js';
 import { setUserCardDetails } from '/static/javascript/userCard.js';
+import { getHeatmapData, getMaxMonthFrequency } from './heatMapCalendarHelper.js';
 
 const URLarr = window.location.href.split("/");
 const crawlID = URLarr[URLarr.length-1];
@@ -31,6 +32,8 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         fillInFromYourCountryStatBox(crawlDataObj, countryFrequencies)
         fillInContinentCoverage(countryFrequencies)
         initAndRenderGamesBarChart(getDataForGamesBarChart(crawlDataObj.usergraphdata))
+        userCreatedGraph(crawlDataObj.usergraphdata)
+        userCreatedMonthChart(crawlDataObj.usergraphdata)
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
         const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
@@ -537,6 +540,122 @@ function fillInTop10Countries(countriesFreq) {
         `;
         i++;
     });
+}
+
+function userCreatedGraph(graphData) {
+    let friendCreationDatesByMonth = {}
+    let creationDates = []
+    let creationTimestamps = []
+    let creationYearFrequencies = {}
+    
+    graphData.frienddetails.forEach(friend => {
+        creationTimestamps.push(friend.User.accdetails.timecreated)
+    })
+    creationTimestamps.sort(function(j, k) {
+        return j < k;
+    })
+
+    creationTimestamps.forEach(date => {
+        creationDates.push(new Date(date * 1000))
+    })
+    
+    creationDates.forEach(date => {
+        creationYearFrequencies[date.getFullYear()] = creationYearFrequencies[date.getFullYear()] ? creationYearFrequencies[date.getFullYear()] + 1 : 1;
+    })
+
+    const oldestYear = Object.entries(creationYearFrequencies)[0][0]
+    for (let i = oldestYear; i < new Date().getFullYear(); i++) {
+        creationYearFrequencies[i] = creationYearFrequencies[i] ? creationYearFrequencies[i] : 0
+    }
+
+    let chartDom = document.getElementById('creationYearBarChartContainer');
+    let myChart = echarts.init(chartDom);
+    let option;
+
+    option = {
+    xAxis: {
+        type: 'category',
+        data: Object.keys(creationYearFrequencies),
+        axisLine: {
+            lineStyle: {
+                color: '#ffffff'
+            }
+        }
+    },
+    yAxis: {
+        type: 'value',
+        axisLine: {
+            lineStyle: {
+                color: '#ffffff'
+            }
+        }
+    },
+    series: [
+        {
+        data: Object.values(creationYearFrequencies),
+        type: 'bar'
+        }
+    ]
+    };
+    option && myChart.setOption(option);
+}
+
+function userCreatedMonthChart(graphData) {
+    let creationDates = []
+    let creationTimestamps = []
+    
+    graphData.frienddetails.forEach(friend => {
+        creationTimestamps.push(friend.User.accdetails.timecreated)
+    })
+    creationTimestamps.sort(function(j, k) {
+        return j < k;
+    })
+
+    creationTimestamps.forEach(date => {
+        creationDates.push(new Date(date * 1000))
+    })
+
+    let chartDom = document.getElementById('creationMonthHeatMapContainer');
+    let myChart = echarts.init(chartDom);
+    let option;
+
+    option = {
+        visualMap: {
+            show: false,
+            min: 0,
+            max: getMaxMonthFrequency(creationDates),
+            inRange: {
+                color: ['#d6a1ff', '#2b054a']
+              },
+        },
+        tooltip: {},
+        calendar: {
+            range: '2022',
+            cellSize: [18],
+            monthLabel: {
+                textStyle: {
+                    color: '#ffffff'
+                }
+            },
+            dayLabel: {
+                textStyle: {
+                    color: '#ffffff'
+                }
+            },
+            yearLabel: {
+                textStyle: {
+                    color: '#ffffff'
+                }
+            },
+        },
+        series: {
+            type: 'heatmap',
+            coordinateSystem: 'calendar',
+            data: getHeatmapData(creationDates)
+        }
+    };
+
+    option && myChart.setOption(option);
 }
 
 function getContinentCoverage(countryFreqs) {

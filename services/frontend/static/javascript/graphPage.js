@@ -619,6 +619,9 @@ function userCreatedMonthChart(graphData) {
     let myChart = echarts.init(chartDom);
     let option;
 
+    let heatmapData = getHeatmapData(creationDates)
+    fillInMonthStatBoxes(creationDates)
+
     option = {
         visualMap: {
             show: false,
@@ -631,7 +634,7 @@ function userCreatedMonthChart(graphData) {
         tooltip: {},
         calendar: {
             range: '2022',
-            cellSize: [18],
+            cellSize: [16],
             monthLabel: {
                 textStyle: {
                     color: '#ffffff'
@@ -651,7 +654,7 @@ function userCreatedMonthChart(graphData) {
         series: {
             type: 'heatmap',
             coordinateSystem: 'calendar',
-            data: getHeatmapData(creationDates)
+            data: heatmapData
         }
     };
 
@@ -749,6 +752,19 @@ function getContinentsCovered(countryCodes) {
     return continentCoverage / TOTAL_CONTINENTS
 }
 
+function fillInMonthStatBoxes(creationDates) {
+    let userCreationMonthFrequencies = {}
+    creationDates.forEach(date => {
+        userCreationMonthFrequencies[date.getMonth()] = userCreationMonthFrequencies[date.getMonth()] ? userCreationMonthFrequencies[date.getMonth()] + 1 : 1;
+    })
+    const sortedMonthFrequencies = Object.entries(userCreationMonthFrequencies).sort((a, b) => { return a[1] < b[1]})
+
+    document.getElementById("statBoxMostPopularMonth").textContent = intToMonth(Object.values(sortedMonthFrequencies)[0][0])
+    document.getElementById("statBoxLeastPopularMonth").textContent = intToMonth(Object.values(sortedMonthFrequencies)[sortedMonthFrequencies.length-1][0])
+
+    removeSkeletonClasses(["statBoxMostPopularMonth", "statBoxLeastPopularMonth"])
+}
+
 // https://worldpopulationreview.com/country-rankings/dictatorship-countries  
 function ruledByDictatorCountries(countries) {
     let dictatorRuledCountryCount = 0
@@ -766,6 +782,52 @@ function ruledByDictatorCountries(countries) {
         }
     })
     return dictatorRuledCountryCount;
+}
+
+function intToMonth(month) {
+    let monthName = ""
+    switch (parseInt(month)) {
+        case 0:
+            monthName = "January"
+            break
+        case 1:
+            monthName = "Febuary"
+            break
+        case 2:
+            monthName = "March"
+            break
+        case 3:
+            monthName = "April"
+            break
+        case 4:
+            monthName = "May"
+            break
+        case 5:
+            monthName = "June"
+            break
+        case 6:
+            monthName = "July"
+            break
+        case 7:
+            monthName = "August"
+            break
+        case 8:
+            monthName = "September"
+            break
+        case 9:
+            monthName = "October"
+            break
+        case 10:
+            monthName = "November"
+            break
+        case 11:
+            monthName = "December"
+            break
+        default:
+            console.error("failed to find most popular user creation month")
+            monthName = "na"
+    }
+    return monthName
 }
 
 function getTopTenCountries(countriesFreq) {

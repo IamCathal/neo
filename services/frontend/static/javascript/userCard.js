@@ -22,7 +22,7 @@ export function setUserCardDetails(userObj) {
 }
 
 // COMMON
-function timezSince(targetDate) {
+export function timezSince(targetDate) {
     let seconds = Math.floor((new Date()-targetDate)/1000)
     let interval = seconds / 31536000 
     if (interval > 1) {

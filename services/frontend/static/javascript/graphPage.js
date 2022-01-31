@@ -1,5 +1,5 @@
 import { countUpElement } from '/static/javascript/countUpScript.js';
-import { setUserCardDetails } from '/static/javascript/userCard.js';
+import { setUserCardDetails, timezSince } from '/static/javascript/userCard.js';
 import { getHeatmapData, getMaxMonthFrequency } from './heatMapCalendarHelper.js';
 
 const URLarr = window.location.href.split("/");
@@ -23,17 +23,23 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
                 countryFrequencies[countryCode.toLowerCase()] = countryFrequencies[countryCode.toLowerCase()] ? countryFrequencies[countryCode.toLowerCase()] + 1 : 1;
             }
         });
-
         countryFrequenciesArr = Object.entries(countryFrequencies)
+        
+        // Geographic Stats
         initWorldMap(countryFrequenciesArr)
         fillInFlagsDiv(crawlDataObj.usergraphdata.frienddetails)
         fillInTopStatBoxes(crawlData, countryFrequencies)
         fillInTop10Countries(countryFrequencies)
         fillInFromYourCountryStatBox(crawlDataObj, countryFrequencies)
         fillInContinentCoverage(countryFrequencies)
+
+        // Games stats
         initAndRenderGamesBarChart(getDataForGamesBarChart(crawlDataObj.usergraphdata))
+
+        // Friend network stats
         userCreatedGraph(crawlDataObj.usergraphdata)
         userCreatedMonthChart(crawlDataObj.usergraphdata)
+        fillInOldestAndNewestUserCards(crawlDataObj.usergraphdata)
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
         const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
@@ -46,11 +52,15 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         });
         option = {
             title: {
-            text: 'Les Miserables',
-            subtext: 'Default layout',
-            top: 'bottom',
-            left: 'right'
+                text: 'Your friend network',
+                subtext: 'Default layout',
+                top: 'bottom',
+                left: 'right',
+                textStyle: {
+                    color: '#ffffff'
+                }
             },
+
             tooltip: {
                 show: true,
                 showContent: true,
@@ -828,6 +838,45 @@ function intToMonth(month) {
             monthName = "na"
     }
     return monthName
+}
+
+function fillInOldestAndNewestUserCards(graphData) {
+    let allFriends = graphData.frienddetails;
+    allFriends.sort((f1,f2) => { 
+        return new Date(f1.User.accdetails.timecreated * 1000) - new Date(f2.User.accdetails.timecreated * 1000) 
+    })
+
+    const oldestUser = allFriends[0].User
+    const newestUser = allFriends[allFriends.length-1].User
+
+    console.log(allFriends)
+    console.log(oldestUser)
+    console.log(newestUser)
+
+    document.getElementById("oldestUserUsername").textContent = oldestUser.accdetails.personaname;
+    document.getElementById("oldestUserRealName").textContent = "idk";
+    document.getElementById("oldestUserFriendCount").textContent = oldestUser.friendids.length;
+    let creationDate = new Date(oldestUser.accdetails.timecreated*1000);
+    let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
+    let timeSinceString = `(${timezSince(creationDate)} ago)`
+    document.getElementById("oldestUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
+    document.getElementById("oldestUserSteamID").textContent = oldestUser.accdetails.steamid;
+    document.getElementById("oldestUserAvatar").src = oldestUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
+
+    document.getElementById("newestUserUsername").textContent = newestUser.accdetails.personaname;
+    document.getElementById("newestUserRealName").textContent = "idk";
+    document.getElementById("newestUserFriendCount").textContent = newestUser.friendids.length;
+    creationDate = new Date(newestUser.accdetails.timecreated*1000);
+    dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
+    timeSinceString = `(${timezSince(creationDate)} ago)`
+    document.getElementById("newestUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
+    document.getElementById("newestUserSteamID").textContent = newestUser.accdetails.steamid;
+    document.getElementById("newestUserAvatar").src = newestUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
+
+    removeSkeletonClasses(["oldestUserUsername", "oldestUserRealName", 
+    "oldestUserFriendCount", "oldestUserCreationDate", "oldestUserSteamID", "oldestUserAvatar",
+    "newestUserUsername", "newestUserRealName", "newestUserFriendCount", "newestUserCreationDate",
+    "newestUserSteamID", "newestUserAvatar"])
 }
 
 function getTopTenCountries(countriesFreq) {

@@ -11,7 +11,6 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         window.location.href = "/"
     }
     getProcessedGraphData(crawlID).then(crawlDataObj => {
-        console.log(crawlDataObj)
         crawlData = crawlDataObj
         setUserCardDetails(crawlData.usergraphdata.userdetails);
         let countryFrequencies = {}
@@ -35,6 +34,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
 
         // Games stats
         initAndRenderGamesBarChart(getDataForGamesBarChart(crawlDataObj.usergraphdata))
+        fillInGamesStatBoxes(crawlDataObj.usergraphdata)
 
         // Friend network stats
         userCreatedGraph(crawlDataObj.usergraphdata)
@@ -43,7 +43,6 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
         const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
-        console.log(graph)
         var option;
         myChart.showLoading();
         myChart.hideLoading()
@@ -130,7 +129,6 @@ function getProcessedGraphData(crawlID) {
 function getDataInGraphFormat(gData) {
     let nodes = []
     let links = []
-    console.log("push main user")
     nodes.push({
         "id": gData.userdetails.User.accdetails.steamid,
         "name": gData.userdetails.User.accdetails.personaname,
@@ -197,12 +195,8 @@ function getDataForGamesBarChart(gData) {
         let usersWhoHavePlayedThisGame = 0
 
         gData.frienddetails.forEach(friendObj => {
-            // console.log(`looking at ${friendObj.User.accdetails.personaname}`)
             const friend = friendObj.User;
             for (let k = 0; k < friend.gamesowned.length; k++) {
-                // console.log(`${friend.accdetails.personaname} has ${friend.gamesowned.length} games`)
-                // console.log(`comparing ${friend.gamesowned[k].appid} to ${topOverallGameIDs[i]}`)
-
                 if (friend.gamesowned[k].appid === topOverallGameIDs[i]) {
                     if (friend.gamesowned[k].playtime_forever > topPlaytimeForCurrTopGame) {
                         topPlaytimeForCurrTopGame = friend.gamesowned[k].playtime_forever
@@ -264,8 +258,44 @@ function getDataForGamesBarChart(gData) {
     return barChartData;
 }
 
+function fillInGamesStatBoxes(graphData) {
+    console.log(graphData)
+    const minWage = 10.20
+    let totalHoursPlayedForUser = 0
+    graphData.userdetails.User.gamesowned.forEach(game => {
+        totalHoursPlayedForUser += game.playtime_forever
+    })
+    totalHoursPlayedForUser = Math.floor(totalHoursPlayedForUser/60)
+
+    const entireDaysOfPlaytime = Math.floor(totalHoursPlayedForUser / 24)
+    const minWageEarnedForGaming = Math.floor(totalHoursPlayedForUser * minWage)
+    let percentageOfFriendsWithLessHoursPlayed = 0
+    let friendsWithLessHoursPlayed = 0
+    if (totalHoursPlayedForUser === 0) {
+        let friendsHoursPlayed = []
+        graphData.frienddetails.forEach(user => {
+            let hoursPlayedForCurrUser = 0
+            user.User.gamesowned.forEach(game => {
+                hoursPlayedForCurrUser += Math.floor(game.playtime_forever / 60)
+            });
+            if (hoursPlayedForCurrUser < totalHoursPlayedForUser) {
+                friendsWithLessHoursPlayed++
+            }
+        })
+        
+        percentageOfFriendsWithLessHoursPlayed = Math.floor(friendsWithLessHoursPlayed / graphData.frienddetails.length)
+    }
+
+    countUpElement("statBoxHoursAcrossLibrary", totalHoursPlayedForUser)
+    countUpElement("statBoxEntireDaysOfPlaytime", entireDaysOfPlaytime)
+    countUpElement("statBoxFriendsWithLessHoursPlayed", percentageOfFriendsWithLessHoursPlayed, {suffix: "%"})
+    countUpElement("statBoxMinWageEarned", minWageEarnedForGaming, {prefix: "€"})
+
+    removeSkeletonClasses(["statBoxHoursAcrossLibrary", "statBoxEntireDaysOfPlaytime",
+            "statBoxMinWageEarned", "statBoxFriendsWithLessHoursPlayed"])
+}
+
 function initAndRenderGamesBarChart(barChartData) {
-    console.log("renduing")
     let app = {};
 
     let chartDom = document.getElementById('gamesBarChartContainer');
@@ -848,10 +878,6 @@ function fillInOldestAndNewestUserCards(graphData) {
 
     const oldestUser = allFriends[0].User
     const newestUser = allFriends[allFriends.length-1].User
-
-    console.log(allFriends)
-    console.log(oldestUser)
-    console.log(newestUser)
 
     document.getElementById("oldestUserUsername").textContent = oldestUser.accdetails.personaname;
     document.getElementById("oldestUserRealName").textContent = "idk";

@@ -40,6 +40,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         userCreatedGraph(crawlDataObj.usergraphdata)
         userCreatedMonthChart(crawlDataObj.usergraphdata)
         fillInOldestAndNewestUserCards(crawlDataObj.usergraphdata)
+        initAndRenderAccountAgeVsFriendCountChart(crawlDataObj.usergraphdata)
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
         const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
@@ -271,8 +272,7 @@ function fillInGamesStatBoxes(graphData) {
     const minWageEarnedForGaming = Math.floor(totalHoursPlayedForUser * minWage)
     let percentageOfFriendsWithLessHoursPlayed = 0
     let friendsWithLessHoursPlayed = 0
-    if (totalHoursPlayedForUser === 0) {
-        let friendsHoursPlayed = []
+    if (totalHoursPlayedForUser != 0) {
         graphData.frienddetails.forEach(user => {
             let hoursPlayedForCurrUser = 0
             user.User.gamesowned.forEach(game => {
@@ -293,6 +293,102 @@ function fillInGamesStatBoxes(graphData) {
 
     removeSkeletonClasses(["statBoxHoursAcrossLibrary", "statBoxEntireDaysOfPlaytime",
             "statBoxMinWageEarned", "statBoxFriendsWithLessHoursPlayed"])
+}
+
+function initAndRenderAccountAgeVsFriendCountChart(graphData) {
+    console.log(graphData)
+    let scatterPlotData = []
+    let maxFriendCount = 0
+
+    graphData.frienddetails.forEach(user => {
+        const friends = user.User.friendids.length;
+        const accAge = user.User.accdetails.timecreated;
+        if (friends > maxFriendCount) {
+            maxFriendCount = friends
+        }
+        scatterPlotData.push([
+            friends, monthsSince(accAge)
+        ])
+    })
+    console.log(scatterPlotData)
+    let chartDom = document.getElementById('accountAgeVsFriendCountScatterPlot');
+    let myChart = echarts.init(chartDom);
+    let option;
+
+    option = {
+    xAxis: {
+        axisLine: {
+            lineStyle: {
+                color: '#ffffff'
+            }
+        }
+    },
+    yAxis: {
+        axisLine: {
+            lineStyle: {
+                color: '#ffffff'
+            }
+        }
+    },
+    legend: {
+        axisLine: {
+            lineStyle: {
+                color: '#ffffff'
+            }
+        }
+    },
+    visualMap: {
+        min: 0,
+        max: maxFriendCount,
+        inRange: {
+            color: ['#f2c31a', '#24b7f2']
+        },
+        calculable: true,
+        textStyle: {
+            color: '#ffffff'
+        },
+        orient: 'vertical',
+        right: 10,
+        top: 'center'
+    },
+    tooltip: {
+        trigger: 'item',
+        axisPointer: {
+            type: 'cross',
+            label: {
+                color: 'black'
+            }
+        }
+    },
+    series: [
+        {
+        symbolSize: 20,
+        data: scatterPlotData,
+        type: 'scatter'
+        }
+    ]
+    };
+
+    option && myChart.setOption(option);
+}
+
+function monthsSince(timestamp) {
+    let d1 = new Date(timestamp * 1000);
+    let d2 = new Date()
+    console.log(`comparing ${d1} tp ${d2}`)
+    // const timeObj = new Date(timestamp * 1000)
+    // let monthDiff;
+    // const currTime = new Date();
+    // monthDiff = (currTime.getFullYear() - timeObj.getFullYear()) * 12
+    // monthDiff += currTime.getMonth()
+    // monthDiff -= timeObj.getMonth()
+    // return monthDiff <= 0 ? 0 : monthDiff
+    var months;
+    months = (d2.getFullYear() - d1.getFullYear()) * 12;
+    months -= d1.getMonth();
+    months += d2.getMonth();
+    console.log(months)
+    return months <= 0 ? 0 : months;
 }
 
 function initAndRenderGamesBarChart(barChartData) {

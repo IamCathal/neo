@@ -578,7 +578,7 @@
 
 
 
-        <div class="row mt-3 mb-3">
+        <div class="row mt-3">
             <div class="col">
                 <div class="row">
                     <div class="col-3 box pl-3 pr-2">
@@ -614,44 +614,263 @@
                         </div>
                     </div>
                 </div>
+        </div>
 
-                <!-- Flag emoji box -->
-                <div class="row ml-1 mr-2">
-                    <div class="col-3">
+        <div class="row">
+            <div class="col text-center">
+                <p style="font-size: 1.4rem"> Your favorite game </p>
+            </div>
+            <div class="col text-center">
+                <p style="font-size: 1.4rem"> Your network's favorite game </p>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <div class="row">
+                    <div class="col-3 box pl-3 pr-2">
+                        <div class="row pl-1 mr-1">
+                            <img src="https://cdn.akamai.steamstatic.com/steam/apps/548430/header.jpg?t=1639408350">
+                        </div>
+                        <div class="row text-center truncate mt-1">
+                            <p style="font-size: 1.2rem; font-weight: 500;">Deep Rock Galactic</p>
+                        </div>
+                        <div class="row text-center truncate mt-1">
+                            <p>74 friends also play this</p>
+                        </div>
+                        <div class="row text-center truncate">
+                            <p><a href="https://store.steampowered.com/app/548430">Store Page</a></p>
+                        </div>
+                    </div>
+                    <div class="col">
                         <div class="row">
-                            <div class="col">
-                                <div class="col box pl-3 pr-2">
-                                    <div class="row pl-1 mr-1">
-                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxAlsoFromYourCountry"></p> 
-                                    </div>
-                                    <div class="row">
-                                        <p style="bottom: 0">friends are from your country</p>
-                                    </div>
+                            <div class="col box ml-2 mb-2">
+                                <div class="row pl-1 ml-1 mr-1">
+                                    <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxEntireDaysOfPlaytime"></p> 
+                                </div>
+                                <div class="row">
+                                    <p style="bottom: 0">hours played</p>
                                 </div>
                             </div>
+                        </div>  
+                        <div class="row">
+                            <div class="col box ml-2">
+                                <div class="row pl-1 ml-1 mr-1">
+                                    <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxEntireDaysOfPlaytime"></p> 
+                                </div>
+                                <div class="row">
+                                    <p style="bottom: 0">cost per hour</p>
+                                </div>
+                            </div>
+                        </div>  
+                    </div>
+                    <div class="col">
+                        <div class="row">
+                            <div class="col box ml-2 mb-2">
+                                <div class="row pl-1 ml-1 mr-1">
+                                    <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxEntireDaysOfPlaytime"></p> 
+                                </div>
+                                <div class="row">
+                                    <p style="bottom: 0">hours played</p>
+                                </div>
+                            </div>
+                        </div>  
+                        <div class="row">
+                            <div class="col box ml-2">
+                                <div class="row pl-1 ml-1 mr-1">
+                                    <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxEntireDaysOfPlaytime"></p> 
+                                </div>
+                                <div class="row">
+                                    <p style="bottom: 0">average cost per hour</p>
+                                </div>
+                            </div>
+                        </div>  
+                    </div>
+                    <div class="col-3 box ml-2 pl-3">
+                        <div class="row text-center">
+                            <p style="font-size: 1.4rem"> Friends favorite game </p>
                         </div>
-                        <div class="row mt-4">
-                            <div class="col">
-                                <div class="col box pl-3 pr-2">
-                                    <div class="row pl-1 mr-1">
-                                        <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text"  id="statBoxContinentCoverage"></p> 
-                                    </div>
-                                    <div class="row">
-                                        <p style="bottom: 0">continent coverage</p>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="row pl-1 mr-1">
+                            <img src="https://cdn.akamai.steamstatic.com/steam/apps/847370/header.jpg?t=1572638789">
+                        </div>
+                        <div class="row text-center truncate mt-1">
+                            <p style="font-size: 1.2rem; font-weight: 500;">Sunset Overdrive</p>
+                        </div>
+                        <div class="row text-center truncate mt-1">
+                            <p>74 friends play this</p>
+                        </div>
+                        <div class="row text-center truncate">
+                            <p><a href="https://store.steampowered.com/app/847370">Store Page</a></p>
                         </div>
                     </div>
+                </div>
+        </div>
+        
 
-                    <div class="col box ml-2" style="height: 20rem">
-                        <p class="text-center" style="font-size: 1.2rem;">You've got friends from around the world</p>
-                        <div class="row ml-2 mr-2" id="allFlagsDiv"></div>
-                    </div>
+
+        <!-- Oldest and newest user cards -->
+        <div class="row mt-3">
+            <div class="col">
+                <div class="row text-center">
+                    <p style="font-size: 1.4rem"> Oldest User</p>
+                </div>
+                <div class="row">
+                    <!-- User info card -->
+                    <div class="col ml-3 mb-4 box">
+                        <div class="row ml-0">
+                            <div class="col-8">
+                                <div class="row">
+                                    <div class="col mb-2">
+                                        <p id="oldestUserUsername" class="skeleton" style="font-size: 2rem; font-weight: 700; width: 80%; height: 3rem" >
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Real name:
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="oldestUserRealName" style="font-weight: 500" class="skeleton skeleton-text"></p>
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Friends: 
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="oldestUserFriendCount" style="font-weight: 500; width: 90%" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Created:
+                                        </p>
+                                    </div>
+                                    <div class="col truncate">
+                                        <p id="oldestUserCreationDate" style="font-weight: 500" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            SteamID64: 
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="oldestUserSteamID" style="font-weight: 500; width: 83%" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col" id="oldestUserAvatarCol">
+                                <div class="oldestUserProfiler" style="position: relative">
+                                    <img class="mr-1 float-end skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="oldestUserAvatar"></img>
+                                </div>
+                                <div class="oldestUserCountry " style="position: absolute; bottom: 0; left: 12%;">
+                                    <img id="oldestUserCountryFlag" class="float-end" style="width: 50%"></img>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- end user info card -->
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="row text-center ml-2">
+                    <p style="font-size: 1.4rem"> Newest User</p>
+                </div>
+                <div class="row">
+                    <!-- User info card -->
+                    <div class="col ml-3 mb-4 box">
+                        <div class="row ml-0">
+                            <div class="col-8">
+                                <div class="row">
+                                    <div class="col mb-2">
+                                        <p id="newestUserUsername" class="skeleton" style="font-size: 2rem; font-weight: 700; width: 80%; height: 3rem" >
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Real name:
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="newestUserRealName" style="font-weight: 500" class="skeleton skeleton-text"></p>
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Friends: 
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="newestUserFriendCount" style="font-weight: 500; width: 90%" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            Created:
+                                        </p>
+                                    </div>
+                                    <div class="col truncate">
+                                        <p id="newestUserCreationDate" style="font-weight: 500" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <p>
+                                            SteamID64: 
+                                        </p>
+                                    </div>
+                                    <div class="col">
+                                        <p id="newestUserSteamID" style="font-weight: 500; width: 83%" class="skeleton skeleton-text">
+                                            
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col" id="newestUserAvatarCol">
+                                <div class="newestUserProfiler" style="position: relative">
+                                    <img class="mr-1 float-end skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="newestUserAvatar"></img>
+                                </div>
+                                <div class="newestUserCountry " style="position: absolute; bottom: 0; left: 12%;">
+                                    <img id="newestUserCountryFlag" class="float-end" style="width: 50%"></img>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- end user info card -->
                 </div>
             </div>
         </div>
-        
+
+
+
+
         <div class="row" style="height:15rem"></div>
 
         <script src="/static/javascript/graphPage.js" type="module"></script>

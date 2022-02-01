@@ -298,16 +298,17 @@ function fillInGamesStatBoxes(graphData) {
 function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     console.log(graphData)
     let scatterPlotData = []
-    let maxFriendCount = 0
+    let maxAccountAge = 0
 
     graphData.frienddetails.forEach(user => {
         const friends = user.User.friendids.length;
         const accAge = user.User.accdetails.timecreated;
-        if (friends > maxFriendCount) {
-            maxFriendCount = friends
+        let monthsSinceCreation = monthsSince(accAge)
+        if (monthsSinceCreation > maxAccountAge) {
+            maxAccountAge = monthsSinceCreation
         }
         scatterPlotData.push([
-            friends, monthsSince(accAge)
+            friends, monthsSinceCreation
         ])
     })
     console.log(scatterPlotData)
@@ -317,6 +318,9 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
 
     option = {
     xAxis: {
+        axisLabel: {
+            formatter: '{value} friends'
+        },
         axisLine: {
             lineStyle: {
                 color: '#ffffff'
@@ -324,6 +328,9 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
         }
     },
     yAxis: {
+        axisLabel: {
+            formatter: '{value} months'
+        },
         axisLine: {
             lineStyle: {
                 color: '#ffffff'
@@ -339,7 +346,7 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     },
     visualMap: {
         min: 0,
-        max: maxFriendCount,
+        max: maxAccountAge,
         inRange: {
             color: ['#f2c31a', '#24b7f2']
         },
@@ -373,29 +380,19 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
 }
 
 function monthsSince(timestamp) {
-    let d1 = new Date(timestamp * 1000);
-    let d2 = new Date()
-    console.log(`comparing ${d1} tp ${d2}`)
-    // const timeObj = new Date(timestamp * 1000)
-    // let monthDiff;
-    // const currTime = new Date();
-    // monthDiff = (currTime.getFullYear() - timeObj.getFullYear()) * 12
-    // monthDiff += currTime.getMonth()
-    // monthDiff -= timeObj.getMonth()
-    // return monthDiff <= 0 ? 0 : monthDiff
-    var months;
-    months = (d2.getFullYear() - d1.getFullYear()) * 12;
-    months -= d1.getMonth();
-    months += d2.getMonth();
-    console.log(months)
-    return months <= 0 ? 0 : months;
+    const timeObj = new Date(timestamp * 1000)
+    let monthDiff;
+    const currTime = new Date();
+    monthDiff = (currTime.getFullYear() - timeObj.getFullYear()) * 12
+    monthDiff += currTime.getMonth()
+    monthDiff -= timeObj.getMonth()
+    return monthDiff <= 0 ? 0 : monthDiff
 }
 
 function initAndRenderGamesBarChart(barChartData) {
     let app = {};
 
     let chartDom = document.getElementById('gamesBarChartContainer');
-    // var myChart = echarts.init(chartDom, 'dark');
     let myChart = echarts.init(chartDom);
     let option;
 

@@ -23,7 +23,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
             }
         });
         countryFrequenciesArr = Object.entries(countryFrequencies)
-        
+
         // Geographic Stats
         initWorldMap(countryFrequenciesArr)
         fillInFlagsDiv(crawlDataObj.usergraphdata.frienddetails)
@@ -41,6 +41,9 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         userCreatedMonthChart(crawlDataObj.usergraphdata)
         fillInOldestAndNewestUserCards(crawlDataObj.usergraphdata)
         initAndRenderAccountAgeVsFriendCountChart(crawlDataObj.usergraphdata)
+
+        // Three JS bottom test graph
+        initThreeJSGraph(crawlDataObj.usergraphdata)
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
         const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
@@ -106,6 +109,8 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         };
         myChart.setOption(option);
         option && myChart.setOption(option);
+
+
                 }, err => {
                     console.error(`error retrieving processed graph data: ${err}`)
                 })
@@ -527,6 +532,77 @@ function initAndRenderGamesBarChart(barChartData) {
         ]
     };
     option && myChart.setOption(option);
+}
+
+function initThreeJSGraph(crawlData) {
+    let seenNodes = new Map()
+    let nodes = []
+    let links = []
+
+    nodes.push({
+        "id": crawlData.userdetails.User.accdetails.steamid, 
+        "username": crawlData.userdetails.User.accdetails.personaname,
+        "avatar":crawlData.userdetails.User.accdetails.avatar
+    })
+    seenNodes.set(crawlData.userdetails.User.accdetails.steamid, true)
+
+    crawlData.frienddetails.forEach(friend => {
+        nodes.push({
+            "id":friend.User.accdetails.steamid, 
+            "username": friend.User.accdetails.personaname,
+            "avatar":friend.User.accdetails.avatar
+        })
+        seenNodes.set(friend.User.accdetails.steamid, true)
+    })
+
+    crawlData.userdetails.User.friendids.forEach(ID => {
+        links.push({
+            "source": crawlData.userdetails.User.accdetails.steamid,
+            "target": ID
+        })
+    })
+    crawlData.frienddetails.forEach(friend => {
+        friend.User.friendids.forEach(ID => {
+            if (seenNodes.has(ID)) {
+                links.push({
+                    "source": friend.User.accdetails.steamid,
+                    "target": ID
+                })
+            }
+        })
+    })
+
+    const threeJSGraphData = {
+        nodes: nodes,
+        links: links
+    }
+
+    const threeJSGraphDiv = document.getElementById('3d-graph');
+
+    const g = ForceGraph3D()(threeJSGraphDiv)
+        .graphData(threeJSGraphData)
+        .nodeAutoColorBy('user')
+        .nodeThreeObject(({ avatar }) => {
+            const imgTexture = new THREE.TextureLoader().load(avatar);
+            const material = new THREE.SpriteMaterial({ map: imgTexture });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(12, 12);
+            return sprite;
+        })
+        .nodeLabel(node => `${node.username}: ${node.id}`)
+        .onNodeClick(node => {
+            const distance = 90;
+            const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
+
+            g.cameraPosition(
+                { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
+                node, 
+                3000
+            );
+            setTimeout(() => {
+                window.open(`https://steamcommunity.com/profiles/${node.id}`, '_blank')
+            }, 3300)
+        });
 }
 
 // COMMON

@@ -868,12 +868,20 @@
             </div>
         </div>
 
-
-
+        <script src="https://unpkg.com/three"></script>
+        <script src="https://unpkg.com/3d-force-graph"></script>
+        <div class="row mt-3 mb-3">
+            <div class="col box">
+                <div id="3d-graph"></div>
+            </div>
+        </div>
 
         <div class="row" style="height:15rem"></div>
 
         <script src="/static/javascript/graphPage.js" type="module"></script>
+        <script>
+            document.getElementById("3d-graph").style.width = "400%";
+        </script>
     </div>
 </body>
 </html>

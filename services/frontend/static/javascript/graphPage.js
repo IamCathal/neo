@@ -572,13 +572,37 @@ function initThreeJSGraph(crawlData) {
         })
     })
 
+    links.forEach(link => {
+        const src = nodes.filter(node => node.id === link.source)[0];
+        const dst = nodes.filter(node => node.id === link.target)[0];
+
+        if (src.neighbourNodes === undefined) {
+            src.neighbourNodes = []
+        }
+        if (dst.neighbourNodes === undefined) {
+            dst.neighbourNodes = []
+        }
+        if (src.neighbourLinks === undefined) {
+            src.neighbourLinks = []
+        }
+        if (dst.neighbourLinks === undefined) {
+            dst.neighbourLinks = []
+        }
+        src.neighbourNodes.push(dst)
+        dst.neighbourNodes.push(src)
+        src.neighbourLinks.push(link)
+        dst.neighbourLinks.push(link)
+    });
+
     const threeJSGraphData = {
         nodes: nodes,
         links: links
     }
 
     const threeJSGraphDiv = document.getElementById('3d-graph');
-
+    let hoveredNode = null;
+    let highlightedNodes = new Set()
+    let highlightedLinks = new Set()
     const g = ForceGraph3D()(threeJSGraphDiv)
         .graphData(threeJSGraphData)
         .nodeAutoColorBy('user')
@@ -586,7 +610,7 @@ function initThreeJSGraph(crawlData) {
             const imgTexture = new THREE.TextureLoader().load(avatar);
             const material = new THREE.SpriteMaterial({ map: imgTexture });
             const sprite = new THREE.Sprite(material);
-            sprite.scale.set(12, 12);
+            sprite.scale.set(16, 16);
             return sprite;
         })
         .nodeLabel(node => `${node.username}: ${node.id}`)
@@ -602,7 +626,41 @@ function initThreeJSGraph(crawlData) {
             setTimeout(() => {
                 window.open(`https://steamcommunity.com/profiles/${node.id}`, '_blank')
             }, 3300)
+        })
+        .linkWidth(link => highlightedLinks.has(link) ? 4 : 1)
+        .linkColor(link => highlightedLinks.has(link) ? 'green' : 'white')
+        .linkDirectionalParticles(link => highlightedLinks.has(link) ? 8 : 0)
+        .linkDirectionalParticleWidth(3)
+        .linkDirectionalParticleColor(() => 'green')
+        .onNodeHover(node => {
+            if ((!node && !highlightedNodes.size) || (node && hoveredNode === node)) {
+                return;
+            }
+
+            highlightedLinks.clear()
+            highlightedNodes.clear()
+            if (node != undefined && node != false) {
+                highlightedNodes.add(node)
+                node.neighbourNodes.forEach(neighourNode => {
+                    highlightedNodes.add(neighourNode);
+                });
+                node.neighbourLinks.forEach(neighbourLink => {
+                    highlightedLinks.add(neighbourLink)
+                })
+            }
+
+            hoveredNode = node || null;
+
+            g.nodeColor(g.nodeColor())
+                .linkWidth(g.linkWidth())
+                .linkDirectionalParticles(g.linkDirectionalParticles());
         });
+
+    const linkForce = g
+    .d3Force("link")
+    .distance(link => {
+        return 80 + link.source.neighbourNodes.length;
+    });
 }
 
 // COMMON

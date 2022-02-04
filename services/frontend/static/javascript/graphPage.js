@@ -35,6 +35,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         // Games stats
         initAndRenderGamesBarChart(getDataForGamesBarChart(crawlDataObj.usergraphdata))
         fillInGamesStatBoxes(crawlDataObj.usergraphdata)
+        fillInUserAndNetworkFavoriteGameStatBoxes(crawlDataObj.usergraphdata)
 
         // Friend network stats
         userCreatedGraph(crawlDataObj.usergraphdata)
@@ -300,8 +301,35 @@ function fillInGamesStatBoxes(graphData) {
             "statBoxMinWageEarned", "statBoxFriendsWithLessHoursPlayed"])
 }
 
+function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
+    const steamGameInfoAPI = "http://localhost:8088/getgamedetails"
+
+    const usersFavoriteGame = graphData.userdetails.User.gamesowned[0];
+    if (usersFavoriteGame != undefined) {
+        fetch(`${steamGameInfoAPI}/${usersFavoriteGame.appid}`)
+        .then(res => res.json())
+        .then(res => {
+            document.getElementById("userFavoriteGameName").textContent = res[usersFavoriteGame.appid].data.name;
+            document.getElementById("userFavoriteGameImage").src = res[usersFavoriteGame.appid].data.header_image;
+            document.getElementById("userFavoriteGameShopPage").href = res[usersFavoriteGame.appid].data.website
+            const playtimeInHours = Math.floor(usersFavoriteGame.playtime_forever/60)
+            countUpElement('statBoxUsersFavoriteGameHoursPlayed', playtimeInHours)
+            const gameCost = res[usersFavoriteGame.appid].data.price_overview;
+            let costPerHour = 0;
+            if (gameCost) {
+                costPerHour = Math.floor((gameCost.initial/100),playtimeInHours)
+                countUpElement('statBoxUsersFavoriteGamesCostPerHour', costPerHour, {prefix: "€"})
+            } else {
+                document.getElementById("statBoxUsersFavoriteGamesCostPerHour").textContent = 'free'
+            }
+            removeSkeletonClasses(["userFavoriteGameName",
+                "statBoxUsersFavoriteGameHoursPlayed", "statBoxUsersFavoriteGamesCostPerHour"])
+        })
+    }
+}
+
+
 function initAndRenderAccountAgeVsFriendCountChart(graphData) {
-    console.log(graphData)
     let scatterPlotData = []
     let maxAccountAge = 0
 

@@ -576,7 +576,7 @@
                         <div class="col-8">
                             <div class="row">
                                 <div class="col mb-2">
-                                    <p id="highestFriendCountUserUsername" class="skeleton" style="font-size: 2rem; font-weight: 700; width: 80%; height: 3rem" >
+                                    <p id="highestFriendCountUserUsername" class="skeleton truncate" style="font-size: 2rem; font-weight: 700; width: 80%; height: 3rem" >
                                         
                                     </p>
                                 </div>
@@ -712,23 +712,26 @@
                 <div class="row">
                     <div class="col-3 box pl-3 pr-2">
                         <div class="row pl-1 mr-1">
-                            <img src="https://cdn.akamai.steamstatic.com/steam/apps/548430/header.jpg?t=1639408350">
+                            <img 
+                                src="https://cdn.akamai.steamstatic.com/steam/apps/548430/header.jpg?t=1639408350"
+                                id="userFavoriteGameImage"
+                            >
                         </div>
                         <div class="row text-center truncate mt-1">
-                            <p style="font-size: 1.2rem; font-weight: 500;">Deep Rock Galactic</p>
+                            <p id="userFavoriteGameName" style="font-size: 1.2rem; font-weight: 500;">Deep Rock Galactic</p>
                         </div>
                         <div class="row text-center truncate mt-1">
-                            <p>74 friends also play this</p>
+                            <p id="userFavoriteGameXFriendsAlsoPlay">74 friends also play this</p>
                         </div>
                         <div class="row text-center truncate">
-                            <p><a href="https://store.steampowered.com/app/548430">Store Page</a></p>
+                            <p><a id="userFavoriteGameShopPage" href="">Store Page</a></p>
                         </div>
                     </div>
                     <div class="col">
                         <div class="row">
                             <div class="col box ml-2 mb-2">
                                 <div class="row pl-1 ml-1 mr-1">
-                                    <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxEntireDaysOfPlaytime"></p> 
+                                    <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxUsersFavoriteGameHoursPlayed"></p> 
                                 </div>
                                 <div class="row">
                                     <p style="bottom: 0">hours played</p>
@@ -738,7 +741,7 @@
                         <div class="row">
                             <div class="col box ml-2">
                                 <div class="row pl-1 ml-1 mr-1">
-                                    <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxEntireDaysOfPlaytime"></p> 
+                                    <p style="font-size: 4rem; height: 5rem; font-weight: 600" class="skeleton skeleton-text" id="statBoxUsersFavoriteGamesCostPerHour"></p> 
                                 </div>
                                 <div class="row">
                                     <p style="bottom: 0">cost per hour</p>

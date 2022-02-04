@@ -305,8 +305,14 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     let scatterPlotData = []
     let maxAccountAge = 0
 
+    let highestFriendCountUser;
+    let maxFriends = 0;
     graphData.frienddetails.forEach(user => {
         const friends = user.User.friendids.length;
+        if (friends > maxFriends) {
+            highestFriendCountUser = user;
+            maxFriends = friends
+        }
         const accAge = user.User.accdetails.timecreated;
         let monthsSinceCreation = monthsSince(accAge)
         if (monthsSinceCreation > maxAccountAge) {
@@ -316,7 +322,22 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
             friends, monthsSinceCreation
         ])
     })
-    console.log(scatterPlotData)
+    highestFriendCountUser = highestFriendCountUser.User;
+    document.getElementById("highestFriendCountUserUsername").textContent = highestFriendCountUser.accdetails.personaname;
+    document.getElementById("highestFriendCountUserRealName").textContent = "idk";
+    document.getElementById("highestFriendCountUserFriendCount").textContent = highestFriendCountUser.friendids.length;
+    let creationDate = new Date(highestFriendCountUser.accdetails.timecreated*1000);
+    let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
+    let timeSinceString = `(${timezSince(creationDate)} ago)`
+    document.getElementById("highestFriendCountUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
+    document.getElementById("highestFriendCountUserSteamID").textContent = highestFriendCountUser.accdetails.steamid;
+    document.getElementById("highestFriendCountUserAvatar").src = highestFriendCountUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
+   
+    removeSkeletonClasses(["highestFriendCountUserUsername", "highestFriendCountUserRealName", 
+        "highestFriendCountUserFriendCount", "highestFriendCountUserCreationDate", 
+        "highestFriendCountUserSteamID", "highestFriendCountUserAvatar"])
+
+
     let chartDom = document.getElementById('accountAgeVsFriendCountScatterPlot');
     let myChart = echarts.init(chartDom);
     let option;

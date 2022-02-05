@@ -49,7 +49,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         initGamerScore()
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
-        const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
+        const graph = getDataInGraphFormat(crawlDataObj.usergraphdata, countryFrequencies)
         var option;
         myChart.showLoading();
         myChart.hideLoading()
@@ -87,7 +87,12 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
                 // selectedMode: 'single',
                 data: graph.categories.map(function (a) {
                     return a.name;
-                })
+                }),
+                show: true,
+                left: 'left',
+                textStyle: {
+                    color: '#ffffff'
+                }
             }
             ],
             series: [
@@ -135,22 +140,37 @@ function getProcessedGraphData(crawlID) {
     });
 }
 
-function getDataInGraphFormat(gData) {
+function getDataInGraphFormat(gData, countryFrequencies) {
+    const topTenCountryNames = getTopTenCountries(countryFrequencies);
+    console.log(topTenCountryNames)
+    // TODO change to top 10 frequency countries instead
+    let countryCategories = []
+    topTenCountryNames.forEach(countryName => {
+        countryCategories.push({ "name": countryName })
+    })
+    countryCategories.push({"name":"Other"})
     let nodes = []
     let links = []
+
+    let usersCountryName = countryCodeToName(gData.userdetails.User.accdetails.loccountrycode.toUpperCase())
+    let usersCountryCategory = topTenCountryNames.includes(usersCountryName) ? usersCountryName : 'Other';
     nodes.push({
         "id": gData.userdetails.User.accdetails.steamid,
         "name": gData.userdetails.User.accdetails.personaname,
         "value": gData.userdetails.User.accdetails.profileurl,
-        "category": 0,
+        "category": usersCountryCategory,
         "symbol": `image://${gData.userdetails.User.accdetails.avatar}`
     })
+
     gData.frienddetails.forEach((friend) => {
+        let usersCountryName = countryCodeToName(friend.User.accdetails.loccountrycode.toUpperCase())
+        let usersCountryCategory = topTenCountryNames.includes(usersCountryName) ? usersCountryName : 'Other';
+        console.log(`category is: ${usersCountryCategory}`)
         nodes.push({
             "id": friend.User.accdetails.steamid,
             "name": friend.User.accdetails.personaname,
             "value": friend.User.accdetails.profileurl,
-            "category": 0,
+            "category": usersCountryCategory,
             "symbol": `image://${friend.User.accdetails.avatar}`
         });
     });
@@ -165,11 +185,11 @@ function getDataInGraphFormat(gData) {
             })
         })
     }
-
+    
     const echartsData = {
         "nodes": nodes,
         "links": links,
-        "categories": [{"name": "A"}]
+        "categories": countryCategories
     }
     return echartsData
 }

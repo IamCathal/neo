@@ -36,6 +36,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         initAndRenderGamesBarChart(getDataForGamesBarChart(crawlDataObj.usergraphdata))
         fillInGamesStatBoxes(crawlDataObj.usergraphdata)
         fillInUserAndNetworkFavoriteGameStatBoxes(crawlDataObj.usergraphdata)
+        initNetWorkMostHoursPlayedBarChart(crawlDataObj.usergraphdata)
 
         // Friend network stats
         userCreatedGraph(crawlDataObj.usergraphdata)
@@ -142,7 +143,6 @@ function getProcessedGraphData(crawlID) {
 
 function getDataInGraphFormat(gData, countryFrequencies) {
     const topTenCountryNames = getTopTenCountries(countryFrequencies);
-    console.log(topTenCountryNames)
     // TODO change to top 10 frequency countries instead
     let countryCategories = []
     topTenCountryNames.forEach(countryName => {
@@ -165,7 +165,6 @@ function getDataInGraphFormat(gData, countryFrequencies) {
     gData.frienddetails.forEach((friend) => {
         let usersCountryName = countryCodeToName(friend.User.accdetails.loccountrycode.toUpperCase())
         let usersCountryCategory = topTenCountryNames.includes(usersCountryName) ? usersCountryName : 'Other';
-        console.log(`category is: ${usersCountryCategory}`)
         nodes.push({
             "id": friend.User.accdetails.steamid,
             "name": friend.User.accdetails.personaname,
@@ -877,6 +876,53 @@ function fillInFlagsDiv(friends) {
         `;
         i++;
     });
+}
+
+function initNetWorkMostHoursPlayedBarChart(data) {
+    // let chartDom = document.getElementById('networkMostHoursPlayedBarChart');
+    // let myChart = echarts.init(chartDom);
+    // let option;
+
+    // option = {
+    // title: {
+    //     text: 'World Population'
+    // },
+    // tooltip: {
+    //     trigger: 'axis',
+    //     axisPointer: {
+    //     type: 'shadow'
+    //     }
+    // },
+    // legend: {},
+    // grid: {
+    //     left: '3%',
+    //     right: '4%',
+    //     bottom: '3%',
+    //     containLabel: true
+    // },
+    // xAxis: {
+    //     type: 'value',
+    //     boundaryGap: [0, 0.01]
+    // },
+    // yAxis: {
+    //     type: 'category',
+    //     data: ['Brazil', 'Indonesia', 'USA', 'India', 'China', 'World']
+    // },
+    // series: [
+    //     {
+    //     name: '2011',
+    //     type: 'bar',
+    //     data: [18203, 23489, 29034, 104970, 131744, 630230]
+    //     },
+    //     {
+    //     name: '2012',
+    //     type: 'bar',
+    //     data: [19325, 23438, 31000, 121594, 134141, 681807]
+    //     }
+    // ]
+    // };
+
+    // option && myChart.setOption(option);
 }
 
 function fillInTopStatBoxes(graphData, countryFreqs) {

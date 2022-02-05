@@ -46,70 +46,70 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         // Three JS bottom test graph
         initThreeJSGraph(crawlDataObj.usergraphdata)
 
-        var myChart = echarts.init(document.getElementById('graphContainer'));
-        const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
-        var option;
-        myChart.showLoading();
-        myChart.hideLoading()
-        graph.nodes.forEach(function (node) {
-            node.symbolSize = 10;
-        });
-        option = {
-            title: {
-                text: 'Your friend network',
-                subtext: 'Default layout',
-                top: 'bottom',
-                left: 'right',
-                textStyle: {
-                    color: '#ffffff'
-                }
-            },
+        // var myChart = echarts.init(document.getElementById('graphContainer'));
+        // const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
+        // var option;
+        // myChart.showLoading();
+        // myChart.hideLoading()
+        // graph.nodes.forEach(function (node) {
+        //     node.symbolSize = 10;
+        // });
+        // option = {
+        //     title: {
+        //         text: 'Your friend network',
+        //         subtext: 'Default layout',
+        //         top: 'bottom',
+        //         left: 'right',
+        //         textStyle: {
+        //             color: '#ffffff'
+        //         }
+        //     },
 
-            tooltip: {
-                show: true,
-                showContent: true,
-                triggerOn: 'click',
-                enterable: true,
-                renderMode: 'html',
-                formatter: function(params, ticket, callback) {
-                    return `<div>
-                                <p style="font-weight: bold" class="tooltipText">${params["name"]}:</p> 
-                                <a href="${params["data"].value}" target="_blank">
-                                    <button class="tooltipButton">Profile</button>
-                                </a>
-                            </div>`
-                }
-            },
-            legend: [
-            {
-                // selectedMode: 'single',
-                data: graph.categories.map(function (a) {
-                    return a.name;
-                })
-            }
-            ],
-            series: [
-            {
-                name: 'Friend Network',
-                type: 'graph',
-                layout: 'force',
-                data: graph.nodes,
-                links: graph.links,
-                categories: graph.categories,
-                roam: true,
-                label: {
-                    position: 'right'
-                },
-                force: {
-                    gravity: 0.5,
-                    repulsion: 370,
-                    friction: 0.2,
-                }
-            }
-            ]
-        };
-        myChart.setOption(option);
-        option && myChart.setOption(option);
+        //     tooltip: {
+        //         show: true,
+        //         showContent: true,
+        //         triggerOn: 'click',
+        //         enterable: true,
+        //         renderMode: 'html',
+        //         formatter: function(params, ticket, callback) {
+        //             return `<div>
+        //                         <p style="font-weight: bold" class="tooltipText">${params["name"]}:</p> 
+        //                         <a href="${params["data"].value}" target="_blank">
+        //                             <button class="tooltipButton">Profile</button>
+        //                         </a>
+        //                     </div>`
+        //         }
+        //     },
+        //     legend: [
+        //     {
+        //         // selectedMode: 'single',
+        //         data: graph.categories.map(function (a) {
+        //             return a.name;
+        //         })
+        //     }
+        //     ],
+        //     series: [
+        //     {
+        //         name: 'Friend Network',
+        //         type: 'graph',
+        //         layout: 'force',
+        //         data: graph.nodes,
+        //         links: graph.links,
+        //         categories: graph.categories,
+        //         roam: true,
+        //         label: {
+        //             position: 'right'
+        //         },
+        //         force: {
+        //             gravity: 0.5,
+        //             repulsion: 370,
+        //             friction: 0.2,
+        //         }
+        //     }
+        //     ]
+        // };
+        // myChart.setOption(option);
+        // option && myChart.setOption(option);
 
 
                 }, err => {
@@ -312,18 +312,67 @@ function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
             document.getElementById("userFavoriteGameName").textContent = res[usersFavoriteGame.appid].data.name;
             document.getElementById("userFavoriteGameImage").src = res[usersFavoriteGame.appid].data.header_image;
             document.getElementById("userFavoriteGameShopPage").href = res[usersFavoriteGame.appid].data.website
+            
             const playtimeInHours = Math.floor(usersFavoriteGame.playtime_forever/60)
             countUpElement('statBoxUsersFavoriteGameHoursPlayed', playtimeInHours)
             const gameCost = res[usersFavoriteGame.appid].data.price_overview;
+
+            let friendsWhoPlayUsersFavoriteGame = 0
+            graphData.frienddetails.forEach(user => {
+                const friend = user.User;
+                friend.gamesowned.forEach(game => {
+                    if (game.appid === usersFavoriteGame.appid) {
+                        friendsWhoPlayUsersFavoriteGame++
+                    }
+                })
+            })
+            document.getElementById("userFavoriteGameXFriendsAlsoPlay").textContent = `${friendsWhoPlayUsersFavoriteGame} friends also play this`;
+
             let costPerHour = 0;
             if (gameCost) {
-                costPerHour = Math.floor((gameCost.initial/100),playtimeInHours)
-                countUpElement('statBoxUsersFavoriteGamesCostPerHour', costPerHour, {prefix: "€"})
-            } else {
-                document.getElementById("statBoxUsersFavoriteGamesCostPerHour").textContent = 'free'
+                costPerHour = ((gameCost.initial/100)/playtimeInHours).toFixed(2);
             }
-            removeSkeletonClasses(["userFavoriteGameName",
-                "statBoxUsersFavoriteGameHoursPlayed", "statBoxUsersFavoriteGamesCostPerHour"])
+            document.getElementById('statBoxUsersFavoriteGamesCostPerHour').textContent = `€${costPerHour}`
+
+            removeSkeletonClasses(["userFavoriteGameName", "statBoxUsersFavoriteGameHoursPlayed", 
+                "statBoxUsersFavoriteGamesCostPerHour", "userFavoriteGameXFriendsAlsoPlay",
+                "userFavoriteGameImage"])
+        })
+    }
+
+    const networksFavoriteGame = graphData.topgamedetails[0]
+    if (networksFavoriteGame != undefined) {
+        fetch(`${steamGameInfoAPI}/${networksFavoriteGame.appid}`)
+        .then(res => res.json())
+        .then(res => {
+            document.getElementById("networkFavoriteGameName").textContent = res[networksFavoriteGame.appid].data.name;
+            document.getElementById("networkFavoriteGameImage").src = res[networksFavoriteGame.appid].data.header_image;
+            document.getElementById("networkFavoriteGameShopPage").href = res[networksFavoriteGame.appid].data.website
+            
+            let hoursPlayedByNetwork = []
+            graphData.frienddetails.forEach(user => {
+                const friend = user.User;
+                friend.gamesowned.forEach(game => {
+                    if (game.appid === networksFavoriteGame.appid) {
+                        hoursPlayedByNetwork.push(Math.floor(game.playtime_forever/60))
+                    }
+                })
+            })
+            const totalHoursByNetwork = hoursPlayedByNetwork.reduce((sum, hours) => sum += hours, 0);
+            countUpElement('statBoxNetworksFavoriteGameHoursPlayed', totalHoursByNetwork)
+            const gameCost = res[networksFavoriteGame.appid].data.price_overview;
+            document.getElementById("networkFavoriteGameXFriendsAlsoPlay").textContent = `${hoursPlayedByNetwork.length} friends play this`;
+            
+            let costPerHour = 0;
+            if (gameCost) {
+                const totalCostOfGames = (gameCost.initial/100) * hoursPlayedByNetwork.length
+                costPerHour = (totalCostOfGames/totalHoursByNetwork).toFixed(2);
+            }
+            document.getElementById('statBoxNetworksFavoriteGameCostPerHourAverage').textContent = `€${costPerHour}`
+
+            removeSkeletonClasses(["networkFavoriteGameName", "statBoxNetworksFavoriteGameHoursPlayed", 
+                "statBoxNetworksFavoriteGameCostPerHourAverage", "networkFavoriteGameXFriendsAlsoPlay",
+                "networkFavoriteGameImage"])
         })
     }
 }

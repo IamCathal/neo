@@ -42,6 +42,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
 	r.HandleFunc("/createcrawlingstatus", endpoints.CreateCrawlingStatus).Methods("POST")
+	r.HandleFunc("/getgamedetails/{appid}", endpoints.GetGameDetails).Methods("GET")
 
 	r.Use(endpoints.LoggingMiddleware)
 
@@ -204,6 +205,21 @@ func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, string(res))
+}
+
+func (endpoints *Endpoints) GetGameDetails(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	targetURL := fmt.Sprintf("https://store.steampowered.com/api/appdetails?appids=%s", vars["appid"])
+	res, err := util.GetAndRead(targetURL)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "could not get game details", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Warnf("could not get game details %s: %v", vars["appid"], err)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(res))

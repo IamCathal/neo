@@ -46,70 +46,70 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         // Three JS bottom test graph
         initThreeJSGraph(crawlDataObj.usergraphdata)
 
-        // var myChart = echarts.init(document.getElementById('graphContainer'));
-        // const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
-        // var option;
-        // myChart.showLoading();
-        // myChart.hideLoading()
-        // graph.nodes.forEach(function (node) {
-        //     node.symbolSize = 10;
-        // });
-        // option = {
-        //     title: {
-        //         text: 'Your friend network',
-        //         subtext: 'Default layout',
-        //         top: 'bottom',
-        //         left: 'right',
-        //         textStyle: {
-        //             color: '#ffffff'
-        //         }
-        //     },
+        var myChart = echarts.init(document.getElementById('graphContainer'));
+        const graph = getDataInGraphFormat(crawlDataObj.usergraphdata)
+        var option;
+        myChart.showLoading();
+        myChart.hideLoading()
+        graph.nodes.forEach(function (node) {
+            node.symbolSize = 10;
+        });
+        option = {
+            title: {
+                text: 'Your friend network',
+                subtext: 'Default layout',
+                top: 'bottom',
+                left: 'right',
+                textStyle: {
+                    color: '#ffffff'
+                }
+            },
 
-        //     tooltip: {
-        //         show: true,
-        //         showContent: true,
-        //         triggerOn: 'click',
-        //         enterable: true,
-        //         renderMode: 'html',
-        //         formatter: function(params, ticket, callback) {
-        //             return `<div>
-        //                         <p style="font-weight: bold" class="tooltipText">${params["name"]}:</p> 
-        //                         <a href="${params["data"].value}" target="_blank">
-        //                             <button class="tooltipButton">Profile</button>
-        //                         </a>
-        //                     </div>`
-        //         }
-        //     },
-        //     legend: [
-        //     {
-        //         // selectedMode: 'single',
-        //         data: graph.categories.map(function (a) {
-        //             return a.name;
-        //         })
-        //     }
-        //     ],
-        //     series: [
-        //     {
-        //         name: 'Friend Network',
-        //         type: 'graph',
-        //         layout: 'force',
-        //         data: graph.nodes,
-        //         links: graph.links,
-        //         categories: graph.categories,
-        //         roam: true,
-        //         label: {
-        //             position: 'right'
-        //         },
-        //         force: {
-        //             gravity: 0.5,
-        //             repulsion: 370,
-        //             friction: 0.2,
-        //         }
-        //     }
-        //     ]
-        // };
-        // myChart.setOption(option);
-        // option && myChart.setOption(option);
+            tooltip: {
+                show: true,
+                showContent: true,
+                triggerOn: 'click',
+                enterable: true,
+                renderMode: 'html',
+                formatter: function(params, ticket, callback) {
+                    return `<div>
+                                <p style="font-weight: bold" class="tooltipText">${params["name"]}:</p> 
+                                <a href="${params["data"].value}" target="_blank">
+                                    <button class="tooltipButton">Profile</button>
+                                </a>
+                            </div>`
+                }
+            },
+            legend: [
+            {
+                // selectedMode: 'single',
+                data: graph.categories.map(function (a) {
+                    return a.name;
+                })
+            }
+            ],
+            series: [
+            {
+                name: 'Friend Network',
+                type: 'graph',
+                layout: 'force',
+                data: graph.nodes,
+                links: graph.links,
+                categories: graph.categories,
+                roam: true,
+                label: {
+                    position: 'right'
+                },
+                force: {
+                    gravity: 0.5,
+                    repulsion: 370,
+                    friction: 0.2,
+                }
+            }
+            ]
+        };
+        myChart.setOption(option);
+        option && myChart.setOption(option);
 
 
                 }, err => {
@@ -865,10 +865,9 @@ function fillInTopStatBoxes(graphData, countryFreqs) {
     countUpElement('statBoxUniqueCountries', uniqueCountryCodes.length)
     countUpElement('statBoxGlobalCoverage', Math.floor((uniqueCountryCodes.length/UNCountries)*100), {suffix: "%"})
     countUpElement('statBoxDictatorships', ruledByDictatorCountries(uniqueCountryCodes))
-    countUpElement('statBoxContinentCoverage', getContinentCoverage(countryFreqs), {suffix: "%"})
 
     removeSkeletonClasses(["statBoxFriendCount", "statBoxUniqueCountries", 
-            "statBoxGlobalCoverage", "statBoxDictatorships", "statBoxContinentCoverage"])
+            "statBoxGlobalCoverage", "statBoxDictatorships"])
 }
 
 function fillInFromYourCountryStatBox(graphDataObj, countryFreq) {

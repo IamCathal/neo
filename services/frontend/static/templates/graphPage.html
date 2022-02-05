@@ -797,21 +797,28 @@
                     </div>
                 </div>
         </div>
-        
-        <script src="https://unpkg.com/three"></script>
-        <script src="https://unpkg.com/3d-force-graph"></script>
-        <div class="row mt-3 mb-3">
-            <div class="col box">
-                <div id="3d-graph"></div>
+
+        <div class="row mt-5 mb-3">
+            <div class="col"></div>
+            <div class="col-5 box" style="height:27rem">
+                <div class="row text-center">
+                    <p style="font-size: 1.4rem">Overall Gamer Score™</p>
+                </div>
+                <div class="row">
+                    <div class="col" id="gamerScore" style="height: 38rem"></div>
+                </div>
             </div>
+            <div class="col"></div>
         </div>
 
-        <div class="row" style="height:15rem"></div>
-
-        <script src="/static/javascript/graphPage.js" type="module"></script>
-        <script>
-            document.getElementById("3d-graph").style.width = "400%";
-        </script>
     </div>
+
+    </div>
+    </div>
+
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/3d-force-graph"></script>
+    <div id="3d-graph"></div>
+    <script src="/static/javascript/graphPage.js" type="module"></script>
 </body>
 </html>

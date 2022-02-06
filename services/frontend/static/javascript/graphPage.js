@@ -314,8 +314,7 @@ function fillInGamesStatBoxes(graphData) {
                 friendsWithLessHoursPlayed++
             }
         })
-        
-        percentageOfFriendsWithLessHoursPlayed = Math.floor(friendsWithLessHoursPlayed / graphData.frienddetails.length)
+        percentageOfFriendsWithLessHoursPlayed = Math.floor((friendsWithLessHoursPlayed / graphData.frienddetails.length) * 100)
     }
 
     countUpElement("statBoxHoursAcrossLibrary", totalHoursPlayedForUser)

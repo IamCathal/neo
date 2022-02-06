@@ -36,7 +36,9 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         initAndRenderGamesBarChart(getDataForGamesBarChart(crawlDataObj.usergraphdata))
         fillInGamesStatBoxes(crawlDataObj.usergraphdata)
         fillInUserAndNetworkFavoriteGameStatBoxes(crawlDataObj.usergraphdata)
-        initNetWorkMostHoursPlayedBarChart(crawlDataObj.usergraphdata)
+        let usersLeaderboard = getMostHoursPlayedStats(crawlDataObj.usergraphdata)
+        fillInHoursPlayedLeaderboard(usersLeaderboard)
+        initNetWorkMostHoursPlayedBarChart(usersLeaderboard)
 
         // Friend network stats
         userCreatedGraph(crawlDataObj.usergraphdata)
@@ -878,56 +880,190 @@ function fillInFlagsDiv(friends) {
     });
 }
 
-function initNetWorkMostHoursPlayedBarChart(data) {
-    console.log("yipeee")
+function getMostHoursPlayedStats(graphData) {
+    let allUsers = []
+    
+    const mainUserObj = {
+        "username": graphData.userdetails.User.accdetails.personaname,
+        "profiler": graphData.userdetails.User.accdetails.avatar,
+        "profileURL": graphData.userdetails.User.accdetails.profileurl,
+        "hours": getHoursPlayedForUser(graphData.userdetails.User)
+    }
+    allUsers.push(mainUserObj)
+
+    graphData.frienddetails.forEach(user => {
+        const friend = user.User;
+        allUsers.push({
+            "username": friend.accdetails.personaname,
+            "profiler": friend.accdetails.avatar,
+            "profileURL": friend.accdetails.profileurl,
+            "hours": getHoursPlayedForUser(friend)
+        })
+    }) 
+
+    allUsers.sort(function(userOne, userTwo) {
+        return userOne.hours < userTwo.hours
+    })
+
+    for (let i = 0; i < allUsers.length; i++) {
+        const currUser = allUsers[i]
+        if (currUser.avatar === graphData.userdetails.User.accdetails.avatar &&
+            currUser.username === graphData.userdetails.User.accdetails.personaname) {
+
+                let topEightUsers = allUsers.length >= 8 ? allUsers.slice(0, 8) : allUsers;
+                console.log("in top 8")
+                const returnObj = {
+                        "users": topEightUsers
+                }
+                return returnObj
+        }
+    }
+    console.log("not in top 8")
+    // The main user is not in the top 8. Include them to be displayed seperately
+    let topEightUsers = allUsers.length >= 8 ? allUsers.slice(0, 8) : allUsers;
+    const returnObj = {
+        "users": topEightUsers,
+        "mainUser": mainUserObj
+    }
+    return returnObj
+}
+
+function getHoursPlayedForUser(user) {
+    let totalHours = 0
+    user.gamesowned.forEach(game => {
+        totalHours += Math.floor(game.playtime_forever/60)
+    })
+    return totalHours
+}
+
+function fillInHoursPlayedLeaderboard(leaderboardData) {
+    let htmlContent = ``
+    const backgroundColors = ['#292929', '#414141']
+    let i = 0;
+    leaderboardData.users.forEach(user => {
+        htmlContent += `
+        <div class="row justify-content-start mt-1 pb-1" style="font-size: 1.07rem; border-radius: 6px; background-color:${backgroundColors[i%backgroundColors.length]}; border-color: white;">
+                    <div class="col-1 truncate pt-1 text-center">
+                        ${i+1}.
+                    </div>
+                    <div class="col-1 text-center">
+                        <a href="${user.profileURL}">
+                            <img
+                                src="${user.profiler}"
+                                style="height: 100%; width: auto"
+                            >
+                        </a>
+                    </div>
+                    <div class="col-8 truncate pt-1">
+                        ${user.username}
+                    </div>
+                    <div class="col-2 truncate pt-1">
+                        ${user.hours}
+                    </div>
+                </div>`
+        i++
+    })
+    
+    if (leaderboardData.mainUser != undefined) {
+        htmlContent += `
+        <div class="row mt-3 mb-0 justify-content-start mt-1 pb-1" style="font-size: 1.07rem; border: 2px solid white; border-radius: 6px; background-color:${backgroundColors[i%backgroundColors.length]}; border-color: white;">
+                    <div class="col-1 truncate pt-1 text-center">
+                        
+                    </div>
+                    <div class="col-1 text-center">
+                        <a href="${leaderboardData.mainUser.profileURL}">
+                            <img
+                                src="${leaderboardData.mainUser.profiler}"
+                                style="height: 100%; width: auto"
+                            >
+                        </a>
+                    </div>
+                    <div class="col-8 truncate pt-1">
+                        ${leaderboardData.mainUser.username}
+                    </div>
+                    <div class="col-2 truncate pt-1">
+                        ${leaderboardData.mainUser.hours}
+                    </div>
+                </div>`
+    }
+    document.getElementById("hoursPlayedLeaderboard").innerHTML = htmlContent;
+}
+
+function initNetWorkMostHoursPlayedBarChart(chartData) {
+
     let chartDom = document.getElementById('networkMostHoursPlayedBarChart');
     let myChart = echarts.init(chartDom);
     let option;
+    let app = {}
+
+    let usernames = []
+    let hoursPlayed = []
+
+    chartData.users.forEach(user => {
+
+        usernames.unshift(user.username)
+        hoursPlayed.unshift(user.hours)
+    })
+
+    app.config = {
+        rotate: 0,
+        horizontalAlign: 'middle',
+        align: 'left',
+        distance: 0
+    }
+    const labelOption = {
+        show: true,
+        distance: app.config.distance,
+        rotate: app.config.rotate,
+        verticalAlign: app.config.verticalAlign,
+        align: app.config.align,
+        position: app.config.position,
+        formatter: '{b}',
+    }
 
     option = {
-    title: {
-        text: 'World Population',
-        textStyle: {
-            color: '#ffffff'
-        }
-    },
-    tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-            type: 'shadow'
-        }
-    },
-    legend: {},
-    grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true
-    },
-    xAxis: {
-        type: 'value',
-        boundaryGap: [0, 0.01],
-        axisLine: {
-            lineStyle: {
+        title: {
+            text: 'Most hours played chart',
+            textStyle: {
                 color: '#ffffff'
             }
-        }
-    },
-    yAxis: {
-        type: 'category',
-        data: ['Brazil', 'Indonesia', 'USA', 'India', 'China', 'World'],
-        axisLine: {
-            lineStyle: {
-                color: '#ffffff'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
             }
-        }
-    },
-    series: [
-        {
-        type: 'bar',
-        data: [18203, 23489, 29034, 104970, 131744, 630230]
-        }
-    ]
+        },
+        legend: {},
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'value',
+            boundaryGap: [0, 0.01],
+            axisLine: {
+                lineStyle: {
+                    color: '#ffffff'
+                }
+            }
+        },
+        yAxis: {
+            type: 'category',
+            data: usernames,
+            axisLabel: {
+                show: false
+            }
+        },
+        series: [{
+                type: 'bar',
+                data: hoursPlayed,
+                label: labelOption,
+                barWidth: '87%',
+                barCategoryGap: '115%'
+            }]
     };
 
     option && myChart.setOption(option);

@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -566,6 +567,14 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
+	responseType := r.URL.Query().Get("responsetype")
+	fmt.Println(responseType)
+	if responseType != "json" {
+		if responseType != "" {
+			util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
+			return
+		}
+	}
 
 	usersProcessedGraphData, err := endpoints.Cntr.GetProcessedGraphData(vars["crawlid"])
 	if err != nil {
@@ -585,10 +594,19 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 		panic(logMsg)
 	}
 
-	w.Header().Set("Content-Length", strconv.Itoa(len(string(jsonResponse))+1))
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	switch responseType {
+	case "json":
+		w.Header().Set("Content-Length", strconv.Itoa(len(string(jsonResponse))+1))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	default:
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Content-Type", "application/javascript")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		gz.Write(jsonResponse)
+	}
 }
 
 func (endpoints *Endpoints) DoesProcessedGraphDataExist(w http.ResponseWriter, r *http.Request) {

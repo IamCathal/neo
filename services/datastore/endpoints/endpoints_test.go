@@ -927,7 +927,7 @@ func TestGetProcessedGraphData(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s?responsetype=json", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -957,7 +957,7 @@ func TestGetProcessedGraphDataReturnsInvalidInputForInvalidFormatCrawlID(t *test
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s?responsetype=json", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -983,7 +983,7 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s?responsetype=json", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}

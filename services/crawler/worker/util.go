@@ -223,8 +223,8 @@ func getTopTwentyOrFewerGames(allGames []common.Game) []common.Game {
 		return allGames[i].PlaytimeForever > allGames[j].PlaytimeForever
 	})
 
-	if len(allGames) >= 20 {
-		return gamesRankedByPlayTime[:20]
+	if len(allGames) >= 50 {
+		return gamesRankedByPlayTime[:50]
 	}
 
 	return gamesRankedByPlayTime

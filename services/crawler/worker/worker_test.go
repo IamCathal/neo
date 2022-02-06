@@ -471,9 +471,9 @@ func TestGetTopTwentyOrFewerGames(t *testing.T) {
 	assert.Len(t, sortedGames, 2)
 }
 
-func TestGetTopTwentyOrFewerGamesOnlyReturnsTwentyOrFewerGames(t *testing.T) {
+func TestGetTopTwentyOrFewerGamesOnlyReturnsFiftyOrFewerGames(t *testing.T) {
 	gamesList := []common.Game{}
-	for i := 0; i < 22; i++ {
+	for i := 0; i < 52; i++ {
 		gamesList = append(gamesList, common.Game{
 			Appid:           i,
 			PlaytimeForever: i,
@@ -482,7 +482,7 @@ func TestGetTopTwentyOrFewerGamesOnlyReturnsTwentyOrFewerGames(t *testing.T) {
 
 	sortedGames := getTopTwentyOrFewerGames(gamesList)
 
-	assert.Len(t, sortedGames, 20)
+	assert.Len(t, sortedGames, 50)
 }
 
 func TestGetTopTwentyOrFewerGamesOnlyReturnsNothingWhenNoGamesAreGiven(t *testing.T) {

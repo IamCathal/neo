@@ -82,8 +82,8 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
 		log.Fatal(err)
 	}
-	topTwentyOrFewerTopPlayedGames := getTopTwentyOrFewerGames(allGamesOwnedForCurrentUser)
-	topTwentyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topTwentyOrFewerTopPlayedGames)
+	topFiftyOrFewerTopPlayedGames := getTopTwentyOrFewerGames(allGamesOwnedForCurrentUser)
+	topFiftyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topFiftyOrFewerTopPlayedGames)
 	// topTwentyOrFewerGamesSlimmedDown := GetSlimmedDownGames(topTwentyOrFewerTopPlayedGames)
 
 	friendPlayerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
@@ -106,7 +106,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	publicFriendCount := len(friendsList) - privateFriendCount
 	logMsg := fmt.Sprintf("Got data for [%s][%s][%s][%d public %d private friends][%d games]",
 		playerSummaryForCurrentUser.Steamid, playerSummaryForCurrentUser.Personaname, playerSummaryForCurrentUser.Loccountrycode,
-		publicFriendCount, privateFriendCount, len(topTwentyOrFewerTopPlayedGames))
+		publicFriendCount, privateFriendCount, len(topFiftyOrFewerGamesOwnedSlimmedDown))
 	configuration.Logger.Info(logMsg)
 
 	// Save game details to DB
@@ -127,7 +127,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 				Loccountrycode: playerSummaryForCurrentUser.Loccountrycode,
 			},
 			FriendIDs:  friendPlayerSummarySteamIDs,
-			GamesOwned: topTwentyOrFewerGamesOwnedSlimmedDown,
+			GamesOwned: topFiftyOrFewerGamesOwnedSlimmedDown,
 		},
 		// GamesOwnedFull: topTwentyOrFewerGamesSlimmedDown,
 	}

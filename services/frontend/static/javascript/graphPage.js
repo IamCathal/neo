@@ -902,9 +902,8 @@ function getMostHoursPlayedStats(graphData) {
             "hours": getHoursPlayedForUser(friend)
         })
     }) 
-
     allUsers.sort(function(userOne, userTwo) {
-        return userOne.hours < userTwo.hours
+        return userOne.hours < userTwo.hours ? 1 : userTwo.hours < userOne.hours ? -1 : 0
     })
 
     for (let i = 0; i < allUsers.length; i++) {
@@ -913,14 +912,12 @@ function getMostHoursPlayedStats(graphData) {
             currUser.username === graphData.userdetails.User.accdetails.personaname) {
 
                 let topEightUsers = allUsers.length >= 8 ? allUsers.slice(0, 8) : allUsers;
-                console.log("in top 8")
                 const returnObj = {
                         "users": topEightUsers
                 }
                 return returnObj
         }
     }
-    console.log("not in top 8")
     // The main user is not in the top 8. Include them to be displayed seperately
     let topEightUsers = allUsers.length >= 8 ? allUsers.slice(0, 8) : allUsers;
     const returnObj = {

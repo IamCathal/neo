@@ -134,6 +134,9 @@ function getProcessedGraphData(crawlID) {
     return new Promise((resolve, reject) => {
         fetch(`http://localhost:2590/api/getprocessedgraphdata/${crawlID}`, {
             method: "POST",
+            headers: {
+                'Accept-Encoding': 'gzip'
+            }
         }).then(res => res.json())
         .then(data => {
             resolve(data)

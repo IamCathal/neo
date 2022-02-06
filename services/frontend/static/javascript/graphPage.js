@@ -426,18 +426,18 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     })
     highestFriendCountUser = highestFriendCountUser.User;
     document.getElementById("highestFriendCountUserUsername").textContent = highestFriendCountUser.accdetails.personaname;
-    document.getElementById("highestFriendCountUserRealName").textContent = "idk";
+    document.getElementById("userCountry").textContent = countryCodeToName(highestFriendCountUser.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(highestFriendCountUser.accdetails.loccountrycode);
     document.getElementById("highestFriendCountUserFriendCount").textContent = highestFriendCountUser.friendids.length;
     let creationDate = new Date(highestFriendCountUser.accdetails.timecreated*1000);
     let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
     let timeSinceString = `(${timezSince(creationDate)} ago)`
     document.getElementById("highestFriendCountUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
-    document.getElementById("highestFriendCountUserSteamID").textContent = highestFriendCountUser.accdetails.steamid;
+    document.getElementById("highestFriendCountUserProfile").innerHTML = `<a href="${highestFriendCountUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("highestFriendCountUserAvatar").src = highestFriendCountUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
    
-    removeSkeletonClasses(["highestFriendCountUserUsername", "highestFriendCountUserRealName", 
+    removeSkeletonClasses(["highestFriendCountUserUsername", "highestFriendCountUserCountry", 
         "highestFriendCountUserFriendCount", "highestFriendCountUserCreationDate", 
-        "highestFriendCountUserSteamID", "highestFriendCountUserAvatar"])
+        "highestFriendCountUserCountry", "highestFriendCountUserAvatar", "highestFriendCountUserProfile"])
 
 
     let chartDom = document.getElementById('accountAgeVsFriendCountScatterPlot');
@@ -1507,29 +1507,29 @@ function fillInOldestAndNewestUserCards(graphData) {
     const newestUser = allFriends[allFriends.length-1].User
 
     document.getElementById("oldestUserUsername").textContent = oldestUser.accdetails.personaname;
-    document.getElementById("oldestUserRealName").textContent = "idk";
+    document.getElementById("oldestUserCountry").textContent = countryCodeToName(oldestUser.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(oldestUser.accdetails.loccountrycode);
     document.getElementById("oldestUserFriendCount").textContent = oldestUser.friendids.length;
     let creationDate = new Date(oldestUser.accdetails.timecreated*1000);
     let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
     let timeSinceString = `(${timezSince(creationDate)} ago)`
     document.getElementById("oldestUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
-    document.getElementById("oldestUserSteamID").textContent = oldestUser.accdetails.steamid;
+    document.getElementById("oldestUserProfile").innerHTML = `<a href="${oldestUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("oldestUserAvatar").src = oldestUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
 
     document.getElementById("newestUserUsername").textContent = newestUser.accdetails.personaname;
-    document.getElementById("newestUserRealName").textContent = "idk";
+    document.getElementById("newestUserCountry").textContent = countryCodeToName(newestUser.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(newestUser.accdetails.loccountrycode);
     document.getElementById("newestUserFriendCount").textContent = newestUser.friendids.length;
     creationDate = new Date(newestUser.accdetails.timecreated*1000);
     dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
     timeSinceString = `(${timezSince(creationDate)} ago)`
     document.getElementById("newestUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
-    document.getElementById("newestUserSteamID").textContent = newestUser.accdetails.steamid;
+    document.getElementById("newestUserProfile").innerHTML = `<a href="${newestUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("newestUserAvatar").src = newestUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
 
-    removeSkeletonClasses(["oldestUserUsername", "oldestUserRealName", 
-    "oldestUserFriendCount", "oldestUserCreationDate", "oldestUserSteamID", "oldestUserAvatar",
-    "newestUserUsername", "newestUserRealName", "newestUserFriendCount", "newestUserCreationDate",
-    "newestUserSteamID", "newestUserAvatar"])
+    removeSkeletonClasses(["oldestUserUsername", "oldestUserCountry", 
+    "oldestUserFriendCount", "oldestUserCreationDate", "oldestUserProfile", "oldestUserAvatar",
+    "newestUserUsername", "newestUserCountry", "newestUserFriendCount", "newestUserCreationDate",
+    "newestUserProfile", "newestUserAvatar"])
 }
 
 function getTopTenCountries(countriesFreq) {

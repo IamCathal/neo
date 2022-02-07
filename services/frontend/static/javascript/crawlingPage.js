@@ -1,10 +1,11 @@
 import { setUserCardDetails } from '/static/javascript/userCard.js';
 import { initAndMonitorCrawlingStatusWebsocket } from '/static/javascript/crawlingStatusUpdatesFeed.js'
 
-const URLarr = window.location.href.split("/");
-const crawlID = URLarr[URLarr.length-1];
 
-doesProcessedGraphDataExist(crawlID).then(doesExist => {
+const crawlIDs = getCrawlIDs()
+console.log(`got crawlIDs: ${crawlIDs}`)
+
+doesProcessedGraphDataExist(crawlIDs[0]).then(doesExist => {
     if (doesExist) {
         console.log("did exist")
         // forward to that page
@@ -12,7 +13,7 @@ doesProcessedGraphDataExist(crawlID).then(doesExist => {
     } else {
     console.log("no exist")
     // subscribe to crawling status updates
-    initAndMonitorCrawlingStatusWebsocket(crawlID)
+    initAndMonitorCrawlingStatusWebsocket(crawlIDs[0])
     getCrawlingUserWhenAvailable().then(res => {}, err => {
         console.error(`error getting crawling user: ${err}`)
     })
@@ -79,6 +80,21 @@ function usersCrawledIsMoreThanZero() {
         return true
     }
     return false
+}
+
+function getCrawlIDs() {
+    const URLarr = window.location.href.split("/");
+    let firstCrawlID = URLarr[URLarr.length-1];
+
+    const queryParams = new URLSearchParams(window.location.search);
+    const secondCrawlID = queryParams.get("secondCrawlID")
+
+    if (secondCrawlID != undefined) {
+        firstCrawlID = firstCrawlID.split("?")[0]
+        return [firstCrawlID, secondCrawlID]
+    } else {
+        return [firstCrawlID]
+    }
 }
 
 function getUser(crawlID) {

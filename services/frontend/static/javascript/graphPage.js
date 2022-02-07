@@ -12,7 +12,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
     }
     getProcessedGraphData(crawlID).then(crawlDataObj => {
         crawlData = crawlDataObj
-        setUserCardDetails(crawlData.usergraphdata.userdetails);
+        setUserCardDetails(crawlData.usergraphdata.userdetails.User);
         let countryFrequencies = {}
         var countryFrequenciesArr = []
 

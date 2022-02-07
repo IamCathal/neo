@@ -1,5 +1,4 @@
-export function setUserCardDetails(userObj) {
-    const user = userObj.User;
+export function setUserCardDetails(user) {
     console.log(user)
     document.getElementById("userUsername").textContent = user.accdetails.personaname;
     document.getElementById("userCountry").textContent = countryCodeToName(user.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(user.accdetails.loccountrycode);

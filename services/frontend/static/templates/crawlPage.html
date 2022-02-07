@@ -104,7 +104,7 @@
                             <p> Status </p>
                         </div>
                         <div class="row text-center">
-                            <p style="font-size: 1.9rem; font-weight: 600;" id="crawlStatus"> Crawling </p>
+                            <p style="font-size: 1.9rem; font-weight: 600;" id="crawlStatus"> Initialising </p>
                         </div>
                     </div>
                     <div class="col">
@@ -112,16 +112,10 @@
                             <p>  Started Crawl </p>
                         </div>
                         <div class="row text-center">
-                            <p style="font-size: 1.9rem; font-weight: 600;" id="crawlTime"> 3m </p>
+                            <p style="font-size: 1.9rem; font-weight: 600;" id="crawlTime"> 0s </p>
                         </div>
                     </div>
                 </div>
-                <!-- <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
-                <script>
-                    const URLarr = window.location.href.split("/");
-                    const crawlID = URLarr[URLarr.length-1];
-                    initAndMonitorCrawlingStatusWebsocket(crawlID)
-                </script> -->
 
                 <!-- crawling progress bar -->
                 <div class="row crawlProgressBar mt-4">
@@ -130,7 +124,7 @@
 
                 <!-- crawling progress bar -->
                 <div class="row text-center mt-1">
-                    <div class="col" style="font-size: 0.9rem;" id="percentageDone"> 56% </div>
+                    <div class="col" style="font-size: 0.9rem;" id="percentageDone"> 0% </div>
                 </div>
                     
 
@@ -152,11 +146,11 @@
                                 <div class="row">
                                     <div class="col-4">
                                         <p>
-                                            Real name:
+                                            Country:
                                         </p>
                                     </div>
                                     <div class="col">
-                                        <p id="userRealName" style="font-weight: 500" class="skeleton skeleton-text"></p>
+                                        <p id="userCountry" style="font-weight: 500" class="skeleton skeleton-text truncate"></p>
                                             
                                         </p>
                                     </div>
@@ -188,11 +182,11 @@
                                 <div class="row">
                                     <div class="col-4">
                                         <p>
-                                            SteamID64: 
+                                            Profile: 
                                         </p>
                                     </div>
                                     <div class="col">
-                                        <p id="userSteamID" style="font-weight: 500; width: 83%" class="skeleton skeleton-text">
+                                        <p id="userProfile" style="font-weight: 500; width: 83%" class="skeleton skeleton-text">
                                             
                                         </p>
                                     </div>
@@ -228,30 +222,29 @@
         
     </div>
 
-    <script src="/static/javascript/crawlingPage.js"></script>
-    <script src="/static/javascript/crawlingStatusUpdatesFeed.js"></script>
-    <script src="/static/javascript/userCard.js"></script>
-    <script src="/static/javascript/temp.js"></script>
+    <script src="/static/javascript/crawlingPage.js" type="module"></script>
+    <script src="/static/javascript/crawlingStatusUpdatesFeed.js" type="module"></script>
+    <!-- <script src="/static/javascript/userCard.js" type="module"></script> -->
 
     <script>
-        const URLarr = window.location.href.split("/");
-        const crawlID = URLarr[URLarr.length-1];
+        // const URLarr = window.location.href.split("/");
+        // const crawlID = URLarr[URLarr.length-1];
         
-        doesProcessedGraphDataExist(crawlID).then(doesExist => {
-            if (doesExist) {
-                console.log("did exist")
-                // forward to that page
-                // window.location.href = `/graph/${crawlID}`;
-            } else {
-            // subscribe to crawling status updates
-            initAndMonitorCrawlingStatusWebsocket(crawlID)
-            getCrawlingUserWhenAvailable().then(res => {}, err => {
-                console.error(`error getting crawling user: ${err}`)
-            })
-            }
-        }, err => {
-            console.error(`error calling get finished graph data: ${err}`);
-        })
+        // doesProcessedGraphDataExist(crawlID).then(doesExist => {
+        //     if (doesExist) {
+        //         console.log("did exist")
+        //         // forward to that page
+        //         // window.location.href = `/graph/${crawlID}`;
+        //     } else {
+        //     // subscribe to crawling status updates
+        //     initAndMonitorCrawlingStatusWebsocket(crawlID)
+        //     getCrawlingUserWhenAvailable().then(res => {}, err => {
+        //         console.error(`error getting crawling user: ${err}`)
+        //     })
+        //     }
+        // }, err => {
+        //     console.error(`error calling get finished graph data: ${err}`);
+        // })
     </script>
 
 </body>

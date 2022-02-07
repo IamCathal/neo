@@ -1,4 +1,6 @@
-function initAndMonitorCrawlingStatusWebsocket(crawlID) {
+import { startCreateGraph, doesProcessedGraphDataExist } from '/static/javascript/crawlingPage.js'
+
+export function initAndMonitorCrawlingStatusWebsocket(crawlID) {
 
     let wsConn = new WebSocket(`ws://localhost:2590/ws/crawlingstatstream/${crawlID}`);
     wsConn.addEventListener("close", (evt) => {
@@ -8,7 +10,6 @@ function initAndMonitorCrawlingStatusWebsocket(crawlID) {
     wsConn.addEventListener("message", (evt) => {
         let crawlingStatUpdate = JSON.parse(evt.data);
         if (crawlingStatUpdate.userscrawled === crawlingStatUpdate.totaluserstocrawl) {
-            graphIsBeingProcessed = true;
             document.getElementById("crawlStatus").textContent = "Processing graph"
 
             startCreateGraph(crawlingStatUpdate.crawlid).then(res => {
@@ -36,6 +37,15 @@ function initAndMonitorCrawlingStatusWebsocket(crawlID) {
             });
         }
 
+        
+        document.getElementById("crawlStatus").textContent = 'Crawling'
+        
+        // console.log(document.getElementById("crawlStatus"))
+        // if (document.getElementById("crawlStatus") == 'Initialising') {
+        //   console.log("is init")
+        // } else {
+        //   console.log("isn't init")
+        // }
         document.getElementById("usersCrawled").textContent = crawlingStatUpdate.userscrawled;
         document.getElementById("totalUsersToCrawl").textContent = crawlingStatUpdate.totaluserstocrawl;
         document.getElementById("percentageDone").textContent = `${Math.floor((crawlingStatUpdate.userscrawled/crawlingStatUpdate.totaluserstocrawl)*100)}%`;

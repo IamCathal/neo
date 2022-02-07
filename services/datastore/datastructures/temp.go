@@ -39,3 +39,10 @@ type AddUserEvent struct {
 	CountryCode string `json:"countrycode"`
 	CrawlTime   int64  `json:"crawltime"`
 }
+
+type ShortestDistanceInfo struct {
+	FirstUser        common.UserDocument   `json:"firstuser"`
+	SecondUser       common.UserDocument   `json:"seconduser"`
+	ShortestDistance []common.UserDocument `json:"shortestdistance"`
+	TotalNetworkSpan int                   `json:"totalnetworkspan"`
+}

@@ -72,6 +72,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/saveprocessedgraphdata/{crawlid}", endpoints.SaveProcessedGraphData).Methods("POST")
 	apiRouter.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/doesprocessedgraphdataexist/{crawlid}", endpoints.DoesProcessedGraphDataExist).Methods("POST", "OPTIONS")
+	apiRouter.HandleFunc("/getshortestdistanceinfo", endpoints.GetShortestDistanceInfo).Methods("POST", "OPTIONS")
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
 	wsRouter := r.PathPrefix("/ws").Subrouter()
@@ -636,6 +637,38 @@ func (endpoints *Endpoints) DoesProcessedGraphDataExist(w http.ResponseWriter, r
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) GetShortestDistanceInfo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	firstCrawlID := r.URL.Query().Get("firstcrawlid")
+	secondCrawlID := r.URL.Query().Get("secondcrawlid")
+
+	if firstCrawlID == "" || secondCrawlID == "" {
+		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	exists, shortestDistanceInfo, err := app.GetShortestDistanceInfo(endpoints.Cntr, firstCrawlID, secondCrawlID)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "could not find shortest distance", vars, http.StatusBadRequest)
+		configuration.Logger.Panic(err.Error())
+	}
+	if !exists {
+		util.SendBasicInvalidResponse(w, r, "could not find shortest distance", vars, http.StatusBadRequest)
+	}
+	response := struct {
+		Status string                              `json:"status"`
+		Data   datastructures.ShortestDistanceInfo `json:"shortestdistanceinfo"`
+	}{
+		"success",
+		shortestDistanceInfo,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {

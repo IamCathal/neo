@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
-	"github.com/neosteamfriendgraphing/common/dtos"
 )
 
 func InitWorkerConfig() datastructures.WorkerConfig {
@@ -23,26 +21,6 @@ func StartUpWorkers(cntr controller.CntrInterface) {
 	for i := 0; i < 10; i++ {
 		go ControlFunc(cntr)
 	}
-}
-
-func VerifyFormatOfSteamIDs(input dtos.CrawlUsersInputDTO) ([]string, error) {
-	validSteamIDs := []string{}
-	match, err := regexp.MatchString("([0-9]){17}", input.FirstSteamID)
-	if err != nil {
-		return validSteamIDs, err
-	}
-	if match {
-		validSteamIDs = append(validSteamIDs, input.FirstSteamID)
-	}
-
-	match, err = regexp.MatchString("([0-9]){17}", input.SecondSteamID)
-	if err != nil {
-		return validSteamIDs, err
-	}
-	if match {
-		validSteamIDs = append(validSteamIDs, input.SecondSteamID)
-	}
-	return validSteamIDs, nil
 }
 
 func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructures.Job, friendIDs []string) error {

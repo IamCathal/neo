@@ -16,9 +16,9 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
+	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
-	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/segmentio/ksuid"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
@@ -141,9 +141,9 @@ func TestIsPrivateProfileReturnsInvalidResponseWhenCallGetFriendsReturnsAnError(
 func TestCrawlOneValidUser(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	userCrawlInput := dtos.CrawlUsersInputDTO{
-		FirstSteamID: validFormatSteamID,
-		Level:        3,
+	userCrawlInput := datastructures.CrawlUserTempDTO{
+		Level:    3,
+		SteamIDs: []string{validFormatSteamID},
 	}
 	requestBodyJSON, err := json.Marshal(userCrawlInput)
 	if err != nil {
@@ -208,9 +208,9 @@ func TestCrawlUserReturnsInvalidLevelGivenWhenItGetsInvalidInput(t *testing.T) {
 func TestCrawlUserReturnsInvalidFormatSteamIDsForInvalidSteamIDs(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 
-	invalidUserCrawlInput := dtos.CrawlUsersInputDTO{
-		FirstSteamID: "uachtar reoite",
-		Level:        3,
+	invalidUserCrawlInput := datastructures.CrawlUserTempDTO{
+		Level:    3,
+		SteamIDs: []string{"uachtar reoite"},
 	}
 	requestBodyJSON, err := json.Marshal(invalidUserCrawlInput)
 	if err != nil {
@@ -227,7 +227,7 @@ func TestCrawlUserReturnsInvalidFormatSteamIDsForInvalidSteamIDs(t *testing.T) {
 	expectedResponse := struct {
 		Error string `json:"error"`
 	}{
-		"No valid format steamIDs given",
+		"Invalid input",
 	}
 	expectedJSONResponse, err := json.Marshal(expectedResponse)
 	if err != nil {

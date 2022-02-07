@@ -102,3 +102,13 @@ type CrawlJob struct {
 // 	Status         string         `json:"status"`
 // 	CrawlingStatus CrawlingStatus `json:"crawlingstatus"`
 // }
+
+type CrawlUserTempDTO struct {
+	Level    int      `json:"level"`
+	SteamIDs []string `json:"steamids"`
+}
+
+type CrawlResponseDTO struct {
+	Status   string   `json:"status"`
+	CrawlIDs []string `json:"crawlids"`
+}

@@ -12,11 +12,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
+	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/graphing"
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/iamcathal/neo/services/crawler/worker"
 	"github.com/neosteamfriendgraphing/common"
-	"github.com/neosteamfriendgraphing/common/dtos"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
@@ -141,7 +141,7 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	userInput := dtos.CrawlUsersInputDTO{}
+	userInput := datastructures.CrawlUserTempDTO{}
 	err := json.NewDecoder(r.Body).Decode(&userInput)
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
@@ -153,30 +153,46 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Change this to use
-	// isValid := common.IsValidFormatSteamID()
-	validSteamIDs, err := worker.VerifyFormatOfSteamIDs(userInput)
-	if err != nil {
-		commonUtil.SendBasicInvalidResponse(w, r, "invalid format steamID(s)", vars, http.StatusBadRequest)
+	if len(userInput.SteamIDs) == 0 {
+		commonUtil.SendBasicInvalidResponse(w, r, "No steamIDs given", vars, http.StatusBadRequest)
 		return
 	}
-	if len(validSteamIDs) == 0 {
-		commonUtil.SendBasicInvalidResponse(w, r, "No valid format steamIDs given", vars, http.StatusBadRequest)
-		return
-	}
-	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", validSteamIDs, userInput.Level), r, http.StatusOK)
 
-	// TODO make a new crawlID when crawling a second user and log it to see the connection
-	// between requestID and this new crawlID
-	err = worker.CrawlUser(endpoints.Cntr, validSteamIDs[0], vars["requestID"], userInput.Level)
+	for _, steamID := range userInput.SteamIDs {
+		if isValid := commonUtil.IsValidFormatSteamID(steamID); !isValid {
+			commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+			return
+		}
+	}
+	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", userInput.SteamIDs, userInput.Level), r, http.StatusOK)
+
+	firstCrawlID := vars["requestID"]
+	secondCrawlID := ""
+	crawlIDsGenerated := []string{firstCrawlID}
+
+	err = worker.CrawlUser(endpoints.Cntr, userInput.SteamIDs[0], firstCrawlID, userInput.Level)
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "couldn't start crawl", vars, http.StatusBadRequest)
-		return
+		logMsg := fmt.Sprintf("failed to start crawl for first user with crawlID: %s steamID: %s level: %d", firstCrawlID, userInput.SteamIDs[0], userInput.Level)
+		configuration.Logger.Panic(logMsg)
 	}
 
-	response := common.BasicAPIResponse{
-		Status:  "success",
-		Message: vars["requestID"],
+	if len(userInput.SteamIDs) == 2 {
+		secondCrawlID = ksuid.New().String()
+		configuration.Logger.Sugar().Infof("creating new crawlID %s from request %s for user %s", secondCrawlID, firstCrawlID, userInput.SteamIDs[1])
+		crawlIDsGenerated = append(crawlIDsGenerated, secondCrawlID)
+
+		err = worker.CrawlUser(endpoints.Cntr, userInput.SteamIDs[1], secondCrawlID, userInput.Level)
+		if err != nil {
+			commonUtil.SendBasicInvalidResponse(w, r, "couldn't start crawl", vars, http.StatusBadRequest)
+			logMsg := fmt.Sprintf("failed to start crawl for second user with crawlID: %s steamID: %s level: %d", secondCrawlID, userInput.SteamIDs[1], userInput.Level)
+			configuration.Logger.Panic(logMsg)
+		}
+	}
+
+	response := datastructures.CrawlResponseDTO{
+		Status:   "success",
+		CrawlIDs: crawlIDsGenerated,
 	}
 	jsonObj, err := json.Marshal(response)
 	if err != nil {

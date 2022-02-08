@@ -63,7 +63,7 @@ func initTestData() {
 	}
 	userOneID := "12334567"
 	userTwoID := "342089525"
-	// commonFriendID := "764674763"
+	commonFriendID := "764674763"
 	userOne = common.UsersGraphData{
 		UserDetails: common.UsersGraphInformation{
 			User: common.UserDocument{
@@ -76,14 +76,7 @@ func initTestData() {
 			{
 				User: common.UserDocument{
 					AccDetails: common.AccDetailsDocument{
-						SteamID: "675671548",
-					},
-				},
-			},
-			{
-				User: common.UserDocument{
-					AccDetails: common.AccDetailsDocument{
-						SteamID: userTwoID,
+						SteamID: commonFriendID,
 					},
 				},
 			},
@@ -101,14 +94,7 @@ func initTestData() {
 			{
 				User: common.UserDocument{
 					AccDetails: common.AccDetailsDocument{
-						SteamID: "8847678945",
-					},
-				},
-			},
-			{
-				User: common.UserDocument{
-					AccDetails: common.AccDetailsDocument{
-						SteamID: userOneID,
+						SteamID: commonFriendID,
 					},
 				},
 			},

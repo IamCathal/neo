@@ -98,6 +98,11 @@ func getShortestDistance(userOne, userTwo common.UsersGraphData) (bool, []int64,
 	graph.AddVertex(currGraphID)
 	currGraphID++
 
+	steamIDToGraphID[targetUserSteamID] = currGraphID
+	graphIDToSteamID[currGraphID] = targetUserSteamID
+	graph.AddVertex(currGraphID)
+	currGraphID++
+
 	for _, friend := range userOne.FriendDetails {
 		user := friend.User
 		currUserID := toInt64(user.AccDetails.SteamID)
@@ -105,7 +110,20 @@ func getShortestDistance(userOne, userTwo common.UsersGraphData) (bool, []int64,
 		graphIDToSteamID[currGraphID] = currUserID
 		graph.AddVertex(currGraphID)
 		graph.AddArc(steamIDToGraphID[mainUserSteamID], steamIDToGraphID[currUserID], 1)
+		graph.AddArc(steamIDToGraphID[currUserID], steamIDToGraphID[mainUserSteamID], 1)
 		currGraphID++
+	}
+	for _, friend := range userTwo.FriendDetails {
+		user := friend.User
+		currUserID := toInt64(user.AccDetails.SteamID)
+		if seen := ifSteamIDSeenBefore(currUserID, steamIDToGraphID); !seen {
+			steamIDToGraphID[currUserID] = currGraphID
+			graphIDToSteamID[currGraphID] = currUserID
+			graph.AddVertex(currGraphID)
+			currGraphID++
+		}
+		graph.AddArc(steamIDToGraphID[targetUserSteamID], steamIDToGraphID[currUserID], 1)
+		graph.AddArc(steamIDToGraphID[currUserID], steamIDToGraphID[targetUserSteamID], 1)
 	}
 
 	best, err := graph.Shortest(steamIDToGraphID[mainUserSteamID], steamIDToGraphID[targetUserSteamID])
@@ -142,6 +160,13 @@ func indexOf(steamID int64, IDs []int64) int {
 	}
 	configuration.Logger.Sugar().Panicf("failed to get index of %s in %+v", steamID, IDs)
 	return -1
+}
+
+func ifSteamIDSeenBefore(steamID int64, steamToGraph map[int64]int) bool {
+	if _, exists := steamToGraph[steamID]; exists {
+		return true
+	}
+	return false
 }
 
 func ifIsTrue(key string, idMap map[string]bool) bool {

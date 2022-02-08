@@ -4,8 +4,27 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/neosteamfriendgraphing/common"
 	"github.com/stretchr/testify/assert"
 )
+
+var (
+	userOne common.UsersGraphData
+	userTwo common.UsersGraphData
+)
+
+func TestGetShortestDistance(t *testing.T) {
+	expectedShortestPath := []int64{
+		toInt64(userOne.UserDetails.User.AccDetails.SteamID),
+		toInt64(userTwo.UserDetails.User.AccDetails.SteamID),
+	}
+
+	exists, actualShortestPath, err := getShortestDistance(userOne, userTwo)
+
+	assert.True(t, exists)
+	assert.Equal(t, expectedShortestPath, actualShortestPath)
+	assert.Nil(t, err)
+}
 
 func TestGetMapOfShortestIDs(t *testing.T) {
 	IDsSlice := []int64{1, 15, 78}

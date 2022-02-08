@@ -91,6 +91,8 @@ func getShortestDistance(userOne, userTwo common.UsersGraphData) (bool, []int64,
 	currGraphID := 0
 
 	mainUserSteamID := toInt64(userOne.UserDetails.User.AccDetails.SteamID)
+	targetUserSteamID := toInt64(userTwo.UserDetails.User.AccDetails.SteamID)
+
 	steamIDToGraphID[mainUserSteamID] = currGraphID
 	graphIDToSteamID[currGraphID] = mainUserSteamID
 	graph.AddVertex(currGraphID)
@@ -106,7 +108,7 @@ func getShortestDistance(userOne, userTwo common.UsersGraphData) (bool, []int64,
 		currGraphID++
 	}
 
-	best, err := graph.Shortest(steamIDToGraphID[mainUserSteamID], steamIDToGraphID[toInt64("76561198008076246")])
+	best, err := graph.Shortest(steamIDToGraphID[mainUserSteamID], steamIDToGraphID[targetUserSteamID])
 	if err != nil {
 		panic(err)
 	}

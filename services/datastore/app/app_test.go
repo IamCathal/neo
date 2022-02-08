@@ -61,6 +61,59 @@ func initTestData() {
 			},
 		},
 	}
+	userOneID := "12334567"
+	userTwoID := "342089525"
+	// commonFriendID := "764674763"
+	userOne = common.UsersGraphData{
+		UserDetails: common.UsersGraphInformation{
+			User: common.UserDocument{
+				AccDetails: common.AccDetailsDocument{
+					SteamID: userOneID,
+				},
+			},
+		},
+		FriendDetails: []common.UsersGraphInformation{
+			{
+				User: common.UserDocument{
+					AccDetails: common.AccDetailsDocument{
+						SteamID: "675671548",
+					},
+				},
+			},
+			{
+				User: common.UserDocument{
+					AccDetails: common.AccDetailsDocument{
+						SteamID: userTwoID,
+					},
+				},
+			},
+		},
+	}
+	userTwo = common.UsersGraphData{
+		UserDetails: common.UsersGraphInformation{
+			User: common.UserDocument{
+				AccDetails: common.AccDetailsDocument{
+					SteamID: userTwoID,
+				},
+			},
+		},
+		FriendDetails: []common.UsersGraphInformation{
+			{
+				User: common.UserDocument{
+					AccDetails: common.AccDetailsDocument{
+						SteamID: "8847678945",
+					},
+				},
+			},
+			{
+				User: common.UserDocument{
+					AccDetails: common.AccDetailsDocument{
+						SteamID: userOneID,
+					},
+				},
+			},
+		},
+	}
 }
 func TestSaveUserToDBCallsMongoDBOnce(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}

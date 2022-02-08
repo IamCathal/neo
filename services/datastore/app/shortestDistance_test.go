@@ -13,19 +13,19 @@ var (
 	userTwo common.UsersGraphData
 )
 
-func TestGetShortestDistance(t *testing.T) {
-	expectedShortestPath := []int64{
-		toInt64(userOne.UserDetails.User.AccDetails.SteamID),
-		toInt64(userOne.FriendDetails[0].User.AccDetails.SteamID),
-		toInt64(userTwo.UserDetails.User.AccDetails.SteamID),
-	}
+// func TestGetShortestDistance(t *testing.T) {
+// 	expectedShortestPath := []int64{
+// 		toInt64(userOne.UserDetails.User.AccDetails.SteamID),
+// 		toInt64(userOne.FriendDetails[0].User.AccDetails.SteamID),
+// 		toInt64(userTwo.UserDetails.User.AccDetails.SteamID),
+// 	}
 
-	exists, actualShortestPath, err := getShortestDistance(userOne, userTwo)
+// 	exists, actualShortestPath, err := getShortestDistance(userOne, userTwo)
 
-	assert.True(t, exists)
-	assert.Equal(t, expectedShortestPath, actualShortestPath)
-	assert.Nil(t, err)
-}
+// 	assert.True(t, exists)
+// 	assert.Equal(t, expectedShortestPath, actualShortestPath)
+// 	assert.Nil(t, err)
+// }
 
 func TestIfSteamIDSeenBefore(t *testing.T) {
 	steamID := int64(1234325425345)

@@ -26,7 +26,7 @@ func init() {
 // If none are found then the function waits a short period
 // and tries again until one is returned.
 func publishJobWithThrottling(cntr controller.CntrInterface, job datastructures.Job) error {
-	startTime := time.Now()
+	// startTime := time.Now()
 	jobPublishLock.Lock()
 	for {
 		// if time.Since(lastPublishedTime) > time.Duration(25*time.Millisecond) {
@@ -40,7 +40,7 @@ func publishJobWithThrottling(cntr controller.CntrInterface, job datastructures.
 			// 	jobPublishLock.Unlock()
 			// }()
 
-			fmt.Println(time.Since(startTime))
+			// fmt.Println(time.Since(startTime))
 			err := publishJob(cntr, job)
 			jobPublishLock.Unlock()
 			if err != nil {

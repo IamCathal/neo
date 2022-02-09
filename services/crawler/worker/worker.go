@@ -56,7 +56,6 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		return
 	}
 	// User was never crawled before
-
 	playerSummaries, err := cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
 	if err != nil {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
@@ -64,7 +63,6 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	}
 	// TODO implement proper fix for this
 	if len(playerSummaries) == 0 {
-		configuration.Logger.Sugar().Infof("calling get player summary again for %s", job.CurrentTargetSteamID)
 		playerSummaries, err = cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
 		if err != nil {
 			configuration.Logger.Fatal(fmt.Sprintf("failed AGAIN to get player summary for target user: %v", err.Error()))
@@ -85,10 +83,14 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	topFiftyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topFiftyOrFewerTopPlayedGames)
 	// topTwentyOrFewerGamesSlimmedDown := GetSlimmedDownGames(topTwentyOrFewerTopPlayedGames)
 
-	friendPlayerSummaries, err := getPlayerSummaries(cntr, job, friendsList)
-	if err != nil {
-		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
-		log.Fatal(err)
+	friendPlayerSummaries := []common.Player{}
+
+	if len(friendsList) != 0 {
+		friendPlayerSummaries, err = getPlayerSummaries(cntr, job, friendsList)
+		if err != nil {
+			configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
+			log.Fatal(err)
+		}
 	}
 
 	friendPlayerSummarySteamIDs := getSteamIDsFromPlayers(friendPlayerSummaries)

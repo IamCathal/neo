@@ -1,7 +1,11 @@
 package endpoints
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -32,6 +36,38 @@ func LogBasicInfo(msg string, req *http.Request, statusCode int) {
 		zap.Int64("duration", configuration.GetCurrentTimeInMs()-requestStartTime),
 		zap.String("path", req.URL.EscapedPath()),
 	)
+}
+
+func gunzip(body io.ReadCloser) ([]byte, error) {
+	requestBodyGzipData, err := ioutil.ReadAll(body)
+	if err != nil {
+		return []byte{}, err
+	}
+	byteBuffer := bytes.NewBuffer(requestBodyGzipData)
+	var reader io.Reader
+	reader, err = gzip.NewReader(byteBuffer)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	var resBytes bytes.Buffer
+	_, err = resBytes.ReadFrom(reader)
+	if err != nil {
+		return []byte{}, err
+	}
+	return resBytes.Bytes(), nil
+}
+
+func gzipData(inputbytes []byte) (bytes.Buffer, error) {
+	gzippedData := bytes.Buffer{}
+	gz := gzip.NewWriter(&gzippedData)
+	if _, err := gz.Write(inputbytes); err != nil {
+		return bytes.Buffer{}, err
+	}
+	if err := gz.Close(); err != nil {
+		return bytes.Buffer{}, err
+	}
+	return gzippedData, nil
 }
 
 func wsReader(ws dbmonitor.WebsocketConn, streamType string) {

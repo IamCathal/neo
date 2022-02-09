@@ -536,7 +536,12 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 	}
 
 	graphData := common.UsersGraphData{}
-	err = json.NewDecoder(r.Body).Decode(&graphData)
+	reqBodyBytes, err := gunzip(r.Body)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(reqBodyBytes, &graphData)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		return
@@ -544,7 +549,7 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 
 	success, err := endpoints.Cntr.SaveProcessedGraphData(vars["crawlid"], graphData)
 	if err != nil || success == false {
-		logMsg := fmt.Sprintf("could not retrieve graph data: %+v", err)
+		logMsg := fmt.Sprintf("could not save graph data: %+v", err)
 		configuration.Logger.Error(logMsg)
 		panic(logMsg)
 	}

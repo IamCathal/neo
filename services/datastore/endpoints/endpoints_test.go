@@ -815,7 +815,11 @@ func TestSaveProcessedGraphData(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	requestBodyJSONGzipped, err := gzipData(requestBodyJSON)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", &requestBodyJSONGzipped)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -872,7 +876,11 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *t
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	requestBodyJSONGzipped, err := gzipData(requestBodyJSON)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", &requestBodyJSONGzipped)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -983,7 +991,11 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s?responsetype=json", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+	requestBodyJSONGzipped, err := gzipData(requestBodyJSON)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getprocessedgraphdata/%s?responsetype=json", serverPort, crawlID), "application/json", &requestBodyJSONGzipped)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;800;900&display=swap" rel="stylesheet"> 
+    <link href="static/stylesheets/stylesheet.css" rel="stylesheet" type="text/css">
+
+
+    <link rel="apple-touch-icon" sizes="57x57" href="static/images/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="static/images/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="static/images/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="static/images/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="static/images/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="static/images/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="static/images/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="static/images/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="static/images/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="static/images/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="static/images/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/images/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="static/images/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script> 
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+
+    <meta property="og:image" content="https://avatars0.githubusercontent.com/u/6561327?s=460&v=4" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cathaloc.dev" />
+    <meta property="og:title" content="SteamFriendsGraphing, graph your network of friends on Steam" />
+    <meta property="og:description" content="NUIG Computer Science & IT Final Year Project 2022" />
+
+    <title>SteamFriendsGraphing</title>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="row">
+            <!-- Dont ask why this needs to be included -->
+        </div>
+
+        <p class="text-center mainText display-2 mt-3 mb-0" style="font-weight: 600;" id="titleText">
+            Steam Friends Graphing
+        </p>
+        <!-- <h3 class="text-center mt-0"> bottom text </h3> -->
+        <div class="mt-2">
+            <!-- God forgive me for these stupid fixes that just about work -->
+        </div>
+
+        <div class="row box pt-3 pb-3" id="graphBox">
+            <div class="col">
+                <div id="graphContainer" style="width: 100%; height: 20rem">
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-3 box">
+                <div class="row pl-1 ml-1 mr-1">
+                    <p style="font-size: 4rem; height: 5rem; font-weight: 600">12,670</p>
+                </div>
+                <div class="row ml-1">
+                    <p style="bottom: 0" class="mb-0">total users crawled</p>
+                </div>
+            </div>
+
+            <div class="col-2 box ml-2">
+                <div class="row pl-1 ml-1 mr-1">
+                    <p style="font-size: 4rem; height: 5rem; font-weight: 600">2</p>
+                </div>
+                <div class="row ml-1">
+                    <p style="bottom: 0" class="mb-0">countries spanned</p>
+                </div>
+            </div>
+
+            <div class="col box ml-2">
+                <div class="row pl-1 ml-1 mr-1">
+                    <p style="font-size: 4rem; height: 5rem; font-weight: 600">3</p>
+                </div>
+                <div class="row ml-1">
+                    <p style="bottom: 0" class="mb-0">friends in shortest path </p>
+                </div>
+            </div>
+
+            <div class="col-3 box ml-2">
+                <div class="row pl-1 ml-1 mr-1">
+                    <p style="font-size: 4rem; height: 5rem; font-weight: 600">3,872km</p>
+                </div>
+                <div class="row ml-1">
+                    <p style="bottom: 0" class="mb-0">between start and finish</p>
+                </div>
+            </div>
+
+            <div class="col box ml-2">
+                <div class="row pl-1 ml-1 mr-1">
+                    <p style="font-size: 4rem; height: 5rem; font-weight: 600">453</p>
+                </div>
+                <div class="row ml-1">
+                    <p style="bottom: 0" class="mb-0">eee</p>
+                </div>
+            </div>
+
+           
+        </div>        
+
+        <div class="row mt-5">
+            <div class="col-2"></div> <!-- Spacer -->
+            <div class="col-8 box pl-4 pr-4 pb-4 pt-2" style="border: 2px solid purple">
+                <div class="row" style="border: 2px solid green">
+                    <div class="col text-center mt-0">
+                        <p style="font-size: 1.4rem" class="mb-0 mt-0">
+                            Shortest distance between
+                        </p>
+                    </div>
+                </div>
+                <div class="row" style="border: 2px solid green">
+                    <div class="col text-center mt-2" style="border: 2px solid white">
+                        <p style="font-size: 1.4rem; font-weight: 600">
+                            yyyy
+                        </p>
+                    </div>
+                    <div class="col-1 text-center mt-2" style="border: 2px solid red">
+                        <p style="font-size: 1rem" class="pb-0 pt-3 mb-0">
+                            and
+                        </p>
+                    </div>
+                    <div class="col text-center mt-2" style="border: 2px solid cyan">
+                        <p style="font-size: 1.4rem;  font-weight: 600">
+                            xxxxxx
+                        </p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row pl-3 pr-3">
+                    <div class="col" style="border: 2px solid white">
+                        <div class="row">
+                            <div class="col-3" style="border: 2px solid yellow">
+                                <div class="newestUserProfiler text-center">
+                                    <img class="mr-1 skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="newestUserAvatar"></img>
+                                </div>
+                            </div>
+                            <div class="col" style="border: 2px solid cyan">
+                                <div class="row m-0" style="border: 2px solid orange">
+                                    <p class="truncate mb-0" style="font-size: 3rem; font-weight: 500;">
+                                        2 Nuttell
+                                    </p>
+                                </div>
+                                <div class="row m-0 mt-2">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                                <div class="row m-0">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                                <div class="row m-0">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row pl-3 pr-3 mt-4">
+                    <div class="col" style="border: 2px solid white">
+                        <div class="row">
+                            <div class="col-3" style="border: 2px solid yellow">
+                                <div class="newestUserProfiler text-center">
+                                    <img class="mr-1 skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="newestUserAvatar"></img>
+                                </div>
+                            </div>
+                            <div class="col" style="border: 2px solid cyan">
+                                <div class="row m-0" style="border: 2px solid orange">
+                                    <p class="truncate mb-0" style="font-size: 3rem; font-weight: 500;">
+                                        2 Nuttell
+                                    </p>
+                                </div>
+                                <div class="row m-0 mt-2">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                                <div class="row m-0">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                                <div class="row m-0">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row pl-3 pr-3 mt-4">
+                    <div class="col" style="border: 2px solid white">
+                        <div class="row">
+                            <div class="col-3" style="border: 2px solid yellow">
+                                <div class="newestUserProfiler text-center">
+                                    <img class="mr-1 skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="newestUserAvatar"></img>
+                                </div>
+                            </div>
+                            <div class="col" style="border: 2px solid cyan">
+                                <div class="row m-0" style="border: 2px solid orange">
+                                    <p class="truncate mb-0" style="font-size: 3rem; font-weight: 500;">
+                                        2 Nuttell
+                                    </p>
+                                </div>
+                                <div class="row m-0 mt-2">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                                <div class="row m-0">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                                <div class="row m-0">
+                                    <p class="skeleton skeleton-text mb-1"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-2"></div> <!-- Spacer -->
+        </div>
+
+
+
+        
+        <div class="col sm-2 mt-5"></div>
+
+        </div>
+    </div>
+</body>
+</html>

@@ -51,7 +51,9 @@ export function initAndMonitorCrawlingStatusWebsocket(crawlID) {
         document.getElementById("percentageDone").textContent = `${Math.floor((crawlingStatUpdate.userscrawled/crawlingStatUpdate.totaluserstocrawl)*100)}%`;
         document.getElementById("crawlTime").textContent = timeSince(new Date(crawlingStatUpdate.timestarted*1000));
         document.getElementById("progressBarID").style.width = `${Math.floor((crawlingStatUpdate.userscrawled/crawlingStatUpdate.totaluserstocrawl)*100)}%`;
-    })
+    
+        document.title = `${crawlingStatUpdate.userscrawled}/${crawlingStatUpdate.totaluserstocrawl} - Crawling`;
+      })
 }
 
 function timeSince(targetDate) {

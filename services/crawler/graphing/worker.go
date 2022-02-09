@@ -95,7 +95,7 @@ func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig Gr
 	}
 	jobsChan <- firstJob
 
-	workerAmount := 3
+	workerAmount := 6
 	var stopSignal chan bool = make(chan bool, 0)
 	workersAreDone := false
 	oneOrMoreUsersHasNoUsername := false
@@ -180,23 +180,23 @@ func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, wo
 		panic(err)
 	}
 
-	usersDataForGraphWithOnlyTop5Games := []common.UsersGraphInformation{}
+	usersDataForGraphWithOnlyTop40Games := []common.UsersGraphInformation{}
 	for _, friend := range usersDataForGraph {
-		if len(friend.User.GamesOwned) >= 5 {
-			friend.User.GamesOwned = friend.User.GamesOwned[:5]
+		if len(friend.User.GamesOwned) >= 40 {
+			friend.User.GamesOwned = friend.User.GamesOwned[:40]
 		}
-		usersDataForGraphWithOnlyTop5Games = append(usersDataForGraphWithOnlyTop5Games, friend)
+		usersDataForGraphWithOnlyTop40Games = append(usersDataForGraphWithOnlyTop40Games, friend)
 	}
 
-	topOverallGameDetails, err := getTopTenOverallGameNames(cntr, usersDataForGraphWithOnlyTop5Games)
+	topOverallGameDetails, err := getTopTenOverallGameNames(cntr, usersDataForGraphWithOnlyTop40Games)
 	if err != nil {
 		configuration.Logger.Sugar().Fatalf("failed to get top 10 game detail: %+v", err)
 		panic(err)
 	}
 
 	usersDataForGraphWithFriends := common.UsersGraphData{
-		UserDetails:    usersDataForGraphWithOnlyTop5Games[0],
-		FriendDetails:  usersDataForGraphWithOnlyTop5Games[1:],
+		UserDetails:    usersDataForGraphWithOnlyTop40Games[0],
+		FriendDetails:  usersDataForGraphWithOnlyTop40Games[1:],
 		TopGameDetails: topOverallGameDetails,
 	}
 

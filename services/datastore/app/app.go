@@ -23,9 +23,10 @@ func SaveUserToDB(cntr controller.CntrInterface, userDocument common.UserDocumen
 	}
 
 	UserDocument := common.UserDocument{
-		AccDetails: userDocument.AccDetails,
-		FriendIDs:  userDocument.FriendIDs,
-		GamesOwned: gamesOwnedSlimmedDown,
+		AccDetails:    userDocument.AccDetails,
+		FriendIDs:     userDocument.FriendIDs,
+		GamesOwned:    gamesOwnedSlimmedDown,
+		InsertionTime: time.Now().Unix(),
 	}
 
 	bsonObj, err := bson.Marshal(UserDocument)

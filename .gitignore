@@ -21,3 +21,6 @@ log.txt
 
 # MongoDB data
 mongodb_data/
+
+# VSCode files
+.vscode/

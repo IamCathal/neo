@@ -107,7 +107,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 	json.Unmarshal(res, &allPlayerSummaries)
 	// Check if empty
 	if len(allPlayerSummaries.Response.Players) == 0 {
-		configuration.Logger.Sugar().Warnf("empty player summary for %s: %+v", targetURL, allPlayerSummaries.Response.Players)
+		configuration.Logger.Sugar().Panicf("empty player summary for %s: %+v", targetURL, allPlayerSummaries.Response.Players)
 	}
 	return allPlayerSummaries.Response.Players, nil
 }

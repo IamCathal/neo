@@ -71,8 +71,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 			log.Fatal(err)
 		}
 		if len(playerSummaries) == 0 {
-			configuration.Logger.Fatal(fmt.Sprintf("failed to get a non empty player summary for target user for a second time"))
-			log.Fatal("bad cant get player summary for a second time")
+			configuration.Logger.Sugar().Panicf("failed to get a non empty player summary for target user for a second time: %+v", err)
 		}
 	}
 	playerSummaryForCurrentUser := playerSummaries[0]

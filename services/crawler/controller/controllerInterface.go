@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -478,10 +479,22 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 		return false, util.MakeErr(err)
 	}
 
-	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	gzippedData := bytes.Buffer{}
+	gz := gzip.NewWriter(&gzippedData)
+	if _, err = gz.Write(jsonObj); err != nil {
+		return false, err
+	}
+	if err = gz.Close(); err != nil {
+		return false, err
+	}
+
+	req, err := http.NewRequest("POST", targetURL, &gzippedData)
+	if err != nil {
+		return false, err
+	}
 	req.Close = true
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authentication", "something")
+	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Content-Type", "application/javascript")
 
 	client := &http.Client{}
 	res := &http.Response{}

@@ -100,7 +100,6 @@ func (control Cntr) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, craw
 		}
 		return common.CrawlingStatus{}, MakeErr(err)
 	}
-
 	return crawlingStatus, nil
 }
 

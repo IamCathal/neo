@@ -25,6 +25,8 @@ var (
 	DBClient               *mongo.Client
 	InfluxDBClient         influxdb2.Client
 	SQLClient              *sql.DB
+
+	OVERWRITE_USERS_BEYOND int64
 )
 
 func InitConfig() error {
@@ -52,6 +54,7 @@ func InitConfig() error {
 	InitAndSetInfluxClient()
 	InitSQLDBConnection()
 
+	fmt.Printf("the val is: %+v\n", OVERWRITE_USERS_BEYOND)
 	return nil
 }
 

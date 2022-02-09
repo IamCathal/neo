@@ -3,6 +3,7 @@ package configuration
 import (
 	"log"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -28,4 +29,9 @@ func GetRequestStartTimeInTimeFormat(requestStartTimeString string) int64 {
 		panic(err)
 	}
 	return requestStartTime
+}
+
+func isEnvSet(envName string) (string, bool) {
+	value, exists := os.LookupEnv(envName)
+	return value, exists
 }

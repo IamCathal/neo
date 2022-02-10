@@ -7,6 +7,8 @@ import (
 
 	common "github.com/neosteamfriendgraphing/common"
 
+	datastructures "github.com/IamCathal/neo/services/datastore/datastructures"
+
 	mock "github.com/stretchr/testify/mock"
 
 	mongo "go.mongodb.org/mongo-driver/mongo"
@@ -226,6 +228,27 @@ func (_m *MockCntrInterface) SaveProcessedGraphData(crawlID string, graphData co
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, common.UsersGraphData) error); ok {
 		r1 = rf(crawlID, graphData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SaveShortestDistance provides a mock function with given fields: ctx, shortestDistanceInfo
+func (_m *MockCntrInterface) SaveShortestDistance(ctx context.Context, shortestDistanceInfo datastructures.ShortestDistanceInfo) (bool, error) {
+	ret := _m.Called(ctx, shortestDistanceInfo)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, datastructures.ShortestDistanceInfo) bool); ok {
+		r0 = rf(ctx, shortestDistanceInfo)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, datastructures.ShortestDistanceInfo) error); ok {
+		r1 = rf(ctx, shortestDistanceInfo)
 	} else {
 		r1 = ret.Error(1)
 	}

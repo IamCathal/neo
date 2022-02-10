@@ -41,6 +41,7 @@ type AddUserEvent struct {
 }
 
 type ShortestDistanceInfo struct {
+	CrawlIDs         []string              `json:"crawlids"`
 	FirstUser        common.UserDocument   `json:"firstuser"`
 	SecondUser       common.UserDocument   `json:"seconduser"`
 	ShortestDistance []common.UserDocument `json:"shortestdistance"`

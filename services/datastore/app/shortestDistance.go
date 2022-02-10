@@ -30,6 +30,7 @@ func GetShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, second
 	}
 
 	shortestDistanceInfo := datastructures.ShortestDistanceInfo{
+		CrawlIDs:         []string{firstCrawlID, secondCrawlID},
 		FirstUser:        firstUserGraphData.UserDetails.User,
 		SecondUser:       secondUserGraphData.UserDetails.User,
 		ShortestDistance: userDetailsForShortestPath,

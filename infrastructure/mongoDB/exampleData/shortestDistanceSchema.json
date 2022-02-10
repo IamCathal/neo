@@ -3,12 +3,28 @@
     "title": "The root schema",
     "description": "The root schema comprises the entire JSON document.",
     "required": [
+        "crawlids",
         "firstuser",
         "seconduser",
         "shortestdistance",
         "totalnetworkspan"
     ],
     "properties": {
+        "crawlids": {
+            "type": "array",
+            "title": "The crawlids schema",
+            "description": "An explanation about the purpose of this instance.",
+            "additionalItems": true,
+            "items": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "title": "The first anyOf schema",
+                        "description": "An explanation about the purpose of this instance.",
+                    }
+                ]
+            }
+        },
         "firstuser": {
             "type": "object",
             "title": "The firstuser schema",
@@ -303,6 +319,7 @@
                                 "type": "array",
                                 "title": "The gamesowned schema",
                                 "description": "An explanation about the purpose of this instance.",
+                              
                                 "additionalItems": true,
                                 "items": {
                                     "anyOf": [
@@ -340,7 +357,7 @@
         "totalnetworkspan": {
             "type": "number",
             "title": "The totalnetworkspan schema",
-            "description": "An explanation about the purpose of this instance."
+            "description": "An explanation about the purpose of this instance.",
         }
     },
     "additionalProperties": true

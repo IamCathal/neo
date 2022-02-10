@@ -18,6 +18,7 @@ Datastore expects the following variables to be set in .env
 | `DB_NAME`      |  Database name for the stored data |
 | `USER_COLLECTION`      |  Collection name for the user data |
 | `CRAWLING_STATS_COLLECTION`      |  Collection name for the crawling stats |
+| `SHORTEST_DISTANCE_COLLECTION`    | Collection name for shortest distance info |
 | `POSTGRES_USER`      |  Username for postgres worker account |
 | `POSTGRES_PASSWORD`      |  Password for postgres worker account |
 | `POSTGRES_DB`      |  DB name for postgres saved graphs table |

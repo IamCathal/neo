@@ -663,6 +663,12 @@ func (endpoints *Endpoints) GetShortestDistanceInfo(w http.ResponseWriter, r *ht
 	if !exists {
 		util.SendBasicInvalidResponse(w, r, "could not find shortest distance", vars, http.StatusBadRequest)
 	}
+	success, err := endpoints.Cntr.SaveShortestDistance(context.TODO(), shortestDistanceInfo)
+	if err != nil || !success {
+		util.SendBasicInvalidResponse(w, r, "could not save shortest distance", vars, http.StatusBadRequest)
+		configuration.Logger.Panic(err.Error())
+	}
+
 	response := struct {
 		Status string                              `json:"status"`
 		Data   datastructures.ShortestDistanceInfo `json:"shortestdistanceinfo"`

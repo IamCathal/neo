@@ -73,6 +73,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/doesprocessedgraphdataexist/{crawlid}", endpoints.DoesProcessedGraphDataExist).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getshortestdistanceinfo", endpoints.GetShortestDistanceInfo).Methods("POST", "OPTIONS")
+	apiRouter.HandleFunc("/getshortestdistanceinfodata", endpoints.GetShortestDistanceInfoData).Methods("POST", "OPTIONS")
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
 	wsRouter := r.PathPrefix("/ws").Subrouter()
@@ -680,6 +681,34 @@ func (endpoints *Endpoints) GetShortestDistanceInfo(w http.ResponseWriter, r *ht
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 
+}
+
+func (endpoints *Endpoints) GetShortestDistanceInfoData(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{}
+	err := json.NewDecoder(r.Body).Decode(&crawlIDsInput)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	shortestDistanceInfo, err := endpoints.Cntr.GetShortestDistanceInfo(context.TODO(), crawlIDsInput.CrawlIDs)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "could not get shortest distance", vars, http.StatusBadRequest)
+		configuration.Logger.Panic(err.Error())
+	}
+
+	response := struct {
+		Status string                              `json:"status"`
+		Data   datastructures.ShortestDistanceInfo `json:"shortestdistanceinfo"`
+	}{
+		"success",
+		shortestDistanceInfo,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {

@@ -32,6 +32,7 @@ type CntrInterface interface {
 	InsertGame(ctx context.Context, game common.BareGameInfo) (bool, error)
 	GetDetailsForGames(ctx context.Context, IDList []int) ([]common.BareGameInfo, error)
 	SaveShortestDistance(ctx context.Context, shortestDistanceInfo datastructures.ShortestDistanceInfo) (bool, error)
+	GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (datastructures.ShortestDistanceInfo, error)
 	// Postgresql related functions
 	SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error)
 	GetProcessedGraphData(crawlID string) (common.UsersGraphData, error)
@@ -223,12 +224,25 @@ func (control Cntr) SaveShortestDistance(ctx context.Context, shortestDistanceIn
 	if err != nil {
 		return false, err
 	}
-	insertionResult, err := control.InsertOne(context.TODO(), shortestDistanceCollection, bsonObj)
+	_, err = control.InsertOne(context.TODO(), shortestDistanceCollection, bsonObj)
 	if err != nil {
 		return false, err
 	}
-	fmt.Printf("insertion result: %+v\n", insertionResult)
 	return true, nil
+}
+
+func (control Cntr) GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (datastructures.ShortestDistanceInfo, error) {
+	userCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("SHORTEST_DISTANCE_COLLECTION"))
+	shortestDistanceInfo := datastructures.ShortestDistanceInfo{}
+
+	if err := userCollection.FindOne(ctx,
+		bson.D{{Key: "crawlids", Value: bson.D{{Key: "$all", Value: crawlIDs}}}}).Decode(&shortestDistanceInfo); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return datastructures.ShortestDistanceInfo{}, nil
+		}
+		return datastructures.ShortestDistanceInfo{}, err
+	}
+	return shortestDistanceInfo, nil
 }
 
 func (control Cntr) SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error) {

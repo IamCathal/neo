@@ -105,6 +105,27 @@ func (_m *MockCntrInterface) GetProcessedGraphData(crawlID string) (common.Users
 	return r0, r1
 }
 
+// GetShortestDistanceInfo provides a mock function with given fields: ctx, crawlIDs
+func (_m *MockCntrInterface) GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (datastructures.ShortestDistanceInfo, error) {
+	ret := _m.Called(ctx, crawlIDs)
+
+	var r0 datastructures.ShortestDistanceInfo
+	if rf, ok := ret.Get(0).(func(context.Context, []string) datastructures.ShortestDistanceInfo); ok {
+		r0 = rf(ctx, crawlIDs)
+	} else {
+		r0 = ret.Get(0).(datastructures.ShortestDistanceInfo)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, crawlIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUser provides a mock function with given fields: ctx, steamID
 func (_m *MockCntrInterface) GetUser(ctx context.Context, steamID string) (common.UserDocument, error) {
 	ret := _m.Called(ctx, steamID)

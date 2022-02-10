@@ -47,3 +47,7 @@ type ShortestDistanceInfo struct {
 	ShortestDistance []common.UserDocument `json:"shortestdistance"`
 	TotalNetworkSpan int                   `json:"totalnetworkspan"`
 }
+
+type GetShortestDistanceInfoDataInputDTO struct {
+	CrawlIDs []string `json:"crawlids"`
+}

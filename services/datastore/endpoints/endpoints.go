@@ -72,7 +72,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/saveprocessedgraphdata/{crawlid}", endpoints.SaveProcessedGraphData).Methods("POST")
 	apiRouter.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/doesprocessedgraphdataexist/{crawlid}", endpoints.DoesProcessedGraphDataExist).Methods("POST", "OPTIONS")
-	apiRouter.HandleFunc("/calculateshortestdistanceinfo", endpoints.GetShortestDistanceInfo).Methods("POST", "OPTIONS")
+	apiRouter.HandleFunc("/calculateshortestdistanceinfo", endpoints.CalculateShortestDistanceInfo).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getshortestdistanceinfodata", endpoints.GetShortestDistanceInfoData).Methods("POST", "OPTIONS")
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
@@ -645,18 +645,43 @@ func (endpoints *Endpoints) DoesProcessedGraphDataExist(w http.ResponseWriter, r
 	json.NewEncoder(w).Encode(response)
 }
 
-func (endpoints *Endpoints) GetShortestDistanceInfo(w http.ResponseWriter, r *http.Request) {
+func (endpoints *Endpoints) CalculateShortestDistanceInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	firstCrawlID := r.URL.Query().Get("firstcrawlid")
-	secondCrawlID := r.URL.Query().Get("secondcrawlid")
-
-	if firstCrawlID == "" || secondCrawlID == "" {
-		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{}
+	err := json.NewDecoder(r.Body).Decode(&crawlIDsInput)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		return
 	}
 
-	exists, shortestDistanceInfo, err := app.GetShortestDistanceInfo(endpoints.Cntr, firstCrawlID, secondCrawlID)
+	if len(crawlIDsInput.CrawlIDs) != 2 {
+		if crawlIDsInput.CrawlIDs[0] == "" || crawlIDsInput.CrawlIDs[1] == "" {
+			util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
+			return
+		}
+	}
+
+	existingShortestDistanceInfo, err := endpoints.Cntr.GetShortestDistanceInfo(context.TODO(), crawlIDsInput.CrawlIDs)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "could not find shortest distance", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Panicf("failed to retrieve existing shortestDistanceInfo: %+v", err)
+	}
+	if len(existingShortestDistanceInfo.CrawlIDs) != 0 {
+		response := struct {
+			Status string                              `json:"status"`
+			Data   datastructures.ShortestDistanceInfo `json:"shortestdistanceinfo"`
+		}{
+			"success",
+			existingShortestDistanceInfo,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	exists, shortestDistanceInfo, err := app.GetShortestDistanceInfo(endpoints.Cntr, crawlIDsInput.CrawlIDs[0], crawlIDsInput.CrawlIDs[1])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "could not find shortest distance", vars, http.StatusBadRequest)
 		configuration.Logger.Panic(err.Error())

@@ -64,7 +64,7 @@ func initTestData() {
 	userOneID := "12334567"
 	userTwoID := "342089525"
 	commonFriendID := "764674763"
-	userOne = common.UsersGraphData{
+	userOneGraphData = common.UsersGraphData{
 		UserDetails: common.UsersGraphInformation{
 			User: common.UserDocument{
 				AccDetails: common.AccDetailsDocument{
@@ -82,7 +82,7 @@ func initTestData() {
 			},
 		},
 	}
-	userTwo = common.UsersGraphData{
+	userTwoGraphData = common.UsersGraphData{
 		UserDetails: common.UsersGraphInformation{
 			User: common.UserDocument{
 				AccDetails: common.AccDetailsDocument{

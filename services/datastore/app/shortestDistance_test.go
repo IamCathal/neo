@@ -9,18 +9,27 @@ import (
 )
 
 var (
-	userOne common.UsersGraphData
-	userTwo common.UsersGraphData
+	userOneGraphData common.UsersGraphData
+	userTwoGraphData common.UsersGraphData
 )
 
 // func TestGetShortestDistance(t *testing.T) {
+// 	mockController := &controller.MockCntrInterface{}
 // 	expectedShortestPath := []int64{
-// 		toInt64(userOne.UserDetails.User.AccDetails.SteamID),
-// 		toInt64(userOne.FriendDetails[0].User.AccDetails.SteamID),
-// 		toInt64(userTwo.UserDetails.User.AccDetails.SteamID),
+// 		toInt64(userOneGraphData.UserDetails.User.AccDetails.SteamID),
+// 		toInt64(userOneGraphData.FriendDetails[0].User.AccDetails.SteamID),
+// 		toInt64(userTwoGraphData.UserDetails.User.AccDetails.SteamID),
 // 	}
+// 	firstUserID := userOneGraphData.UserDetails.User.AccDetails.SteamID
+// 	secondUserID := userTwoGraphData.UserDetails.User.AccDetails.SteamID
 
-// 	exists, actualShortestPath, err := getShortestDistance(userOne, userTwo)
+// 	mockController.On("GetProcessedGraphData", firstUserID).Return(userOneGraphData, nil)
+// 	mockController.On("GetProcessedGraphData", secondUserID).Return(userTwoGraphData, nil)
+
+// 	exists, actualShortestPath, err := GetShortestDistanceInfo(
+// 		mockController,
+// 		userOneGraphData.UserDetails.User.AccDetails.SteamID,
+// 		userTwoGraphData.UserDetails.User.AccDetails.SteamID)
 
 // 	assert.True(t, exists)
 // 	assert.Equal(t, expectedShortestPath, actualShortestPath)

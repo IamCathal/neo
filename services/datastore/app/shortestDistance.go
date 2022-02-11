@@ -42,7 +42,6 @@ func GetShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, second
 
 func getUserDetailsForShortestDistancePath(cntr controller.CntrInterface, userOne, userTwo common.UsersGraphData) (bool, []common.UserDocument, error) {
 	exists, shortestPathIDs, err := graphing.GetShortestPathIDs(cntr, userOne, userTwo)
-	// exists, shortestPathIDs, err := getShortestDistance(userOne, userTwo)
 	if err != nil {
 		return false, []common.UserDocument{}, err
 	}
@@ -59,81 +58,6 @@ func getUserDetailsForShortestDistancePath(cntr controller.CntrInterface, userOn
 
 	return true, shortestPathUserDetails, nil
 }
-
-// func getShortestDistance(userOne, userTwo common.UsersGraphData) (bool, []int64, error) {
-// 	graph := dijkstra.NewGraph()
-// 	steamIDToGraphID := make(map[int64]int)
-// 	graphIDToSteamID := make(map[int]int64)
-// 	currGraphID := 0
-
-// 	mainUserSteamID := toInt64(userOne.UserDetails.User.AccDetails.SteamID)
-// 	targetUserSteamID := toInt64(userTwo.UserDetails.User.AccDetails.SteamID)
-
-// 	// Add the first and target users as they must be on the
-// 	// shortest path if it exists
-// 	steamIDToGraphID[mainUserSteamID] = currGraphID
-// 	graphIDToSteamID[currGraphID] = mainUserSteamID
-// 	graph.AddVertex(currGraphID)
-// 	currGraphID++
-
-// 	steamIDToGraphID[targetUserSteamID] = currGraphID
-// 	graphIDToSteamID[currGraphID] = targetUserSteamID
-// 	graph.AddVertex(currGraphID)
-// 	currGraphID++
-
-// 	for _, friend := range userOne.FriendDetails {
-// 		user := friend.User
-// 		currUserID := toInt64(user.AccDetails.SteamID)
-// 		if currUserID == targetUserSteamID {
-// 			fmt.Println("FOUND TARGET USER IN FIRST")
-// 		}
-// 		steamIDToGraphID[currUserID] = currGraphID
-// 		graphIDToSteamID[currGraphID] = currUserID
-// 		graph.AddVertex(currGraphID)
-// 		graph.AddArc(steamIDToGraphID[mainUserSteamID], steamIDToGraphID[currUserID], 1)
-// 		graph.AddArc(steamIDToGraphID[currUserID], steamIDToGraphID[mainUserSteamID], 1)
-// 		currGraphID++
-// 	}
-// 	// If the target user has already been seen don't bother
-// 	// scanning the target users friend list
-// 	if seen := ifSteamIDSeenBefore(targetUserSteamID, steamIDToGraphID); !seen {
-// 		for _, friend := range userTwo.FriendDetails {
-// 			user := friend.User
-// 			if toInt64(user.AccDetails.SteamID) == targetUserSteamID {
-// 				fmt.Println("FOUND TARGET USER IN SECOND")
-// 			}
-// 			if toInt64(user.AccDetails.SteamID) == mainUserSteamID {
-// 				fmt.Println("FOUND MAIN USER IN SECOND")
-// 			}
-// 			currUserID := toInt64(user.AccDetails.SteamID)
-// 			if seen := ifSteamIDSeenBefore(currUserID, steamIDToGraphID); !seen {
-// 				steamIDToGraphID[currUserID] = currGraphID
-// 				graphIDToSteamID[currGraphID] = currUserID
-// 				graph.AddVertex(currGraphID)
-// 				currGraphID++
-// 			}
-// 			graph.AddArc(steamIDToGraphID[targetUserSteamID], steamIDToGraphID[currUserID], 1)
-// 			graph.AddArc(steamIDToGraphID[currUserID], steamIDToGraphID[targetUserSteamID], 1)
-// 		}
-// 	}
-
-// 	best, err := graph.Shortest(steamIDToGraphID[mainUserSteamID], steamIDToGraphID[targetUserSteamID])
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	shortestPathSteamIDs := []int64{}
-// 	if len(best.Path) == 0 {
-// 		return false, []int64{}, nil
-// 	}
-
-// 	for _, graphID := range best.Path {
-// 		shortestPathSteamIDs = append(shortestPathSteamIDs, graphIDToSteamID[graphID])
-// 	}
-// 	if len(shortestPathSteamIDs) != len(best.Path) {
-// 		configuration.Logger.Sugar().Panicf("failed to get all steamIDs from best path")
-// 	}
-// 	return true, shortestPathSteamIDs, nil
-// }
 
 func toInt64(steamID string) int64 {
 	intVersion, err := strconv.ParseInt(steamID, 10, 64)

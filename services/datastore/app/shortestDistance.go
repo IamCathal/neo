@@ -20,6 +20,11 @@ func GetShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, second
 	if err != nil {
 		return false, datastructures.ShortestDistanceInfo{}, err
 	}
+	if firstUserGraphData.UserDetails.User.AccDetails.SteamID == "" ||
+		secondUserGraphData.UserDetails.User.AccDetails.SteamID == "" {
+		// Users have not been graphed yet
+		return false, datastructures.ShortestDistanceInfo{}, nil
+	}
 
 	exists, userDetailsForShortestPath, err := getUserDetailsForShortestDistancePath(cntr, firstUserGraphData, secondUserGraphData)
 	if err != nil {

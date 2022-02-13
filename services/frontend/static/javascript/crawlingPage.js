@@ -1,16 +1,13 @@
 import { setCrawlPageUserCardDetails } from '/static/javascript/userCard.js';
 import { initAndMonitorCrawlingStatusWebsocket } from '/static/javascript/crawlingStatusUpdatesFeed.js'
 
-
 const crawlIDs = getCrawlIDs()
-console.log(`got crawlIDs: ${crawlIDs}`)
 
 if (crawlIDs.length == 2) {
     getShortestDistanceInfo(crawlIDs).then(shortestDistanceInfo => {
         if (shortestDistanceInfo.crawlids === null) {
-            // Does not exist, continue with crawl
             renderCrawlStatusBoxes(2)
-            console.log(`opening websockets for ${crawlIDs}`)
+
             let initAndMonitorCrawlOne = initAndMonitorCrawlingStatusWebsocket(crawlIDs[0], "firstCrawl")
             let initAndMonitorCrawlTwo = initAndMonitorCrawlingStatusWebsocket(crawlIDs[1], "secondCrawl")
 
@@ -20,28 +17,25 @@ if (crawlIDs.length == 2) {
             getCrawlingUserWhenAvailable(crawlIDs[1], "secondCrawl").then(res => {}, err => {
                 console.error(`error getting second crawling user: ${JSON.stringify(err)}`)
             })
+
             Promise.all([initAndMonitorCrawlOne, initAndMonitorCrawlTwo]).then(vals => {
-                console.log("both crawls are done!!!!")
-                // generate graphs
                 let firstUserStartCreateGraph = startCreateGraph(crawlIDs[0])
                 let secondUserStartCreateGraph = startCreateGraph(crawlIDs[1])
 
                 Promise.all([firstUserStartCreateGraph, secondUserStartCreateGraph]).then(vals => {
-                    // both crawls are complete
-                    console.log("both user create graphs have been initialsed")
                     let firstUserGraphExists = waitUntilGraphDataExists(crawlIDs[0])
                     let secondUserGraphExists = waitUntilGraphDataExists(crawlIDs[1])
 
                     Promise.all([firstUserGraphExists, secondUserGraphExists]).then(vals => {
-                        console.log("both users have existing graph data, calculating shortest distance")
                         startCalculateGetShortestDistance(crawlIDs).then(res => {
                             console.log(res);
                             window.location.href = `/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
                         }, err => {
                             console.error(`err calculating shortest distance: ${JSON.stringify(err)}`)
                         })
+                        
                     }, err => {
-                        console.error(`error waiting until both graphs existed: ${err}`)
+                        console.error(`error waiting until both graphs existed: ${JSON.stringify(err)}`)
                     })
                 }, errs => {
                     console.error(errs)
@@ -50,7 +44,7 @@ if (crawlIDs.length == 2) {
                 console.error(err)
             })
         } else {
-            console.log(`Redirecting to http://localhost:8088/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`)
+            window.location.href = `/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
         }
     }, err => {
         console.error(err)
@@ -212,7 +206,6 @@ function getCrawlIDs() {
 
 function getShortestDistanceInfo(crawlIDs) {
     return new Promise((resolve, reject) => {
-        console.log("get user")
         fetch(`http://localhost:2590/api/getshortestdistanceinfo`, {
             method: 'POST',
             headers: {

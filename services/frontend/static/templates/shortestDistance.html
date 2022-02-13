@@ -34,8 +34,8 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script> 
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="https://d3js.org/topojson.v1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.js" integrity="sha256-RySf951sAEWQzKl5M+wHL5OQrVfQu/FmEfbSbBpP740=" crossorigin="anonymous"></script>
+
 
     <meta property="og:image" content="https://avatars0.githubusercontent.com/u/6561327?s=460&v=4" />
     <meta property="og:type" content="website" />
@@ -74,7 +74,7 @@
         <div class="row mt-2">
             <div class="col-3 box">
                 <div class="row pl-1 ml-1 mr-1">
-                    <p style="font-size: 4rem; height: 5rem; font-weight: 600">12,670</p>
+                    <p id="networkSpan" style="font-size: 4rem; height: 5rem; font-weight: 600"></p>
                 </div>
                 <div class="row ml-1">
                     <p style="bottom: 0" class="mb-0">total users crawled</p>
@@ -92,10 +92,10 @@
 
             <div class="col box ml-2">
                 <div class="row pl-1 ml-1 mr-1">
-                    <p style="font-size: 4rem; height: 5rem; font-weight: 600">3</p>
+                    <p id="spanLength"  style="font-size: 4rem; height: 5rem; font-weight: 600"></p>
                 </div>
                 <div class="row ml-1">
-                    <p style="bottom: 0" class="mb-0">friends in shortest path </p>
+                    <p style="bottom: 0" class="mb-0">users in shortest path </p>
                 </div>
             </div>
 
@@ -116,132 +116,68 @@
                     <p style="bottom: 0" class="mb-0">eee</p>
                 </div>
             </div>
-
-           
         </div>        
 
         <div class="row mt-5">
             <div class="col-2"></div> <!-- Spacer -->
-            <div class="col-8 box pl-4 pr-4 pb-4 pt-2" style="border: 2px solid purple">
-                <div class="row" style="border: 2px solid green">
+            <div class="col-8 box pl-4 pr-4 pb-4 pt-2">
+                <div class="row">
                     <div class="col text-center mt-0">
                         <p style="font-size: 1.4rem" class="mb-0 mt-0">
                             Shortest distance between
                         </p>
                     </div>
                 </div>
-                <div class="row" style="border: 2px solid green">
-                    <div class="col text-center mt-2" style="border: 2px solid white">
-                        <p style="font-size: 1.4rem; font-weight: 600">
-                            yyyy
+                <div class="row">
+                    <div class="col text-center mt-2">
+                        <p id="secondUserUsername" style="font-size: 2rem; font-weight: 600" class="mb-0">
+                            
                         </p>
                     </div>
-                    <div class="col-1 text-center mt-2" style="border: 2px solid red">
+                    <div class="col-1 text-center mt-2">
                         <p style="font-size: 1rem" class="pb-0 pt-3 mb-0">
                             and
                         </p>
                     </div>
-                    <div class="col text-center mt-2" style="border: 2px solid cyan">
-                        <p style="font-size: 1.4rem;  font-weight: 600">
-                            xxxxxx
+                    <div class="col text-center mt-2" >
+                        <p id="firstUserUsername" style="font-size:2rem;  font-weight: 600" class="mb-0">
+                            
                         </p>
                     </div>
                 </div>
+
                 <hr>
-                <div class="row pl-3 pr-3">
-                    <div class="col" style="border: 2px solid white">
-                        <div class="row">
-                            <div class="col-3" style="border: 2px solid yellow">
-                                <div class="newestUserProfiler text-center">
-                                    <img class="mr-1 skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="newestUserAvatar"></img>
-                                </div>
-                            </div>
-                            <div class="col" style="border: 2px solid cyan">
-                                <div class="row m-0" style="border: 2px solid orange">
-                                    <p class="truncate mb-0" style="font-size: 3rem; font-weight: 500;">
-                                        2 Nuttell
-                                    </p>
-                                </div>
-                                <div class="row m-0 mt-2">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                                <div class="row m-0">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                                <div class="row m-0">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="row pl-3 pr-3 mt-4">
-                    <div class="col" style="border: 2px solid white">
-                        <div class="row">
-                            <div class="col-3" style="border: 2px solid yellow">
-                                <div class="newestUserProfiler text-center">
-                                    <img class="mr-1 skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="newestUserAvatar"></img>
-                                </div>
-                            </div>
-                            <div class="col" style="border: 2px solid cyan">
-                                <div class="row m-0" style="border: 2px solid orange">
-                                    <p class="truncate mb-0" style="font-size: 3rem; font-weight: 500;">
-                                        2 Nuttell
-                                    </p>
-                                </div>
-                                <div class="row m-0 mt-2">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                                <div class="row m-0">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                                <div class="row m-0">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="shortestPathDiv" class="col">
+                   
                 </div>
-
-                <div class="row pl-3 pr-3 mt-4">
-                    <div class="col" style="border: 2px solid white">
-                        <div class="row">
-                            <div class="col-3" style="border: 2px solid yellow">
-                                <div class="newestUserProfiler text-center">
-                                    <img class="mr-1 skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" id="newestUserAvatar"></img>
-                                </div>
-                            </div>
-                            <div class="col" style="border: 2px solid cyan">
-                                <div class="row m-0" style="border: 2px solid orange">
-                                    <p class="truncate mb-0" style="font-size: 3rem; font-weight: 500;">
-                                        2 Nuttell
-                                    </p>
-                                </div>
-                                <div class="row m-0 mt-2">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                                <div class="row m-0">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                                <div class="row m-0">
-                                    <p class="skeleton skeleton-text mb-1"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
-            <div class="col-2"></div> <!-- Spacer -->
+            <div class="col sm-2 mt-5"></div>
         </div>
 
+        <div class="row mt-5">
+            <div class="col-3"></div>
 
+            <div class="col box">
+                <div class="row">
+                    <div class="col text-center">
+                       <p style="font-size: 1.4rem"> View individual crawl data for</p>
+                    </div>
+                </div>
+                <div id="indivCrawlData" class="row justify-content-md-center mb-3">
 
+                   
+                    
+                </div>
+            </div>
+
+            <div class="col-3"></div>
+        </div>
         
-        <div class="col sm-2 mt-5"></div>
+        <div class="mt-5 mb-4"></div>
 
-        </div>
     </div>
+
+    <script src="/static/javascript/shortestDistance.js" type="module"></script>
 </body>
 </html>

@@ -501,10 +501,16 @@ input[type=text]:focus ~ .bar:before, input[type=text]:focus ~ .bar:after {
   animation-name: buttonTransition;
 } */
 
-.tooltipText {
-  color: black
+
+.tooltip .tooltipMsg {
+  visibility: hidden;
+  border-radius: 8px;
+  color: black;
+  position: absolute;
+  top: -10px;
+  left: 100%
 }
 
-.tooltipButton {
-  background-color: #00b3c8;
+.tooltip:hover .tooltipMsg {
+  visibility: visible;
 }

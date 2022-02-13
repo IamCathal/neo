@@ -51,75 +51,75 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
 
         initGamerScore()
 
-        var myChart = echarts.init(document.getElementById('graphContainer'));
-        const graph = getDataInGraphFormat(crawlDataObj.usergraphdata, countryFrequencies)
-        var option;
-        myChart.showLoading();
-        myChart.hideLoading()
-        graph.nodes.forEach(function (node) {
-            node.symbolSize = 10;
-        });
-        option = {
-            title: {
-                text: 'Your friend network',
-                subtext: 'Default layout',
-                top: 'bottom',
-                left: 'right',
-                textStyle: {
-                    color: '#ffffff'
-                }
-            },
+        // var myChart = echarts.init(document.getElementById('graphContainer'));
+        // const graph = getDataInGraphFormat(crawlDataObj.usergraphdata, countryFrequencies)
+        // var option;
+        // myChart.showLoading();
+        // myChart.hideLoading()
+        // graph.nodes.forEach(function (node) {
+        //     node.symbolSize = 10;
+        // });
+        // option = {
+        //     title: {
+        //         text: 'Your friend network',
+        //         subtext: 'Default layout',
+        //         top: 'bottom',
+        //         left: 'right',
+        //         textStyle: {
+        //             color: '#ffffff'
+        //         }
+        //     },
 
-            tooltip: {
-                show: true,
-                showContent: true,
-                triggerOn: 'click',
-                enterable: true,
-                renderMode: 'html',
-                formatter: function(params, ticket, callback) {
-                    return `<div>
-                                <p style="font-weight: bold" class="tooltipText">${params["name"]}:</p> 
-                                <a href="${params["data"].value}" target="_blank">
-                                    <button class="tooltipButton">Profile</button>
-                                </a>
-                            </div>`
-                }
-            },
-            legend: [
-            {
-                // selectedMode: 'single',
-                data: graph.categories.map(function (a) {
-                    return a.name;
-                }),
-                show: true,
-                left: 'left',
-                textStyle: {
-                    color: '#ffffff'
-                }
-            }
-            ],
-            series: [
-            {
-                name: 'Friend Network',
-                type: 'graph',
-                layout: 'force',
-                data: graph.nodes,
-                links: graph.links,
-                categories: graph.categories,
-                roam: true,
-                label: {
-                    position: 'right'
-                },
-                force: {
-                    gravity: 0.5,
-                    repulsion: 370,
-                    friction: 0.2,
-                }
-            }
-            ]
-        };
-        myChart.setOption(option);
-        option && myChart.setOption(option);
+        //     tooltip: {
+        //         show: true,
+        //         showContent: true,
+        //         triggerOn: 'click',
+        //         enterable: true,
+        //         renderMode: 'html',
+        //         formatter: function(params, ticket, callback) {
+        //             return `<div>
+        //                         <p style="font-weight: bold" class="tooltipText">${params["name"]}:</p> 
+        //                         <a href="${params["data"].value}" target="_blank">
+        //                             <button class="tooltipButton">Profile</button>
+        //                         </a>
+        //                     </div>`
+        //         }
+        //     },
+        //     legend: [
+        //     {
+        //         // selectedMode: 'single',
+        //         data: graph.categories.map(function (a) {
+        //             return a.name;
+        //         }),
+        //         show: true,
+        //         left: 'left',
+        //         textStyle: {
+        //             color: '#ffffff'
+        //         }
+        //     }
+        //     ],
+        //     series: [
+        //     {
+        //         name: 'Friend Network',
+        //         type: 'graph',
+        //         layout: 'force',
+        //         data: graph.nodes,
+        //         links: graph.links,
+        //         categories: graph.categories,
+        //         roam: true,
+        //         label: {
+        //             position: 'right'
+        //         },
+        //         force: {
+        //             gravity: 0.5,
+        //             repulsion: 370,
+        //             friction: 0.2,
+        //         }
+        //     }
+        //     ]
+        // };
+        // myChart.setOption(option);
+        // option && myChart.setOption(option);
 
 
                 }, err => {
@@ -331,6 +331,7 @@ function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
 
     const usersFavoriteGame = graphData.userdetails.User.gamesowned[0];
     if (usersFavoriteGame != undefined) {
+        console.log(`${steamGameInfoAPI}/${usersFavoriteGame.appid}`)
         fetch(`${steamGameInfoAPI}/${usersFavoriteGame.appid}`)
         .then(res => res.json())
         .then(res => {
@@ -341,7 +342,6 @@ function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
             const playtimeInHours = Math.floor(usersFavoriteGame.playtime_forever/60)
             countUpElement('statBoxUsersFavoriteGameHoursPlayed', playtimeInHours)
             const gameCost = res[usersFavoriteGame.appid].data.price_overview;
-
             let friendsWhoPlayUsersFavoriteGame = 0
             graphData.frienddetails.forEach(user => {
                 const friend = user.User;
@@ -355,6 +355,10 @@ function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
 
             let costPerHour = 0;
             if (gameCost) {
+                console.log(gameCost)
+                console.log((gameCost.initial/100))
+                console.log(playtimeInHours)
+                console.log(((gameCost.initial/100)/playtimeInHours))
                 costPerHour = ((gameCost.initial/100)/playtimeInHours).toFixed(2);
             }
             document.getElementById('statBoxUsersFavoriteGamesCostPerHour').textContent = `€${costPerHour}`
@@ -782,7 +786,7 @@ function initThreeJSGraph(crawlData) {
     const linkForce = g
     .d3Force("link")
     .distance(link => {
-        return 80 + link.source.neighbourNodes.length;
+        return 80 + (link.source.neighbourNodes.length * 8);
     });
 }
 

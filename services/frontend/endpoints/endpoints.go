@@ -34,11 +34,19 @@ type responseWriter struct {
 	wroteHeader bool
 }
 
+// TODO Move to commom
+func setupCORS(w *http.ResponseWriter, req *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/", endpoints.HomeHandler).Methods("GET")
 	r.HandleFunc("/crawl/{crawlid}", endpoints.CrawlPage).Methods("GET")
 	r.HandleFunc("/graph/{crawlid}", endpoints.ServeGraph).Methods("GET")
+	r.HandleFunc("/shortestdistance", endpoints.ShortestDistance).Methods("GET")
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
 	r.HandleFunc("/createcrawlingstatus", endpoints.CreateCrawlingStatus).Methods("POST")
@@ -91,6 +99,10 @@ func (endpoints *Endpoints) DisallowFileBrowsing(next http.Handler) http.Handler
 
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		setupCORS(&w, r)
+		if (*r).Method == "OPTIONS" {
+			return
+		}
 		defer func() {
 			if err := recover(); err != nil {
 				vars := mux.Vars(r)
@@ -152,11 +164,11 @@ func (endpoints *Endpoints) CrawlPage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	// Validate crawlid
-	_, err := ksuid.Parse(vars["crawlid"])
-	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
-		return
-	}
+	// _, err := ksuid.Parse(vars["crawlid"])
+	// if err != nil {
+	// 	util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
+	// 	return
+	// }
 
 	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/crawlPage.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
 	if err != nil {
@@ -180,6 +192,30 @@ func (endpoints *Endpoints) ServeGraph(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/graphPage.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
 	if err != nil {
 		configuration.Logger.Sugar().Fatalf("could not generate crawl page: %+v", err)
+		panic(err)
+	}
+	templateData := struct {
+		CrawlID string
+	}{
+		vars["crawlid"],
+	}
+	tmpl.Execute(w, templateData)
+}
+
+func (endpoints *Endpoints) ShortestDistance(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	firstCrawlID := r.URL.Query().Get("firstcrawlid")
+	secondCrawlID := r.URL.Query().Get("secondcrawlid")
+
+	if firstCrawlID == "" || secondCrawlID == "" {
+		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
+		return
+	}
+
+	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/shortestDistance.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
+	if err != nil {
+		configuration.Logger.Sugar().Fatalf("could not generate shortest distance page: %+v", err)
 		panic(err)
 	}
 	templateData := struct {

@@ -23,10 +23,28 @@ if (crawlIDs.length == 2) {
             Promise.all([initAndMonitorCrawlOne, initAndMonitorCrawlTwo]).then(vals => {
                 console.log("both crawls are done!!!!")
                 // generate graphs
-                startCalculateGetShortestDistance(crawlIDs).then(res => {
-                    console.log(res);
-                }, err => {
-                    console.error(`err calculating shortest distance: ${JSON.stringify(err)}`)
+                let firstUserStartCreateGraph = startCreateGraph(crawlIDs[0])
+                let secondUserStartCreateGraph = startCreateGraph(crawlIDs[1])
+
+                Promise.all([firstUserStartCreateGraph, secondUserStartCreateGraph]).then(vals => {
+                    // both crawls are complete
+                    console.log("both user create graphs have been initialsed")
+                    let firstUserGraphExists = waitUntilGraphDataExists(crawlIDs[0])
+                    let secondUserGraphExists = waitUntilGraphDataExists(crawlIDs[1])
+
+                    Promise.all([firstUserGraphExists, secondUserGraphExists]).then(vals => {
+                        console.log("both users have existing graph data, calculating shortest distance")
+                        startCalculateGetShortestDistance(crawlIDs).then(res => {
+                            console.log(res);
+                            window.location.href = `/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
+                        }, err => {
+                            console.error(`err calculating shortest distance: ${JSON.stringify(err)}`)
+                        })
+                    }, err => {
+                        console.error(`error waiting until both graphs existed: ${err}`)
+                    })
+                }, errs => {
+                    console.error(errs)
                 })
             }, err => {
                 console.error(err)
@@ -37,7 +55,6 @@ if (crawlIDs.length == 2) {
     }, err => {
         console.error(err)
     })
-    // Render the two crawlstatus boxes
 }
 
 if (crawlIDs.length == 1) {
@@ -151,6 +168,24 @@ function getCrawlingUserWhenAvailable(crawlID , idPrefix) {
         }
       }, 50);
     });
+}
+
+function waitUntilGraphDataExists(crawlID) {
+    return new Promise((resolve, reject) => {
+        let interval = setInterval(function() {
+            doesProcessedGraphDataExist(crawlID).then(doesExist => {
+                if (doesExist === true) {
+                    clearInterval(interval);
+                    resolve(true)
+                } else {
+                    console.log("graph not done processing")
+                }
+            }, err => {
+                clearInterval(interval);
+                reject(err)
+            })
+        }, 500);
+    })
 }
 
 function usersCrawledIsMoreThanZero(idPrefix) {

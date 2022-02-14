@@ -63,7 +63,7 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 				workerConfig.resMutex.Lock()
 				res <- newJob
 				workerConfig.resMutex.Unlock()
-				time.Sleep(2 * time.Millisecond)
+				cntr.Sleep(2 * time.Millisecond)
 			}
 
 			workerConfig.usersCrawledMutex.Lock()

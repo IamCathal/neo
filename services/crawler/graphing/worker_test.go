@@ -65,6 +65,7 @@ func TestCrawlerDoesFinish(t *testing.T) {
 	returnedSteamIDToUsernameMap[secondUser.AccDetails.SteamID] = secondUser.AccDetails.Personaname
 	returnedSteamIDToUsernameMap[thirdUser.AccDetails.SteamID] = thirdUser.AccDetails.Personaname
 
+	mockController.On("Sleep", mock.Anything).Return()
 	mockController.On("GetUserFromDataStore", firstUser.AccDetails.SteamID).Return(firstUser, nil)
 	mockController.On("GetUserFromDataStore", secondUser.AccDetails.SteamID).Return(secondUser, nil)
 	mockController.On("GetUserFromDataStore", thirdUser.AccDetails.SteamID).Return(thirdUser, nil)

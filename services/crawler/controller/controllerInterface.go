@@ -38,6 +38,8 @@ type CntrInterface interface {
 	GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error)
 	SaveProcessedGraphDataToDataStore(crawlID string, graphData common.UsersGraphData) (bool, error)
 	GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo, error)
+
+	Sleep(duration time.Duration)
 }
 
 // CallGetFriends calls the steam web API to retrieve a list of
@@ -590,4 +592,8 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 	}
 
 	return []common.BareGameInfo{}, util.MakeErr(fmt.Errorf("error when retrieving details for games: %+v", APIRes))
+}
+
+func (control Cntr) Sleep(duration time.Duration) {
+	time.Sleep(duration)
 }

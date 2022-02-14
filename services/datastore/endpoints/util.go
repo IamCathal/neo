@@ -3,39 +3,30 @@ package endpoints
 import (
 	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/dbmonitor"
-	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 )
 
-func LogBasicErr(err error, req *http.Request, statusCode int) {
-	vars := mux.Vars(req)
-	requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
-	configuration.Logger.Error(fmt.Sprintf("%v", err),
-		zap.String("requestID", vars["requestID"]),
-		zap.Int("status", http.StatusInternalServerError),
-		zap.Int64("duration", configuration.GetCurrentTimeInMs()-requestStartTime),
-		zap.String("path", req.URL.EscapedPath()),
-	)
+func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
+	return &responseWriter{ResponseWriter: w}
 }
 
-func LogBasicInfo(msg string, req *http.Request, statusCode int) {
-	vars := mux.Vars(req)
-	requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
-	configuration.Logger.Info(msg,
-		zap.String("requestID", vars["requestID"]),
-		zap.Int("status", statusCode),
-		zap.Int64("duration", configuration.GetCurrentTimeInMs()-requestStartTime),
-		zap.String("path", req.URL.EscapedPath()),
-	)
+func (rw *responseWriter) Status() int {
+	return rw.status
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	if rw.wroteHeader {
+		return
+	}
+	rw.status = code
+	rw.ResponseWriter.WriteHeader(code)
+	rw.wroteHeader = true
 }
 
 func gunzip(body io.ReadCloser) ([]byte, error) {

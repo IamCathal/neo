@@ -73,7 +73,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/getprocessedgraphdata/{crawlid}", endpoints.GetProcessedGraphData).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/doesprocessedgraphdataexist/{crawlid}", endpoints.DoesProcessedGraphDataExist).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/calculateshortestdistanceinfo", endpoints.CalculateShortestDistanceInfo).Methods("POST", "OPTIONS")
-	apiRouter.HandleFunc("/getshortestdistanceinfodata", endpoints.GetShortestDistanceInfoData).Methods("POST", "OPTIONS")
+	apiRouter.HandleFunc("/getshortestdistanceinfo", endpoints.GetShortestDistanceInfoData).Methods("POST", "OPTIONS")
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
 	wsRouter := r.PathPrefix("/ws").Subrouter()
@@ -81,23 +81,6 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	wsRouter.HandleFunc("/crawlingstatstream/{crawlid}", endpoints.CrawlingStatsUpdateStream).Methods("GET")
 
 	return r
-}
-
-func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{ResponseWriter: w}
-}
-
-func (rw *responseWriter) Status() int {
-	return rw.status
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	if rw.wroteHeader {
-		return
-	}
-	rw.status = code
-	rw.ResponseWriter.WriteHeader(code)
-	rw.wroteHeader = true
 }
 
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
@@ -141,7 +124,6 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 		identifier := ksuid.New()
 		vars["requestID"] = identifier.String()
-
 		requestStartTime := time.Now().UnixNano() / int64(time.Millisecond)
 		vars["requestStartTime"] = strconv.Itoa(int(requestStartTime))
 
@@ -157,7 +139,6 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 		urlPathBasic := ""
 		urlPath := strings.Split(r.URL.EscapedPath(), "/")
-
 		if len(urlPath) > 1 {
 			urlPathBasic = urlPath[1]
 		} else {
@@ -493,7 +474,6 @@ func (endpoints *Endpoints) GetUsernamesFromSteamIDs(w http.ResponseWriter, r *h
 	err := json.NewDecoder(r.Body).Decode(&steamIDsInput)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
-		LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 
@@ -507,11 +487,8 @@ func (endpoints *Endpoints) GetUsernamesFromSteamIDs(w http.ResponseWriter, r *h
 
 	steamIDsToUsernames, err := endpoints.Cntr.GetUsernames(context.TODO(), steamIDsInput.SteamIDs)
 	if err != nil {
-		logMsg := fmt.Sprintf("couldn't get usernames: %+v", err)
-		configuration.Logger.Error(logMsg)
-		panic(logMsg)
+		configuration.Logger.Sugar().Panicf("couldn't get usernames: %+v", err)
 	}
-	configuration.Logger.Sugar().Infof("retrieved %d usernames from steamIDs", len(steamIDsToUsernames))
 
 	returnJSON := dtos.GetUsernamesFromSteamIDsDTO{}
 	for key, val := range steamIDsToUsernames {
@@ -550,9 +527,7 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 
 	success, err := endpoints.Cntr.SaveProcessedGraphData(vars["crawlid"], graphData)
 	if err != nil || success == false {
-		logMsg := fmt.Sprintf("could not save graph data: %+v", err)
-		configuration.Logger.Error(logMsg)
-		panic(logMsg)
+		configuration.Logger.Sugar().Panicf("could not save graph data: %+v", err)
 	}
 
 	response := struct {
@@ -571,11 +546,9 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 	_, err := ksuid.Parse(vars["crawlid"])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
-		LogBasicInfo("invalid crawlid given", r, http.StatusNotFound)
 		return
 	}
 	responseType := r.URL.Query().Get("responsetype")
-	fmt.Println(responseType)
 	if responseType != "json" {
 		if responseType != "" {
 			util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
@@ -585,9 +558,7 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 
 	usersProcessedGraphData, err := endpoints.Cntr.GetProcessedGraphData(vars["crawlid"])
 	if err != nil {
-		logMsg := fmt.Sprintf("failed to get processed graph data: %+v", err)
-		configuration.Logger.Error(logMsg)
-		panic(logMsg)
+		configuration.Logger.Sugar().Panicf("failed to get processed graph data: %+v", err)
 	}
 	response := datastructures.GetProcessedGraphDataDTO{
 		Status:        "success",
@@ -596,9 +567,7 @@ func (endpoints *Endpoints) GetProcessedGraphData(w http.ResponseWriter, r *http
 
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
-		logMsg := fmt.Sprintf("failed to marshal processedgraphdata: %+v", err)
-		configuration.Logger.Error(logMsg)
-		panic(logMsg)
+		configuration.Logger.Sugar().Panicf("failed to marshal processedgraphdata: %+v", err)
 	}
 
 	switch responseType {
@@ -627,10 +596,9 @@ func (endpoints *Endpoints) DoesProcessedGraphDataExist(w http.ResponseWriter, r
 
 	exists, err := endpoints.Cntr.DoesProcessedGraphDataExist(vars["crawlid"])
 	if err != nil {
-		logMsg := fmt.Sprintf("failed to get processed graph data: %+v", err)
-		configuration.Logger.Error(logMsg)
-		panic(logMsg)
+		configuration.Logger.Sugar().Panicf("failed to get processed graph data: %+v", err)
 	}
+
 	response := dtos.DoesProcessedGraphDataExistDTO{
 		Status: "success",
 	}
@@ -684,15 +652,16 @@ func (endpoints *Endpoints) CalculateShortestDistanceInfo(w http.ResponseWriter,
 	exists, shortestDistanceInfo, err := app.GetShortestDistanceInfo(endpoints.Cntr, crawlIDsInput.CrawlIDs[0], crawlIDsInput.CrawlIDs[1])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "could not find shortest distance", vars, http.StatusBadRequest)
-		configuration.Logger.Panic(err.Error())
+		configuration.Logger.Sugar().Panicf("failed to get shortest distance: %s", err.Error())
 	}
 	if !exists {
 		util.SendBasicInvalidResponse(w, r, "could not find shortest distance", vars, http.StatusBadRequest)
+		return
 	}
 	success, err := endpoints.Cntr.SaveShortestDistance(context.TODO(), shortestDistanceInfo)
 	if err != nil || !success {
 		util.SendBasicInvalidResponse(w, r, "could not save shortest distance", vars, http.StatusBadRequest)
-		configuration.Logger.Panic(err.Error())
+		configuration.Logger.Sugar().Panicf("could not save shortest distance: %s", err.Error())
 	}
 
 	response := struct {
@@ -721,7 +690,7 @@ func (endpoints *Endpoints) GetShortestDistanceInfoData(w http.ResponseWriter, r
 	shortestDistanceInfo, err := endpoints.Cntr.GetShortestDistanceInfo(context.TODO(), crawlIDsInput.CrawlIDs)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "could not get shortest distance", vars, http.StatusBadRequest)
-		configuration.Logger.Panic(err.Error())
+		configuration.Logger.Sugar().Panicf("could not get shortest distance: %s", err.Error())
 	}
 
 	response := struct {

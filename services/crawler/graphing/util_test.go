@@ -90,6 +90,39 @@ func TestGetTopTenMostPopularGames(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestGetTopTenMostPopularGamesOnlyReturns10GamesIfMoreThan10AreGiven(t *testing.T) {
+	users := []common.UsersGraphInformation{
+		{
+			User: common.UserDocument{
+				GamesOwned: []common.GameOwnedDocument{
+					{AppID: 8, Playtime_Forever: 6},
+					{AppID: 80, Playtime_Forever: 160},
+					{AppID: 12, Playtime_Forever: 123},
+					{AppID: 164, Playtime_Forever: 14323},
+					{AppID: 546, Playtime_Forever: 133},
+					{AppID: 45765, Playtime_Forever: 14523},
+					{AppID: 54, Playtime_Forever: 167723},
+					{AppID: 895, Playtime_Forever: 12883},
+				},
+			},
+		},
+		{
+			User: common.UserDocument{
+				GamesOwned: []common.GameOwnedDocument{
+					{AppID: 90, Playtime_Forever: 20},
+					{AppID: 200, Playtime_Forever: 500000},
+					{AppID: 256, Playtime_Forever: 508880},
+					{AppID: 567, Playtime_Forever: 508260},
+				},
+			},
+		},
+	}
+
+	actual := getTopTenMostPopularGames(users)
+
+	assert.Len(t, actual, 10)
+}
+
 func TestGetTopTenOverallGameNames(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	users := []common.UsersGraphInformation{

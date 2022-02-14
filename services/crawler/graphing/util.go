@@ -27,39 +27,38 @@ func getAllSteamIDsFromJobsWithNoAssociatedUsernames(jobs []common.UsersGraphInf
 
 func getTopTenMostPopularGames(users []common.UsersGraphInformation) []int {
 	type tempGame struct {
-		appID      int
-		occurances int
+		appID         int
+		totalPlaytime int
 	}
-	allGamesFrequenciesStruct := []tempGame{}
-	// Find the occurancies of each game
-	allGameFrequenciesMap := make(map[int]int)
+	allGamesTotalPlaytimesStruct := []tempGame{}
+	allGamesTotalPlaytimesMap := make(map[int]int)
 
 	for _, user := range users {
 		for _, usersGame := range user.User.GamesOwned {
-			if _, ok := allGameFrequenciesMap[usersGame.AppID]; !ok {
-				allGameFrequenciesMap[usersGame.AppID] = 1
+			if _, ok := allGamesTotalPlaytimesMap[usersGame.AppID]; !ok {
+				allGamesTotalPlaytimesMap[usersGame.AppID] = usersGame.Playtime_Forever
 			} else {
-				allGameFrequenciesMap[usersGame.AppID] += 1
+				allGamesTotalPlaytimesMap[usersGame.AppID] += usersGame.Playtime_Forever
 			}
 		}
 	}
 
-	for key, val := range allGameFrequenciesMap {
-		allGamesFrequenciesStruct = append(allGamesFrequenciesStruct, tempGame{appID: key, occurances: val})
+	for key, val := range allGamesTotalPlaytimesMap {
+		allGamesTotalPlaytimesStruct = append(allGamesTotalPlaytimesStruct, tempGame{appID: key, totalPlaytime: val})
 	}
-	sort.Slice(allGamesFrequenciesStruct, func(i, j int) bool {
-		return allGamesFrequenciesStruct[i].occurances > allGamesFrequenciesStruct[j].occurances
+	sort.Slice(allGamesTotalPlaytimesStruct, func(i, j int) bool {
+		return allGamesTotalPlaytimesStruct[i].totalPlaytime > allGamesTotalPlaytimesStruct[j].totalPlaytime
 	})
 
-	if len(allGamesFrequenciesStruct) >= 10 {
+	if len(allGamesTotalPlaytimesStruct) >= 10 {
 		gameIDs := []int{}
-		for _, gameID := range allGamesFrequenciesStruct[:10] {
+		for _, gameID := range allGamesTotalPlaytimesStruct[:10] {
 			gameIDs = append(gameIDs, gameID.appID)
 		}
 		return gameIDs
 	} else {
 		gameIDs := []int{}
-		for _, gameID := range allGamesFrequenciesStruct {
+		for _, gameID := range allGamesTotalPlaytimesStruct {
 			gameIDs = append(gameIDs, gameID.appID)
 		}
 		return gameIDs

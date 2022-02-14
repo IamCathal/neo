@@ -54,36 +54,36 @@ func TestGetTopTenMostPopularGames(t *testing.T) {
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
-					{AppID: 90},
-					{AppID: 80},
+					{AppID: 8, Playtime_Forever: 6},
+					{AppID: 80, Playtime_Forever: 160},
 				},
 			},
 		},
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
-					{AppID: 90},
-					{AppID: 200},
+					{AppID: 90, Playtime_Forever: 20},
+					{AppID: 200, Playtime_Forever: 500000},
 				},
 			},
 		},
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
-					{AppID: 90},
-					{AppID: 80},
+					{AppID: 170, Playtime_Forever: 78555},
+					{AppID: 80, Playtime_Forever: 10},
 				},
 			},
 		},
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
-					{AppID: 90},
+					{AppID: 90, Playtime_Forever: 5000},
 				},
 			},
 		},
 	}
-	expected := []int{90, 80, 200}
+	expected := []int{200, 170, 90, 80, 8}
 
 	actual := getTopTenMostPopularGames(users)
 

@@ -12,6 +12,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
     }
     getProcessedGraphData(crawlID).then(crawlDataObj => {
         crawlData = crawlDataObj
+        console.log(crawlData.usergraphdata.userdetails.User)
         setUserCardDetails(crawlData.usergraphdata.userdetails.User);
         let countryFrequencies = {}
         var countryFrequenciesArr = []
@@ -49,7 +50,7 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         // Three JS bottom test graph
         initThreeJSGraph(crawlDataObj.usergraphdata)
 
-        initGamerScore()
+        initGamerScore(crawlDataObj.usergraphdata)
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
         const graph = getDataInGraphFormat(crawlDataObj.usergraphdata, countryFrequencies)
@@ -430,7 +431,7 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     })
     highestFriendCountUser = highestFriendCountUser.User;
     document.getElementById("highestFriendCountUserUsername").textContent = highestFriendCountUser.accdetails.personaname;
-    document.getElementById("userCountry").textContent = countryCodeToName(highestFriendCountUser.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(highestFriendCountUser.accdetails.loccountrycode);
+    document.getElementById("highestFriendCountUserCountry").textContent = countryCodeToName(highestFriendCountUser.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(highestFriendCountUser.accdetails.loccountrycode);
     document.getElementById("highestFriendCountUserFriendCount").textContent = highestFriendCountUser.friendids.length;
     let creationDate = new Date(highestFriendCountUser.accdetails.timecreated*1000);
     let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
@@ -886,6 +887,17 @@ function fillInFlagsDiv(friends) {
     });
 }
 
+function generateOverallGamerScore(graphData) {
+    let score = 0;
+
+    const totalHoursPlayed  = getHoursPlayedForUser(graphData.userdetails.User);
+    const totalFriends = graphData.userdetails.User.friendids.length;
+
+    const gamerScore = (totalHoursPlayed * 2) + totalFriends
+    console.log(gamerScore)
+    return gamerScore >= 5000 ? 5000 : gamerScore 
+}
+
 function getMostHoursPlayedStats(graphData) {
     let allUsers = []
     
@@ -1253,7 +1265,7 @@ function fillInContinentCoverage(countryFreqs) {
     return
 }
 
-function initGamerScore() {
+function initGamerScore(mainUser) {
     let chartDom = document.getElementById('gamerScore');
     let myChart = echarts.init(chartDom);
     let option;
@@ -1306,16 +1318,18 @@ function initGamerScore() {
             fontSize: 30,
             distance: -60,
             formatter: function (value) {
-            if (value === 0.875) {
-                return 'A';
-            } else if (value === 0.625) {
-                return 'B';
-            } else if (value === 0.375) {
-                return 'C';
-            } else if (value === 0.125) {
-                return 'D';
-            }
-            return '';
+                if (value === 5000) {
+                    return 'S';
+                } else if (value === 4000) {
+                    return 'B';
+                } else if (value === 3000) {
+                    return 'B';
+                } else if (value === 2000) {
+                    return 'C';
+                } else if (value === 1000) {
+                    return 'D';
+                }
+                return '';
             }
         },
         title: {
@@ -1330,13 +1344,13 @@ function initGamerScore() {
             offsetCenter: [0, '0%'],
             valueAnimation: true,
             formatter: function (value) {
-            return Math.round(value * 100);
+                return Math.round(value * 100);
             },
             color: 'auto'
         },
         data: [
             {
-            value: 0.7,
+            value: generateOverallGamerScore(mainUser)/5000,
             }
         ]
         }

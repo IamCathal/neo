@@ -574,3 +574,42 @@ func TestGetSlimmedDownGames(t *testing.T) {
 
 	assert.Equal(t, expectedSlimmedDownGames, slimmedDownGames)
 }
+
+func TestPublishJobHasDelayForConsecutiveFailures(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	randomError := errors.New("random error")
+	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(randomError).Times(2)
+	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(nil).Times(1)
+	mockController.On("Sleep", mock.Anything).Return()
+
+	configuration.AmqpChannels = []amqp.Channel{
+		amqp.Channel{}, amqp.Channel{},
+	}
+	firstJob := datastructures.Job{}
+
+	err := publishJob(mockController, firstJob)
+
+	assert.Nil(t, err)
+	mockController.AssertNumberOfCalls(t, "Sleep", 2)
+	mockController.AssertNumberOfCalls(t, "PublishToJobsQueue", 3)
+}
+
+func TestPublishJobReturnsErrorWhenAllRetriesFail(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	randomError := errors.New("random error")
+	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(randomError).Times(4)
+	mockController.On("Sleep", mock.Anything).Return()
+
+	configuration.AmqpChannels = []amqp.Channel{
+		amqp.Channel{}, amqp.Channel{},
+	}
+	firstJob := datastructures.Job{}
+
+	err := publishJob(mockController, firstJob)
+
+	assert.ErrorIs(t, err, randomError)
+	mockController.AssertNumberOfCalls(t, "Sleep", 3)
+	mockController.AssertNumberOfCalls(t, "PublishToJobsQueue", 4)
+}

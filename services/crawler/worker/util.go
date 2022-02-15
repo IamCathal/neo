@@ -61,19 +61,7 @@ func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]common.Game
 	if err != nil {
 		return gamesInfo, err
 	}
-	// for _, game := range ownedGamesResponse.Games {
 
-	// 	// Filter out some fields which will never be used
-	// 	currentGame := common.GameInfoDocument{
-	// 		AppID:           game.Appid,
-	// 		Name:            game.Name,
-	// 		PlaytimeForever: game.PlaytimeForever,
-	// 		ImgIconURL:      game.ImgIconURL,
-	// 		ImgLogoURL:      game.ImgLogoURL,
-	// 	}
-
-	// 	gamesInfo = append(gamesInfo, currentGame)
-	// }
 	return ownedGamesResponse.Games, nil
 }
 
@@ -107,9 +95,7 @@ func breakIntoStacksOf100OrLessSteamIDs(friendIDs []string) []string {
 	// If less than one hundred total IDs
 	if fullOneHundredIDLists == 0 {
 		idList := []string{}
-		for _, ID := range friendIDs {
-			idList = append(idList, ID)
-		}
+		idList = append(idList, friendIDs...)
 		steamIDList = append(steamIDList, strings.Join(idList, ","))
 		return steamIDList
 	}

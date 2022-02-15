@@ -584,7 +584,7 @@ func TestPublishJobHasDelayForConsecutiveFailures(t *testing.T) {
 	mockController.On("Sleep", mock.Anything).Return()
 
 	configuration.AmqpChannels = []amqp.Channel{
-		amqp.Channel{}, amqp.Channel{},
+		{}, {},
 	}
 	firstJob := datastructures.Job{}
 
@@ -603,7 +603,7 @@ func TestPublishJobReturnsErrorWhenAllRetriesFail(t *testing.T) {
 	mockController.On("Sleep", mock.Anything).Return()
 
 	configuration.AmqpChannels = []amqp.Channel{
-		amqp.Channel{}, amqp.Channel{},
+		{}, {},
 	}
 	firstJob := datastructures.Job{}
 

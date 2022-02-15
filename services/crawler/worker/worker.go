@@ -15,10 +15,6 @@ import (
 	"github.com/neosteamfriendgraphing/common/dtos"
 )
 
-var (
-	jobsChannel chan datastructures.Job
-)
-
 // Worker crawls the steam API to get data from steam for a given user
 // e.g account details and details of a user's friend
 func Worker(cntr controller.CntrInterface, job datastructures.Job) {

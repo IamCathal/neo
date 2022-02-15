@@ -4,37 +4,73 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/IamCathal/neo/services/datastore/controller"
+	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	userOneGraphData common.UsersGraphData
-	userTwoGraphData common.UsersGraphData
-)
+func TestGetShortestDistanceWithTwoUsersWhoAreDirectFriendsWithEachother(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
 
-// func TestGetShortestDistance(t *testing.T) {
-// 	mockController := &controller.MockCntrInterface{}
-// 	expectedShortestPath := []int64{
-// 		toInt64(userOneGraphData.UserDetails.User.AccDetails.SteamID),
-// 		toInt64(userOneGraphData.FriendDetails[0].User.AccDetails.SteamID),
-// 		toInt64(userTwoGraphData.UserDetails.User.AccDetails.SteamID),
-// 	}
-// 	firstUserID := userOneGraphData.UserDetails.User.AccDetails.SteamID
-// 	secondUserID := userTwoGraphData.UserDetails.User.AccDetails.SteamID
+	firstUserCrawlID := ksuid.New().String()
+	secondUserCrawlID := ksuid.New().String()
 
-// 	mockController.On("GetProcessedGraphData", firstUserID).Return(userOneGraphData, nil)
-// 	mockController.On("GetProcessedGraphData", secondUserID).Return(userTwoGraphData, nil)
+	expectedShortestPathInfo := datastructures.ShortestDistanceInfo{
+		CrawlIDs:   []string{firstUserCrawlID, secondUserCrawlID},
+		FirstUser:  userOneGraphData.UserDetails.User,
+		SecondUser: userTwoGraphData.UserDetails.User,
+		ShortestDistance: []common.UserDocument{
+			userOneGraphData.UserDetails.User,
+			userTwoGraphData.UserDetails.User,
+		},
+		TotalNetworkSpan: len(userOneGraphData.FriendDetails) + len(userTwoGraphData.FriendDetails),
+	}
 
-// 	exists, actualShortestPath, err := GetShortestDistanceInfo(
-// 		mockController,
-// 		userOneGraphData.UserDetails.User.AccDetails.SteamID,
-// 		userTwoGraphData.UserDetails.User.AccDetails.SteamID)
+	mockController.On("GetProcessedGraphData", firstUserCrawlID).Return(userOneGraphData, nil)
+	mockController.On("GetProcessedGraphData", secondUserCrawlID).Return(userTwoGraphData, nil)
 
-// 	assert.True(t, exists)
-// 	assert.Equal(t, expectedShortestPath, actualShortestPath)
-// 	assert.Nil(t, err)
-// }
+	exists, actualShortestPathInfo, err := GetShortestDistanceInfo(
+		mockController,
+		firstUserCrawlID,
+		secondUserCrawlID)
+
+	assert.True(t, exists)
+	assert.Equal(t, expectedShortestPathInfo, actualShortestPathInfo)
+	assert.Nil(t, err)
+}
+
+func TestGetShortestDistanceWithTwoUsersWhoShareOneCommonFriend(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	firstUserCrawlID := ksuid.New().String()
+	secondUserCrawlID := ksuid.New().String()
+
+	expectedShortestPathInfo := datastructures.ShortestDistanceInfo{
+		CrawlIDs:   []string{firstUserCrawlID, secondUserCrawlID},
+		FirstUser:  userOneWithOneSharedCommonFriendGraphData.UserDetails.User,
+		SecondUser: userTwoWithOneSharedCommonFriendGraphData.UserDetails.User,
+		ShortestDistance: []common.UserDocument{
+			userOneWithOneSharedCommonFriendGraphData.UserDetails.User,
+			commonFriendGraphData.UserDetails.User,
+			userTwoWithOneSharedCommonFriendGraphData.UserDetails.User,
+		},
+		TotalNetworkSpan: len(userOneWithOneSharedCommonFriendGraphData.FriendDetails) + len(userTwoWithOneSharedCommonFriendGraphData.FriendDetails),
+	}
+
+	mockController.On("GetProcessedGraphData", firstUserCrawlID).Return(userOneWithOneSharedCommonFriendGraphData, nil)
+	mockController.On("GetProcessedGraphData", secondUserCrawlID).Return(userTwoWithOneSharedCommonFriendGraphData, nil)
+
+	exists, actualShortestPathInfo, err := GetShortestDistanceInfo(
+		mockController,
+		firstUserCrawlID,
+		secondUserCrawlID)
+
+	assert.True(t, exists)
+	assert.Equal(t, expectedShortestPathInfo, actualShortestPathInfo)
+	assert.Nil(t, err)
+}
 
 func TestIfSteamIDSeenBefore(t *testing.T) {
 	steamID := int64(1234325425345)

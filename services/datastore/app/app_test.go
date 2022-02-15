@@ -38,69 +38,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func initTestData() {
-	testSaveUserDTO = dtos.SaveUserDTO{
-		OriginalCrawlTarget: "testID",
-		CurrentLevel:        1,
-		MaxLevel:            3,
-		User: common.UserDocument{
-			AccDetails: common.AccDetailsDocument{
-				SteamID:        "testID",
-				Profileurl:     "profile url",
-				Avatar:         "avatar url",
-				Timecreated:    1223525546,
-				Loccountrycode: "IE",
-			},
-			FriendIDs: []string{"1234", "5678"},
-		},
-		GamesOwnedFull: []common.GameInfoDocument{
-			{
-				Name:       "CS:GO",
-				ImgIconURL: "example url",
-				ImgLogoURL: "example url",
-			},
-		},
-	}
-	userOneID := "12334567"
-	userTwoID := "342089525"
-	commonFriendID := "764674763"
-	userOneGraphData = common.UsersGraphData{
-		UserDetails: common.UsersGraphInformation{
-			User: common.UserDocument{
-				AccDetails: common.AccDetailsDocument{
-					SteamID: userOneID,
-				},
-			},
-		},
-		FriendDetails: []common.UsersGraphInformation{
-			{
-				User: common.UserDocument{
-					AccDetails: common.AccDetailsDocument{
-						SteamID: commonFriendID,
-					},
-				},
-			},
-		},
-	}
-	userTwoGraphData = common.UsersGraphData{
-		UserDetails: common.UsersGraphInformation{
-			User: common.UserDocument{
-				AccDetails: common.AccDetailsDocument{
-					SteamID: userTwoID,
-				},
-			},
-		},
-		FriendDetails: []common.UsersGraphInformation{
-			{
-				User: common.UserDocument{
-					AccDetails: common.AccDetailsDocument{
-						SteamID: commonFriendID,
-					},
-				},
-			},
-		},
-	}
-}
 func TestSaveUserToDBCallsMongoDBOnce(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 	mockController.On("InsertOne",

@@ -45,12 +45,10 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 			if currentJob == emptyJob {
 				panic("EMPTY JOB, most likely means channel was closed and read from")
 			}
-			// must have length 1652 (1481 + 171)
 			// configuration.Logger.Sugar().Infof("[ID:%d][jobs:%d][res:%d] dijkstra worker received job: %+v",
-			// id, len(jobs), len(res), currentJob)
+			// 	id, len(jobs), len(res), currentJob)
 
 			toUser := workerConfig.steamIDToUser[fmt.Sprint(currentJob.FromID)]
-			// fmt.Printf("%d friends to user is: %+v\n", len(toUser.FriendIDs), toUser)
 			for _, friendID := range toUser.FriendIDs {
 				// If the user is within range and has a userDocument saved already
 				if exists := ifKeyExists(friendID, workerConfig.steamIDToUser); exists {
@@ -59,7 +57,6 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 						ToID:   toInt64(friendID),
 					}
 					workerConfig.resMutex.Lock()
-					// fmt.Printf("worker (%d): sending %v -> %v\n", len(res), newJob.FromID, newJob.ToID)
 					res <- newJob
 					// fmt.Println("done sending")
 					workerConfig.resMutex.Unlock()
@@ -167,8 +164,8 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 				// fmt.Printf("graphID is %d\n", currGraphID)
 				currGraphID++
 			}
-			// fmt.Printf("control: got /%v (%v) -> %v (%v) ..... sending %v (%v)\n",
-			// 	res.ToID, workerConfig.steamIDToGraphID[res.ToID],
+			// fmt.Printf("control: got %v (%v) -> %v (%v) ..... sending %v (%v)\n",
+			// 	res.FromID, workerConfig.steamIDToGraphID[res.FromID],
 			// 	res.ToID, workerConfig.steamIDToGraphID[res.ToID])
 
 			// fmt.Printf("adding arcs for %v (%v) -> %v (%v)\n", res.FromID, workerConfig.steamIDToGraphID[res.FromID], res.ToID, workerConfig.steamIDToGraphID[res.ToID])
@@ -177,7 +174,6 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 			graph.AddArc(workerConfig.steamIDToGraphID[res.FromID], workerConfig.steamIDToGraphID[res.ToID], 1)
 
 			workerConfig.jobMutex.Lock()
-			// fmt.Printf("sending back %v (%v)\n", res.ToID, workerConfig.steamIDToGraphID[res.ToID])
 			jobsChan <- CrawlJob{FromID: res.ToID}
 			workerConfig.jobMutex.Unlock()
 

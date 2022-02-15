@@ -239,6 +239,30 @@ func TestCrawlUserReturnsInvalidFormatSteamIDsForInvalidSteamIDs(t *testing.T) {
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }
 
+func TestCrawlUsersWithTwoUsers(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	userCrawlInput := datastructures.CrawlUserTempDTO{
+		Level:    3,
+		SteamIDs: []string{"76561198088674295", "76561198124825933"},
+	}
+	requestBodyJSON, err := json.Marshal(userCrawlInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.On("SaveCrawlingStatsToDataStore", 1, mock.Anything).Return(true, nil)
+	mockController.On("PublishToJobsQueue", mock.Anything, mock.Anything).Return(nil)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/crawl", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.AssertNotCalled(t, "CallGetFriends")
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
+
 func TestCreateGraph(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 

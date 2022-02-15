@@ -26,22 +26,6 @@ type Endpoints struct {
 	Cntr controller.CntrInterface
 }
 
-// responseWriter is a minimal wrapper for http.ResponseWriter that allows the
-// written HTTP status code to be captured for logging.
-// Taken from https://blog.questionable.services/article/guide-logging-middleware-go/
-type responseWriter struct {
-	http.ResponseWriter
-	status      int
-	wroteHeader bool
-}
-
-// TODO Move to commom
-func setupCORS(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-}
-
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 
@@ -54,26 +38,9 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	return r
 }
 
-func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
-	return &responseWriter{ResponseWriter: w}
-}
-
-func (rw *responseWriter) Status() int {
-	return rw.status
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	if rw.wroteHeader {
-		return
-	}
-	rw.status = code
-	rw.ResponseWriter.WriteHeader(code)
-	rw.wroteHeader = true
-}
-
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		setupCORS(&w, r)
+		commonUtil.SetupCORS(&w, r)
 		if (*r).Method == "OPTIONS" {
 			return
 		}
@@ -145,26 +112,22 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&userInput)
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
-		util.LogBasicErr(err, r, http.StatusBadRequest)
 		return
 	}
 	if userInput.Level < 1 || userInput.Level > 3 {
 		commonUtil.SendBasicInvalidResponse(w, r, "Invalid level given", vars, http.StatusBadRequest)
 		return
 	}
-
 	if len(userInput.SteamIDs) == 0 {
 		commonUtil.SendBasicInvalidResponse(w, r, "No steamIDs given", vars, http.StatusBadRequest)
 		return
 	}
-
 	for _, steamID := range userInput.SteamIDs {
 		if isValid := commonUtil.IsValidFormatSteamID(steamID); !isValid {
 			commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 			return
 		}
 	}
-	util.LogBasicInfo(fmt.Sprintf("received valid format steamIDs: %+v with level: %d", userInput.SteamIDs, userInput.Level), r, http.StatusOK)
 
 	firstCrawlID := vars["requestID"]
 	secondCrawlID := ""
@@ -173,8 +136,8 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	err = worker.CrawlUser(endpoints.Cntr, userInput.SteamIDs[0], firstCrawlID, userInput.Level)
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "couldn't start crawl", vars, http.StatusBadRequest)
-		logMsg := fmt.Sprintf("failed to start crawl for first user with crawlID: %s steamID: %s level: %d", firstCrawlID, userInput.SteamIDs[0], userInput.Level)
-		configuration.Logger.Panic(logMsg)
+		configuration.Logger.Sugar().Errorf("failed to start crawl for first user with crawlID: %s steamID: %s level: %d", firstCrawlID, userInput.SteamIDs[0], userInput.Level)
+		return
 	}
 
 	if len(userInput.SteamIDs) == 2 {
@@ -185,8 +148,8 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		err = worker.CrawlUser(endpoints.Cntr, userInput.SteamIDs[1], secondCrawlID, userInput.Level)
 		if err != nil {
 			commonUtil.SendBasicInvalidResponse(w, r, "couldn't start crawl", vars, http.StatusBadRequest)
-			logMsg := fmt.Sprintf("failed to start crawl for second user with crawlID: %s steamID: %s level: %d", secondCrawlID, userInput.SteamIDs[1], userInput.Level)
-			configuration.Logger.Panic(logMsg)
+			configuration.Logger.Sugar().Errorf("failed to start crawl for second user with crawlID: %s steamID: %s level: %d", secondCrawlID, userInput.SteamIDs[1], userInput.Level)
+			return
 		}
 	}
 
@@ -196,7 +159,9 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonObj, err := json.Marshal(response)
 	if err != nil {
-		log.Fatal(util.MakeErr(err))
+		commonUtil.SendBasicInvalidResponse(w, r, "couldn't return response", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Errorf("failed to marshal crawlResponse: %+v", util.MakeErr(err))
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -206,7 +171,7 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	if isValid := commonUtil.IsValidFormatSteamID(vars["steamid"]); isValid == false {
+	if isValid := commonUtil.IsValidFormatSteamID(vars["steamid"]); !isValid {
 		commonUtil.SendBasicInvalidResponse(w, r, "invalid steamid given", vars, http.StatusBadRequest)
 		return
 	}
@@ -231,7 +196,9 @@ func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Requ
 
 	jsonObj, err := json.Marshal(response)
 	if err != nil {
-		log.Fatal(util.MakeErr(err))
+		commonUtil.SendBasicInvalidResponse(w, r, "couldn't return response", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Errorf("failed to marshal BasicAPIResponse: %+v", util.MakeErr(err))
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -251,6 +218,7 @@ func (endpoints *Endpoints) CreateGraph(w http.ResponseWriter, r *http.Request) 
 	crawlingStats, err := endpoints.Cntr.GetCrawlingStatsFromDataStore(vars["crawlid"])
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "could not check if crawling has finished", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Errorf("failed to retrieve crawling status: %+v", err)
 		return
 	}
 	graphWorkerConfig := graphing.GraphWorkerConfig{
@@ -267,7 +235,9 @@ func (endpoints *Endpoints) CreateGraph(w http.ResponseWriter, r *http.Request) 
 	}
 	jsonObj, err := json.Marshal(response)
 	if err != nil {
-		log.Fatal(util.MakeErr(err))
+		commonUtil.SendBasicInvalidResponse(w, r, "couldn't return response", vars, http.StatusBadRequest)
+		configuration.Logger.Sugar().Errorf("failed to marshal BasicAPIResponse: %+v", util.MakeErr(err))
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

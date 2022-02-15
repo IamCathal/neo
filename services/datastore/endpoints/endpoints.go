@@ -38,22 +38,6 @@ type Endpoints struct {
 	Cntr controller.CntrInterface
 }
 
-// responseWriter is a minimal wrapper for http.ResponseWriter that allows the
-// written HTTP status code to be captured for logging.
-// Taken from https://blog.questionable.services/article/guide-logging-middleware-go/
-type responseWriter struct {
-	http.ResponseWriter
-	status      int
-	wroteHeader bool
-}
-
-// TODO Move to commom
-func setupCORS(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-}
-
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 
@@ -85,7 +69,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		setupCORS(&w, r)
+		util.SetupCORS(&w, r)
 		if (*r).Method == "OPTIONS" {
 			return
 		}

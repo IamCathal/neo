@@ -15,7 +15,7 @@ require (
 	github.com/klauspost/compress v1.14.2 // indirect
 	github.com/lib/pq v1.10.4
 	github.com/mackerelio/go-osstat v0.2.1
-	github.com/neosteamfriendgraphing/common v0.0.0-20220209163800-5f331e1991fc
+	github.com/neosteamfriendgraphing/common v0.0.0-20220214124557-75bcae8ede0b
 	github.com/pkg/errors v0.9.1
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/objx v0.3.0 // indirect
@@ -26,6 +26,6 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.21.0
-	golang.org/x/crypto v0.0.0-20220209155544-dad33157f4bf // indirect
-	golang.org/x/sys v0.0.0-20220207234003-57398862261d // indirect
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 )

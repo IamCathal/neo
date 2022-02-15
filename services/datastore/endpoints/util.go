@@ -16,6 +16,15 @@ func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
 	return &responseWriter{ResponseWriter: w}
 }
 
+// responseWriter is a minimal wrapper for http.ResponseWriter that allows the
+// written HTTP status code to be captured for logging.
+// Taken from https://blog.questionable.services/article/guide-logging-middleware-go/
+type responseWriter struct {
+	http.ResponseWriter
+	status      int
+	wroteHeader bool
+}
+
 func (rw *responseWriter) Status() int {
 	return rw.status
 }

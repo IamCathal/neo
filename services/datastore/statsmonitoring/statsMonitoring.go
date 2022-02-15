@@ -1,7 +1,6 @@
 package statsmonitoring
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"math"
@@ -67,7 +66,7 @@ func CollectAndShipStats() {
 	client := influxdb2.NewClient(os.Getenv("INFLUXDB_URL"), os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"))
 	defer client.Close()
 
-	writeAPI := client.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("SYSTEM_STATS_BUCKET"))
+	writeAPI := client.WriteAPI(os.Getenv("ORG"), os.Getenv("SYSTEM_STATS_BUCKET"))
 	time.Sleep(5 * time.Second)
 
 	for {
@@ -75,7 +74,7 @@ func CollectAndShipStats() {
 			AddTag("system", os.Getenv("NODE_NAME")).
 			AddField("cpu", cpuUsagePercentage).
 			SetTime(time.Now())
-		writeAPI.WritePoint(context.Background(), point)
+		writeAPI.WritePoint(point)
 
 		memUsagePercentage := float64(RAMUsedCurrently) / float64(totalRAM)
 
@@ -83,7 +82,7 @@ func CollectAndShipStats() {
 			AddTag("system", fmt.Sprintf("%s (%.0f GB)", os.Getenv("NODE_NAME"), totalRAM/1000)).
 			AddField("memory", math.Floor(memUsagePercentage*100)).
 			SetTime(time.Now())
-		writeAPI.WritePoint(context.Background(), point)
+		writeAPI.WritePoint(point)
 		time.Sleep(10 * time.Second)
 	}
 }

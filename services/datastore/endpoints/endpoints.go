@@ -128,17 +128,14 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 		} else {
 			urlPathBasic = "/"
 		}
-		// TODO change from blocking to async
-		writeAPI := configuration.InfluxDBClient.WriteAPIBlocking(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
+
+		writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
 		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
 			AddTag("path", urlPathBasic).
 			AddTag("service", "datastore").
 			AddField("latency", util.GetCurrentTimeInMs()-requestStartTime).
 			SetTime(time.Now())
-		err := writeAPI.WritePoint(context.Background(), point)
-		if err != nil {
-			log.Fatal(err)
-		}
+		writeAPI.WritePoint(point)
 	})
 }
 

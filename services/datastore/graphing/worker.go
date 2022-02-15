@@ -92,7 +92,7 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 
 	workerConfig.steamIDToUser = GetIDToUserMap(userOne, userTwo)
 	usersToCrawl := 0
-	for _, _ = range workerConfig.steamIDToUser {
+	for range workerConfig.steamIDToUser {
 		usersToCrawl++
 	}
 	workerConfig.TotalUsersToCrawl = usersToCrawl

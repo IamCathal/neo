@@ -222,7 +222,7 @@ func (endpoints *Endpoints) InsertGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	success, err := endpoints.Cntr.InsertGame(context.TODO(), bareGameInfo)
-	if err != nil || success != true {
+	if err != nil || !success {
 		logMsg := fmt.Sprintf("failed to insert game: %+v", err)
 		configuration.Logger.Sugar().Error(logMsg)
 		panic(logMsg)
@@ -529,7 +529,7 @@ func (endpoints *Endpoints) SaveProcessedGraphData(w http.ResponseWriter, r *htt
 	}
 
 	success, err := endpoints.Cntr.SaveProcessedGraphData(vars["crawlid"], graphData)
-	if err != nil || success == false {
+	if err != nil || !success {
 		configuration.Logger.Sugar().Errorf("could not save graph data: %+v", err)
 		util.SendBasicInvalidResponse(w, r, "could not save graph data", vars, http.StatusBadRequest)
 		return

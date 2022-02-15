@@ -189,10 +189,10 @@ func getUsersProfileSummaryFromSlice(steamID string, playerSummaries []common.Pl
 	return false, common.Player{}
 }
 
-// getTopTwentyOrFewerGames gets the top twenty games ordered by playtime_forever.
+// getTopFiftyOrFewerGames gets the top twenty games ordered by playtime_forever.
 // If there are less than twenty games then all of them are returned in sorted
 // sorted order
-func getTopTwentyOrFewerGames(allGames []common.Game) []common.Game {
+func getTopFiftyOrFewerGames(allGames []common.Game) []common.Game {
 	if len(allGames) == 0 {
 		return []common.Game{}
 	}

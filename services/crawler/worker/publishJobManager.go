@@ -64,7 +64,7 @@ func publishJob(cntr controller.CntrInterface, job datastructures.Job) error {
 		}
 
 		if !successfulRequest {
-			configuration.Logger.Error(fmt.Sprintf("failed to publish job to queue after %v and retrying %d times with job: %+v", time.Since(startTime), maxRetries, job))
+			configuration.Logger.Sugar().Errorf("failed to publish job to queue after %v and retrying %d times with job: %+v", time.Since(startTime), maxRetries, job)
 			return err
 		}
 	}

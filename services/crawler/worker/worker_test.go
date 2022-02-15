@@ -438,7 +438,7 @@ func TestGetTopTwentyOrFewerGames(t *testing.T) {
 		},
 	}
 
-	sortedGames := getTopTwentyOrFewerGames(gamesList)
+	sortedGames := getTopFiftyOrFewerGames(gamesList)
 
 	assert.Equal(t, expectedFirstGame, sortedGames[0].Name)
 	assert.Equal(t, expectedSecondGame, sortedGames[1].Name)
@@ -454,7 +454,7 @@ func TestGetTopTwentyOrFewerGamesOnlyReturnsFiftyOrFewerGames(t *testing.T) {
 		})
 	}
 
-	sortedGames := getTopTwentyOrFewerGames(gamesList)
+	sortedGames := getTopFiftyOrFewerGames(gamesList)
 
 	assert.Len(t, sortedGames, 50)
 }
@@ -462,7 +462,7 @@ func TestGetTopTwentyOrFewerGamesOnlyReturnsFiftyOrFewerGames(t *testing.T) {
 func TestGetTopTwentyOrFewerGamesOnlyReturnsNothingWhenNoGamesAreGiven(t *testing.T) {
 	gamesList := []common.Game{}
 
-	sortedGames := getTopTwentyOrFewerGames(gamesList)
+	sortedGames := getTopFiftyOrFewerGames(gamesList)
 
 	assert.Len(t, sortedGames, 0)
 }

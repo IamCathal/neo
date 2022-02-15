@@ -61,12 +61,12 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
 		log.Fatal(err)
 	}
-	// TODO implement proper fix for this
+
+	// Sometimes occurs with accounts that have complex combinatioons of data privacy settings
 	if len(playerSummaries) == 0 {
 		playerSummaries, err = cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
 		if err != nil {
-			configuration.Logger.Fatal(fmt.Sprintf("failed AGAIN to get player summary for target user: %v", err.Error()))
-			log.Fatal(err)
+			configuration.Logger.Sugar().Panicf(fmt.Sprintf("failed AGAIN to get player summary for target user: %+v", err))
 		}
 		if len(playerSummaries) == 0 {
 			configuration.Logger.Sugar().Panicf("failed to get a non empty player summary for target user for a second time: %+v", err)
@@ -79,9 +79,8 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
 		log.Fatal(err)
 	}
-	topFiftyOrFewerTopPlayedGames := getTopTwentyOrFewerGames(allGamesOwnedForCurrentUser)
+	topFiftyOrFewerTopPlayedGames := getTopFiftyOrFewerGames(allGamesOwnedForCurrentUser)
 	topFiftyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topFiftyOrFewerTopPlayedGames)
-	// topTwentyOrFewerGamesSlimmedDown := GetSlimmedDownGames(topTwentyOrFewerTopPlayedGames)
 
 	friendPlayerSummaries := []common.Player{}
 
@@ -147,18 +146,16 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 // or the steam web API.
 // 		userWasFoundInDB, friendIDs, err := GetFriends(cntr, steamID)
 func GetFriends(cntr controller.CntrInterface, steamID string) (bool, []string, error) {
-	// First call the db
 	userWasFoundInDB := false
 	userFromDB, err := cntr.GetUserFromDataStore(steamID)
 	if err != nil {
 		configuration.Logger.Sugar().Infof("error getting user in DB: %+v", err)
 	}
-	// TODO implement proper account exist check
 	if userFromDB.AccDetails.SteamID == "" {
 		configuration.Logger.Sugar().Infof("user %s was not found in DB", steamID)
 	} else {
 		userWasFoundInDB = true
-		configuration.Logger.Sugar().Infof("returning user retrieved from DB: %+v", userFromDB.AccDetails.SteamID)
+		// configuration.Logger.Sugar().Infof("returning user retrieved from DB: %+v", userFromDB.AccDetails.SteamID)
 		return userWasFoundInDB, userFromDB.FriendIDs, nil
 	}
 
@@ -183,13 +180,10 @@ func ControlFunc(cntr controller.CntrInterface) {
 			newJob := datastructures.Job{}
 			err := json.Unmarshal(d.Body, &newJob)
 			if err != nil {
-				configuration.Logger.Fatal(fmt.Sprintf("failed unmarshal job from queue: %v", err))
-				log.Fatal(err)
+				configuration.Logger.Sugar().Panicf(fmt.Sprintf("failed unmarshal job from queue: %v", err))
 			}
 
-			logMsg := fmt.Sprintf("Received job: %+v", newJob)
-			configuration.Logger.Info(logMsg)
-
+			configuration.Logger.Sugar().Infof("control func received job: %+v", newJob)
 			Worker(cntr, newJob)
 			d.Ack(false)
 		}

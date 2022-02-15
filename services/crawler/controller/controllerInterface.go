@@ -48,7 +48,6 @@ type CntrInterface interface {
 func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	friendsListObj := common.UserDetails{}
 	apiKey := apikeymanager.GetSteamAPIKey()
-	// fmt.Println("get friends list")
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
 		apiKey, steamID)
 	res, err := MakeNetworkGETRequest(targetURL)
@@ -79,7 +78,6 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.Player, error) {
 	allPlayerSummaries := common.SteamAPIResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
-	// fmt.Println("get player summary")
 	maxRetryCount := 3
 	successfulRequest := false
 
@@ -120,7 +118,6 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error) {
 	apiResponse := common.GamesOwnedSteamResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
-	// fmt.Println("get owned games")
 
 	targetURL := fmt.Sprintf("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json&include_appinfo=true&include_played_free_games=true",
 		apiKey, steamID)
@@ -146,13 +143,6 @@ func (control Cntr) PublishToJobsQueue(channel amqp.Channel, jobJSON []byte) err
 		})
 }
 
-// ConsumeFromJobsQueue consumns a job from the rabbitMQ queue
-//		msgs, err := ConsumeFromJobsQueue()
-//		...
-//		for job := range msgs {
-//			newJob := datastructures.Job{}
-//			err := json.Unmarshal(d.Body, &newJob)
-//		}
 func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
 	return configuration.ConsumeChannel.Consume(
 		configuration.Queue.Name, // queue
@@ -174,6 +164,9 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 		return false, util.MakeErr(err)
 	}
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	if err != nil {
+		return false, err
+	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
@@ -199,7 +192,7 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 		}
 	}
 	// Failed after all retries
-	if successfulRequest == false {
+	if !successfulRequest {
 		return false, util.MakeErr(callErr)
 	}
 
@@ -225,6 +218,9 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, error) {
 	targetURL := fmt.Sprintf("%s/api/getuser/%s", os.Getenv("DATASTORE_URL"), steamID)
 	req, err := http.NewRequest("GET", targetURL, nil)
+	if err != nil {
+		return common.UserDocument{}, err
+	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
@@ -247,7 +243,7 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 		}
 	}
 	// Failed after all retries
-	if successfulRequest == false {
+	if !successfulRequest {
 		return common.UserDocument{}, util.MakeErr(callErr)
 	}
 
@@ -280,6 +276,9 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 		return false, util.MakeErr(err)
 	}
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	if err != nil {
+		return false, err
+	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
@@ -303,7 +302,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 		}
 	}
 	// Failed after all retries
-	if successfulRequest == false {
+	if !successfulRequest {
 		return false, util.MakeErr(callErr)
 	}
 
@@ -326,6 +325,9 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
 	targetURL := fmt.Sprintf("%s/api/getcrawlingstatus/%s", os.Getenv("DATASTORE_URL"), crawlID)
 	req, err := http.NewRequest("GET", targetURL, nil)
+	if err != nil {
+		return common.CrawlingStatus{}, err
+	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
@@ -349,7 +351,7 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 		}
 	}
 	// Failed after all retries
-	if successfulRequest == false {
+	if !successfulRequest {
 		return common.CrawlingStatus{}, util.MakeErr(callErr)
 	}
 
@@ -372,6 +374,9 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {
 	targetURL := fmt.Sprintf("%s/api/getgraphabledata/%s", os.Getenv("DATASTORE_URL"), steamID)
 	req, err := http.NewRequest("GET", targetURL, nil)
+	if err != nil {
+		return dtos.GetGraphableDataForUserDTO{}, err
+	}
 	req.Close = true
 	req.Header.Set("Authentication", "something")
 
@@ -394,7 +399,7 @@ func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraph
 		}
 	}
 	// Failed after all retries
-	if successfulRequest == false {
+	if !successfulRequest {
 		return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(callErr)
 	}
 
@@ -425,6 +430,9 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 	}
 
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	if err != nil {
+		return make(map[string]string), err
+	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
@@ -448,7 +456,7 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 		}
 	}
 	// Failed after all retries
-	if successfulRequest == false {
+	if !successfulRequest {
 		return make(map[string]string), util.MakeErr(callErr)
 	}
 
@@ -517,7 +525,7 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 		}
 	}
 	// Failed after all retries
-	if successfulRequest == false {
+	if !successfulRequest {
 		return false, util.MakeErr(callErr)
 	}
 
@@ -550,6 +558,9 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 	}
 
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+	if err != nil {
+		return []common.BareGameInfo{}, err
+	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authentication", "something")
@@ -573,7 +584,7 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 		}
 	}
 	// Failed after all retries
-	if successfulRequest == false {
+	if !successfulRequest {
 		return []common.BareGameInfo{}, util.MakeErr(callErr)
 	}
 

@@ -2,7 +2,6 @@ package graphing
 
 import (
 	"sync"
-	"time"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
@@ -63,12 +62,7 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 				workerConfig.resMutex.Lock()
 				res <- newJob
 				workerConfig.resMutex.Unlock()
-				cntr.Sleep(2 * time.Millisecond)
 			}
-
-			workerConfig.usersCrawledMutex.Lock()
-			workerConfig.UsersCrawled++
-			workerConfig.usersCrawledMutex.Unlock()
 		}
 	}
 }
@@ -128,6 +122,10 @@ func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig Gr
 			}
 
 			allUsersGraphData = append(allUsersGraphData, res)
+			workerConfig.usersCrawledMutex.Lock()
+			workerConfig.UsersCrawled++
+			workerConfig.usersCrawledMutex.Unlock()
+
 			if res.CurrentLevel < res.MaxLevel {
 				for _, friendID := range res.User.FriendIDs {
 					newCrawlJob := datastructures.CrawlJob{

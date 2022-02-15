@@ -3,7 +3,6 @@ package graphing
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
@@ -17,10 +16,8 @@ type CrawlJob struct {
 }
 
 type GraphWorkerConfig struct {
-	mainUser   common.UsersGraphData
-	targetUser common.UsersGraphData
-	jobMutex   *sync.Mutex
-	resMutex   *sync.Mutex
+	jobMutex *sync.Mutex
+	resMutex *sync.Mutex
 
 	steamIDToUser    map[string]common.UserDocument
 	steamIDToGraphID map[int64]int
@@ -45,8 +42,6 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 			if currentJob == emptyJob {
 				panic("EMPTY JOB, most likely means channel was closed and read from")
 			}
-			// configuration.Logger.Sugar().Infof("[ID:%d][jobs:%d][res:%d] dijkstra worker received job: %+v",
-			// 	id, len(jobs), len(res), currentJob)
 
 			toUser := workerConfig.steamIDToUser[fmt.Sprint(currentJob.FromID)]
 			for _, friendID := range toUser.FriendIDs {
@@ -58,18 +53,13 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 					}
 					workerConfig.resMutex.Lock()
 					res <- newJob
-					// fmt.Println("done sending")
 					workerConfig.resMutex.Unlock()
 				}
 			}
-			// fmt.Printf("done sending jobs for %v\n", toUser.AccDetails.SteamID)
 
-			// time.Sleep(100 * time.Millisecond)
 			workerConfig.usersCrawledMutex.Lock()
 			workerConfig.UsersCrawled++
-			// fmt.Printf("\n\n\t\t\tUser %v crawled: %d/%d\n\n\n", currentJob.FromID, workerConfig.UsersCrawled, workerConfig.TotalUsersToCrawl)
 			workerConfig.usersCrawledMutex.Unlock()
-			time.Sleep(120 * time.Millisecond)
 		}
 	}
 }
@@ -80,7 +70,6 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 	resChan := make(chan CrawlJob, maxChanLen)
 
 	workerConfig := GraphWorkerConfig{}
-	// fmt.Printf("totalToCrawl: %v (%d + %d)\n", workerConfig.TotalUsersToCrawl, len(userOne.FriendDetails), len(userTwo.FriendDetails))
 	var jobMutex sync.Mutex
 	var resMutex sync.Mutex
 	var wg sync.WaitGroup
@@ -91,14 +80,12 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 	workerConfig.UsersCrawled = 0
 
 	workerConfig.steamIDToUser = GetIDToUserMap(userOne, userTwo)
-	usersToCrawl := 0
-	for range workerConfig.steamIDToUser {
-		usersToCrawl++
-	}
+	usersToCrawl := len(workerConfig.steamIDToUser)
+
 	workerConfig.TotalUsersToCrawl = usersToCrawl
 	mainUserSteamID := toInt64(userOne.UserDetails.User.AccDetails.SteamID)
 	targetUserSteamID := toInt64(userTwo.UserDetails.User.AccDetails.SteamID)
-	// 1548 unique people
+
 	workerAmount := 2
 	var stopSignal chan bool = make(chan bool, 0)
 	workersAreDone := false
@@ -110,10 +97,6 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 
 	graph := dijkstra.NewGraph()
 
-	// for i, val := range workerConfig.steamIDToUser {
-	// 	fmt.Printf("%v %s\n", i, val.AccDetails.SteamID)
-	// }
-
 	workerConfig.graphIDToSteamID = make(map[int]int64)
 	workerConfig.steamIDToGraphID = make(map[int64]int)
 	currGraphID := 0
@@ -121,13 +104,11 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 	workerConfig.steamIDToGraphID[mainUserSteamID] = currGraphID
 	workerConfig.graphIDToSteamID[currGraphID] = mainUserSteamID
 	graph.AddVertex(currGraphID)
-	// fmt.Printf("graphID is %d\n", currGraphID)
 	currGraphID++
 
 	workerConfig.steamIDToGraphID[targetUserSteamID] = currGraphID
 	workerConfig.graphIDToSteamID[currGraphID] = targetUserSteamID
 	graph.AddVertex(currGraphID)
-	// fmt.Printf("graphID is %d\n", currGraphID)
 	currGraphID++
 
 	firstJob := CrawlJob{
@@ -143,8 +124,6 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 		if workerConfig.UsersCrawled >= workerConfig.TotalUsersToCrawl &&
 			workerConfig.TotalUsersToCrawl != 0 {
 			workersAreDone = true
-			// fmt.Println(workerConfig.UsersCrawled, workerConfig.TotalUsersToCrawl)
-			// fmt.Println("exiting!")
 			for i := 0; i < workerAmount; i++ {
 				stopSignal <- true
 			}
@@ -159,17 +138,10 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 			if exists := ifSteamIDSeenBefore(res.ToID, workerConfig.steamIDToGraphID); !exists {
 				workerConfig.steamIDToGraphID[res.ToID] = currGraphID
 				workerConfig.graphIDToSteamID[currGraphID] = res.ToID
-				// fmt.Printf("not seen before: adding vertex for %v (%v)\n", res.ToID, workerConfig.steamIDToGraphID[res.ToID])
 				graph.AddVertex(workerConfig.steamIDToGraphID[res.ToID])
-				// fmt.Printf("graphID is %d\n", currGraphID)
 				currGraphID++
 			}
-			// fmt.Printf("control: got %v (%v) -> %v (%v) ..... sending %v (%v)\n",
-			// 	res.FromID, workerConfig.steamIDToGraphID[res.FromID],
-			// 	res.ToID, workerConfig.steamIDToGraphID[res.ToID])
 
-			// fmt.Printf("adding arcs for %v (%v) -> %v (%v)\n", res.FromID, workerConfig.steamIDToGraphID[res.FromID], res.ToID, workerConfig.steamIDToGraphID[res.ToID])
-			// fmt.Printf("adding arcs for %v (%v) -> %v (%v)\n", res.ToID, workerConfig.steamIDToGraphID[res.ToID], res.FromID, workerConfig.steamIDToGraphID[res.FromID])
 			graph.AddArc(workerConfig.steamIDToGraphID[res.ToID], workerConfig.steamIDToGraphID[res.FromID], 1)
 			graph.AddArc(workerConfig.steamIDToGraphID[res.FromID], workerConfig.steamIDToGraphID[res.ToID], 1)
 
@@ -177,12 +149,8 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 			jobsChan <- CrawlJob{FromID: res.ToID}
 			workerConfig.jobMutex.Unlock()
 
-			// fmt.Println("")
-			// for i, vertex := range graph.Verticies {
-			// 	fmt.Printf("\t%d - %v\n", i, vertex)
-			// }
-			// fmt.Println("")
 		default:
+			// Just some filler
 			temp := false
 			if temp {
 				temp = false

@@ -8,6 +8,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -76,7 +77,7 @@ func TestCrawlerDoesFinish(t *testing.T) {
 		MaxLevel:          2,
 	}
 
-	allUsersGraphableData, err := Control2Func(mockController, firstUser.AccDetails.SteamID, graphWorkerConfig)
+	allUsersGraphableData, err := Control2Func(mockController, firstUser.AccDetails.SteamID, ksuid.New().String(), graphWorkerConfig)
 
 	assert.Nil(t, err)
 	assert.Len(t, allUsersGraphableData, 3)

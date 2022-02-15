@@ -129,31 +129,31 @@ func TestGetTopTenOverallGameNames(t *testing.T) {
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
-					{AppID: 90},
-					{AppID: 80},
+					{AppID: 90, Playtime_Forever: 10500},
+					{AppID: 80, Playtime_Forever: 65},
 				},
 			},
 		},
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
-					{AppID: 90},
-					{AppID: 200},
+					{AppID: 90, Playtime_Forever: 10500},
+					{AppID: 200, Playtime_Forever: 50000000},
 				},
 			},
 		},
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
-					{AppID: 90},
-					{AppID: 80},
+					{AppID: 90, Playtime_Forever: 10500},
+					{AppID: 80, Playtime_Forever: 12},
 				},
 			},
 		},
 		{
 			User: common.UserDocument{
 				GamesOwned: []common.GameOwnedDocument{
-					{AppID: 90},
+					{AppID: 90, Playtime_Forever: 10500},
 				},
 			},
 		},

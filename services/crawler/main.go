@@ -19,7 +19,7 @@ import (
 func main() {
 	err := configuration.InitConfig()
 	if err != nil {
-		log.Fatalf("failure initialising config: %v", err)
+		panic(fmt.Sprintf("failure initialising config: %v", err))
 	}
 
 	controller := controller.Cntr{}

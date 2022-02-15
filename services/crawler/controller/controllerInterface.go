@@ -13,9 +13,9 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
 	"github.com/iamcathal/neo/services/crawler/configuration"
-	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
 )
 
@@ -161,7 +161,7 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 	targetURL := fmt.Sprintf("%s/api/saveuser", os.Getenv("DATASTORE_URL"))
 	jsonObj, err := json.Marshal(saveUser)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
 	if err != nil {
@@ -193,24 +193,24 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return false, util.MakeErr(callErr)
+		return false, commonUtil.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 	APIRes := dtos.GetUserDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return true, nil
 	}
 
-	return false, util.MakeErr(fmt.Errorf("error saving user: %+v", APIRes))
+	return false, commonUtil.MakeErr(fmt.Errorf("error saving user: %+v", APIRes))
 }
 
 // GetUserFromDataStore gets a user from the datastore service
@@ -244,7 +244,7 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return common.UserDocument{}, util.MakeErr(callErr)
+		return common.UserDocument{}, commonUtil.MakeErr(callErr)
 	}
 
 	// If no user exists in the DB (HTTP 404)
@@ -253,13 +253,13 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return common.UserDocument{}, util.MakeErr(err)
+		return common.UserDocument{}, commonUtil.MakeErr(err)
 	}
 
 	userDoc := dtos.GetUserDTO{}
 	err = json.Unmarshal(body, &userDoc)
 	if err != nil {
-		return common.UserDocument{}, util.MakeErr(err)
+		return common.UserDocument{}, commonUtil.MakeErr(err)
 	}
 
 	return userDoc.User, nil
@@ -273,7 +273,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	}
 	jsonObj, err := json.Marshal(crawlingStatsDTO)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
 	if err != nil {
@@ -303,23 +303,23 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return false, util.MakeErr(callErr)
+		return false, commonUtil.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 	APIRes := common.BasicAPIResponse{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return true, nil
 	}
-	return false, util.MakeErr(fmt.Errorf("error saving crawling stats for existing user: %+v", APIRes))
+	return false, commonUtil.MakeErr(fmt.Errorf("error saving crawling stats for existing user: %+v", APIRes))
 }
 
 func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
@@ -352,23 +352,23 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return common.CrawlingStatus{}, util.MakeErr(callErr)
+		return common.CrawlingStatus{}, commonUtil.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return common.CrawlingStatus{}, util.MakeErr(err)
+		return common.CrawlingStatus{}, commonUtil.MakeErr(err)
 	}
 	APIRes := dtos.GetCrawlingStatusDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return common.CrawlingStatus{}, util.MakeErr(err)
+		return common.CrawlingStatus{}, commonUtil.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return APIRes.CrawlingStatus, nil
 	}
-	return common.CrawlingStatus{}, util.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
+	return common.CrawlingStatus{}, commonUtil.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
 }
 
 func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {
@@ -400,23 +400,23 @@ func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraph
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(callErr)
+		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(err)
+		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(err)
 	}
 	APIRes := dtos.GetGraphableDataForUserDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(err)
+		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return APIRes, nil
 	}
-	return dtos.GetGraphableDataForUserDTO{}, util.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
+	return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
 }
 
 func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error) {
@@ -426,7 +426,7 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 	}
 	jsonObj, err := json.Marshal(steamIDsInput)
 	if err != nil {
-		return make(map[string]string), util.MakeErr(err)
+		return make(map[string]string), commonUtil.MakeErr(err)
 	}
 
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
@@ -457,17 +457,17 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return make(map[string]string), util.MakeErr(callErr)
+		return make(map[string]string), commonUtil.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return make(map[string]string), util.MakeErr(err)
+		return make(map[string]string), commonUtil.MakeErr(err)
 	}
 	APIRes := dtos.GetUsernamesFromSteamIDsDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return make(map[string]string), util.MakeErr(err)
+		return make(map[string]string), commonUtil.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
@@ -478,7 +478,7 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 		return steamIDToUserMap, nil
 	}
 
-	return make(map[string]string), util.MakeErr(fmt.Errorf("error getting usernames for steamIDs: %+v", APIRes))
+	return make(map[string]string), commonUtil.MakeErr(fmt.Errorf("error getting usernames for steamIDs: %+v", APIRes))
 }
 
 func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData common.UsersGraphData) (bool, error) {
@@ -486,7 +486,7 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 
 	jsonObj, err := json.Marshal(graphData)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 
 	gzippedData := bytes.Buffer{}
@@ -526,24 +526,24 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return false, util.MakeErr(callErr)
+		return false, commonUtil.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 	APIRes := dtos.GetUsernamesFromSteamIDsDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return false, util.MakeErr(err)
+		return false, commonUtil.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return true, nil
 	}
 
-	return false, util.MakeErr(fmt.Errorf("error saving processed graphdata: %+v", APIRes))
+	return false, commonUtil.MakeErr(fmt.Errorf("error saving processed graphdata: %+v", APIRes))
 }
 
 func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo, error) {
@@ -554,7 +554,7 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 	}
 	jsonObj, err := json.Marshal(detailsForGamesInput)
 	if err != nil {
-		return []common.BareGameInfo{}, util.MakeErr(err)
+		return []common.BareGameInfo{}, commonUtil.MakeErr(err)
 	}
 
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
@@ -585,24 +585,24 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return []common.BareGameInfo{}, util.MakeErr(callErr)
+		return []common.BareGameInfo{}, commonUtil.MakeErr(callErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return []common.BareGameInfo{}, util.MakeErr(err)
+		return []common.BareGameInfo{}, commonUtil.MakeErr(err)
 	}
 	APIRes := dtos.GetDetailsForGamesDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return []common.BareGameInfo{}, util.MakeErr(err)
+		return []common.BareGameInfo{}, commonUtil.MakeErr(err)
 	}
 
 	if res.StatusCode == 200 {
 		return APIRes.Games, nil
 	}
 
-	return []common.BareGameInfo{}, util.MakeErr(fmt.Errorf("error when retrieving details for games: %+v", APIRes))
+	return []common.BareGameInfo{}, commonUtil.MakeErr(fmt.Errorf("error when retrieving details for games: %+v", APIRes))
 }
 
 func (control Cntr) Sleep(duration time.Duration) {

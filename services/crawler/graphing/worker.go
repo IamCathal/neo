@@ -48,8 +48,8 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 
 			userGraphData, err := cntr.GetUserFromDataStore(currentJob.SteamID)
 			if err != nil {
-				configuration.Logger.Sugar().Fatalf("failed to get user data for %s: %+v", currentJob.SteamID, err)
-				panic(err)
+				configuration.Logger.Sugar().Errorf("failed to get user data for %s: %+v", currentJob.SteamID, err)
+				return
 			}
 
 			if currentJob.CurrentLevel <= workerConfig.MaxLevel {
@@ -67,7 +67,7 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 	}
 }
 
-func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig GraphWorkerConfig) ([]common.UsersGraphInformation, error) {
+func Control2Func(cntr controller.CntrInterface, steamID, crawlID string, workerConfig GraphWorkerConfig) ([]common.UsersGraphInformation, error) {
 	jobsChan := make(chan datastructures.CrawlJob, 70000)
 	resChan := make(chan common.UsersGraphInformation, 70000)
 
@@ -150,9 +150,9 @@ func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig Gr
 	close(jobsChan)
 	close(resChan)
 
-	configuration.Logger.Info("waiting for all jobs to be done")
+	configuration.Logger.Info("waiting for all jobs to be done for crawlID: %s")
 	wg.Wait()
-	configuration.Logger.Sugar().Infof("all %d users have been found", len(allUsersGraphData))
+	configuration.Logger.Sugar().Infof("all %d users have been found for crawlID: %s", len(allUsersGraphData), crawlID)
 
 	if oneOrMoreUsersHasNoUsername {
 		configuration.Logger.Info("one or more users had no username, retrieving and correlating all usernames now")
@@ -172,9 +172,9 @@ func Control2Func(cntr controller.CntrInterface, steamID string, workerConfig Gr
 }
 
 func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, workerConfig GraphWorkerConfig) {
-	usersDataForGraph, err := Control2Func(cntr, steamID, workerConfig)
+	usersDataForGraph, err := Control2Func(cntr, crawlID, steamID, workerConfig)
 	if err != nil {
-		configuration.Logger.Sugar().Fatalf("failed to gather data for crawlID %s: %+v", crawlID, err)
+		configuration.Logger.Sugar().Errorf("failed to gather data for crawlID %s: %+v", crawlID, err)
 		panic(err)
 	}
 
@@ -188,7 +188,7 @@ func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, wo
 
 	topOverallGameDetails, err := getTopTenOverallGameNames(cntr, usersDataForGraphWithOnlyTop40Games)
 	if err != nil {
-		configuration.Logger.Sugar().Fatalf("failed to get top 10 game detail: %+v", err)
+		configuration.Logger.Sugar().Errorf("failed to get top 10 game detail: %+v", err)
 		panic(err)
 	}
 
@@ -199,8 +199,8 @@ func CollectGraphData(cntr controller.CntrInterface, steamID, crawlID string, wo
 	}
 
 	success, err := cntr.SaveProcessedGraphDataToDataStore(crawlID, usersDataForGraphWithFriends)
-	if err != nil || success == false {
-		configuration.Logger.Sugar().Fatalf("failed to save processed graph data to datastore: %+v", err)
+	if err != nil || !success {
+		configuration.Logger.Sugar().Errorf("failed to save processed graph data for crawlID: %s to datastore: %+v", crawlID, err)
 		panic(err)
 	}
 	configuration.Logger.Sugar().Infof("successfully collected graph data for crawlID: %s", crawlID)

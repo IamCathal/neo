@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,7 +13,6 @@ import (
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/graphing"
-	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/iamcathal/neo/services/crawler/worker"
 	"github.com/neosteamfriendgraphing/common"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
@@ -57,11 +55,10 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 
 				_, timeParseErr := strconv.ParseInt(vars["requestStartTime"], 10, 64)
 				if timeParseErr != nil {
-					util.LogBasicFatal(timeParseErr, r, http.StatusInternalServerError)
+					configuration.Logger.Sugar().Errorf("failed to parse time in middleware: %+v", commonUtil.MakeErr(timeParseErr))
 					panic(timeParseErr)
 				}
-
-				util.LogBasicErr(errors.New(fmt.Sprintf("%v", err)), r, http.StatusInternalServerError)
+				configuration.Logger.Sugar().Errorf("panic caught in middleware: %+v", err)
 			}
 		}()
 
@@ -98,7 +95,7 @@ func (endpoints *Endpoints) Status(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonObj, err := json.Marshal(req)
 	if err != nil {
-		log.Fatal(util.MakeErr(err))
+		log.Fatal(commonUtil.MakeErr(err))
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -160,7 +157,7 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 	jsonObj, err := json.Marshal(response)
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "couldn't return response", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Errorf("failed to marshal crawlResponse: %+v", util.MakeErr(err))
+		configuration.Logger.Sugar().Errorf("failed to marshal crawlResponse: %+v", commonUtil.MakeErr(err))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -197,7 +194,7 @@ func (endpoints *Endpoints) IsPrivateProfile(w http.ResponseWriter, r *http.Requ
 	jsonObj, err := json.Marshal(response)
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "couldn't return response", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Errorf("failed to marshal BasicAPIResponse: %+v", util.MakeErr(err))
+		configuration.Logger.Sugar().Errorf("failed to marshal BasicAPIResponse: %+v", commonUtil.MakeErr(err))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -236,7 +233,7 @@ func (endpoints *Endpoints) CreateGraph(w http.ResponseWriter, r *http.Request) 
 	jsonObj, err := json.Marshal(response)
 	if err != nil {
 		commonUtil.SendBasicInvalidResponse(w, r, "couldn't return response", vars, http.StatusBadRequest)
-		configuration.Logger.Sugar().Errorf("failed to marshal BasicAPIResponse: %+v", util.MakeErr(err))
+		configuration.Logger.Sugar().Errorf("failed to marshal BasicAPIResponse: %+v", commonUtil.MakeErr(err))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

@@ -12,11 +12,6 @@ var (
 	ChannelLock sync.Mutex
 )
 
-// func init() {
-// 	var chanLock sync.Mutex
-// 	ChannelLock = &chanLock
-// }
-
 func PublishToJobsQueue(cntr controller.CntrInterface, job []byte) error {
 	ChannelLock.Lock()
 	for {
@@ -29,6 +24,7 @@ func PublishToJobsQueue(cntr controller.CntrInterface, job []byte) error {
 			configuration.AmqpChannels = append(configuration.AmqpChannels, currChannel)
 			ChannelLock.Unlock()
 
+			// TODO bump common and replace with commonUtil.MakeErr(err)
 			return err
 		}
 	}

@@ -46,8 +46,8 @@ func putFriendsIntoQueue(cntr controller.CntrInterface, currentJob datastructure
 		configuration.Logger.Sugar().Infof("pushing job: %+v", newJob)
 		err := publishJobWithThrottling(cntr, newJob)
 		if err != nil {
-			configuration.Logger.Sugar().Fatalf("failed to publish job after all retries: %+v", err)
-			panic(err)
+			configuration.Logger.Sugar().Errorf("failed to publish job after all retries: %+v", err)
+			return err
 		}
 	}
 

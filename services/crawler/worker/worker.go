@@ -13,6 +13,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 )
 
 // Worker crawls the steam API to get data from steam for a given user
@@ -133,8 +134,8 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		log.Fatal(err)
 	}
 	if !success {
-		configuration.Logger.Sugar().Fatalf("failed to save user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err)
-		log.Fatal(err)
+		configuration.Logger.Sugar().Errorf("failed to save user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err)
+		panic(fmt.Sprintf("failed to save user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err))
 	}
 }
 
@@ -197,7 +198,7 @@ func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int
 	}
 	jsonObj, err := json.Marshal(newJob)
 	if err != nil {
-		return fmt.Errorf("failed to marshal initial crawl job: %+v", err)
+		return commonUtil.MakeErr(err, fmt.Sprintf("failed to marshal initial crawl job: %+v", newJob))
 	}
 
 	crawlingStatus := common.CrawlingStatus{
@@ -210,19 +211,18 @@ func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int
 	}
 	success, err := cntr.SaveCrawlingStatsToDataStore(newJob.CurrentLevel, crawlingStatus)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if !success {
-		configuration.Logger.Sugar().Fatalf("failed to save crawling stats to DB for existing user: %+v", err)
-		log.Fatal(err)
+		configuration.Logger.Sugar().Errorf("failed to save crawling stats to DB for existing user: %+v", err)
+		return err
 	}
 	configuration.Logger.Sugar().Infof("created crawling %+v", crawlingStatus)
 
 	err = amqpchannelmanager.PublishToJobsQueue(cntr, jsonObj)
 	if err != nil {
-		logMsg := fmt.Sprintf("failed to publish new crawl user job with steamID: %s level: %d to queue: %+v",
+		configuration.Logger.Sugar().Errorf("failed to publish new crawl user job with steamID: %s level: %d to queue: %+v",
 			steamID, level, err)
-		configuration.Logger.Error(logMsg)
 	} else {
 		configuration.Logger.Info(fmt.Sprintf("placed job steamID: %s level: %d into queue", steamID, level))
 	}

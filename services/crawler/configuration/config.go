@@ -38,7 +38,7 @@ func InitConfig() error {
 	InitAndSetWorkerConfig()
 	logConfig, err := commonUtil.LoadLoggingConfig()
 	if err != nil {
-		log.Fatal(err)
+		return commonUtil.MakeErr(err)
 	}
 
 	logger := commonUtil.InitLogger(logConfig)
@@ -64,13 +64,13 @@ func InitAndSetWorkerConfig() {
 func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s", os.Getenv("RABBITMQ_USER"), os.Getenv("RABBITMQ_PASSWORD"), os.Getenv("RABBITMQ_URL")))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(commonUtil.MakeErr(err))
 	}
 	// defer conn.Close()
 
 	channel, err := conn.Channel()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(commonUtil.MakeErr(err))
 	}
 	// defer channel.Close()
 
@@ -83,7 +83,7 @@ func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 		nil,                              // arguments
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(commonUtil.MakeErr(err))
 	}
 	err = channel.Qos(
 		2,     // prefetch count
@@ -91,7 +91,7 @@ func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 		false, // global
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(commonUtil.MakeErr(err))
 	}
 
 	Logger.Info("started rabbitMQ connection")

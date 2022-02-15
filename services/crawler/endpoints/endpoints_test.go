@@ -17,8 +17,8 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
-	"github.com/iamcathal/neo/services/crawler/util"
 	"github.com/neosteamfriendgraphing/common"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/assert"
@@ -278,7 +278,7 @@ func TestCreateGraph(t *testing.T) {
 	}
 	expectedJSONResponse, err := json.Marshal(expectedResponse)
 	if err != nil {
-		log.Fatal(util.MakeErr(err))
+		log.Fatal(commonUtil.MakeErr(err))
 	}
 
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/creategraph/%s", serverPort, returnedCrawlingStatus.CrawlID), "application/json", nil)

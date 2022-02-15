@@ -31,7 +31,7 @@ func TestGetShortestDistanceWithTwoUsersWhoAreDirectFriendsWithEachother(t *test
 	mockController.On("GetProcessedGraphData", firstUserCrawlID).Return(userOneGraphData, nil)
 	mockController.On("GetProcessedGraphData", secondUserCrawlID).Return(userTwoGraphData, nil)
 
-	exists, actualShortestPathInfo, err := GetShortestDistanceInfo(
+	exists, actualShortestPathInfo, err := CalulateShortestDistanceInfo(
 		mockController,
 		firstUserCrawlID,
 		secondUserCrawlID)
@@ -62,7 +62,7 @@ func TestGetShortestDistanceWithTwoUsersWhoShareOneCommonFriend(t *testing.T) {
 	mockController.On("GetProcessedGraphData", firstUserCrawlID).Return(userOneWithOneSharedCommonFriendGraphData, nil)
 	mockController.On("GetProcessedGraphData", secondUserCrawlID).Return(userTwoWithOneSharedCommonFriendGraphData, nil)
 
-	exists, actualShortestPathInfo, err := GetShortestDistanceInfo(
+	exists, actualShortestPathInfo, err := CalulateShortestDistanceInfo(
 		mockController,
 		firstUserCrawlID,
 		secondUserCrawlID)

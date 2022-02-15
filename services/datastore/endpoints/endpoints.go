@@ -649,7 +649,7 @@ func (endpoints *Endpoints) CalculateShortestDistanceInfo(w http.ResponseWriter,
 		return
 	}
 
-	exists, shortestDistanceInfo, err := app.GetShortestDistanceInfo(endpoints.Cntr, crawlIDsInput.CrawlIDs[0], crawlIDsInput.CrawlIDs[1])
+	exists, shortestDistanceInfo, err := app.CalulateShortestDistanceInfo(endpoints.Cntr, crawlIDsInput.CrawlIDs[0], crawlIDsInput.CrawlIDs[1])
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "could not find shortest distance", vars, http.StatusBadRequest)
 		configuration.Logger.Sugar().Panicf("failed to get shortest distance: %s", err.Error())

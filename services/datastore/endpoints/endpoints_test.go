@@ -1290,3 +1290,48 @@ func TestGetCrawlingUserReturnsUserDoesNotExistWhenUserIsNotFound(t *testing.T) 
 
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
 }
+
+func TestCalculateShortestDistanceInfoReturnsExistingDataForExistingCrawl(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	firstCrawlID := ksuid.New().String()
+	secondCrawlID := ksuid.New().String()
+
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{
+		CrawlIDs: []string{firstCrawlID, secondCrawlID},
+	}
+	requestBodyJSON, err := json.Marshal(crawlIDsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedShortestDistanceInfo := datastructures.ShortestDistanceInfo{
+		CrawlIDs: crawlIDsInput.CrawlIDs,
+	}
+	response := struct {
+		Status string                              `json:"status"`
+		Data   datastructures.ShortestDistanceInfo `json:"shortestdistanceinfo"`
+	}{
+		"success",
+		expectedShortestDistanceInfo,
+	}
+	expectedJSONResponse, err := json.Marshal(response)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(expectedShortestDistanceInfo, nil)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/calculateshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "GetShortestDistanceInfo", 1)
+}

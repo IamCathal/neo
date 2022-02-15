@@ -11,7 +11,7 @@ import (
 	"github.com/neosteamfriendgraphing/common"
 )
 
-func GetShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, secondCrawlID string) (bool, datastructures.ShortestDistanceInfo, error) {
+func CalulateShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, secondCrawlID string) (bool, datastructures.ShortestDistanceInfo, error) {
 	firstUserGraphData, err := cntr.GetProcessedGraphData(firstCrawlID)
 	if err != nil {
 		return false, datastructures.ShortestDistanceInfo{}, err

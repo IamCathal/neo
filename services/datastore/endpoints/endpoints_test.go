@@ -465,6 +465,16 @@ func TestGetUsernamesFromSteamIDsReturnsInvalidRequestWhenCallToDataStoreFails(t
 	randomError := errors.New("hello world")
 	mockController.On("GetUsernames", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(make(map[string]string), randomError)
 
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"couldn't get usernames",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	requestBody := dtos.GetUsernamesFromSteamIDsInputDTO{
 		SteamIDs: []string{
 			validFormatSteamID,
@@ -479,8 +489,14 @@ func TestGetUsernamesFromSteamIDsReturnsInvalidRequestWhenCallToDataStoreFails(t
 	if err != nil {
 		log.Fatal(err)
 	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }
 
 func TestGetGraphableDataReturnsGraphableDataForAValidUser(t *testing.T) {
@@ -872,6 +888,16 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *t
 	err := errors.New("random error")
 	mockController.On("SaveProcessedGraphData", mock.Anything, mock.Anything).Return(false, err)
 
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"could not save graph data",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	requestBodyJSON, err := json.Marshal(common.UsersGraphData{})
 	if err != nil {
 		log.Fatal(err)
@@ -890,8 +916,8 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *t
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
-	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
 }
 
@@ -987,6 +1013,16 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 	err := errors.New("random error")
 	mockController.On("GetProcessedGraphData", mock.Anything, mock.Anything).Return(common.UsersGraphData{}, err)
 
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"failed to get processed graph data",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	requestBodyJSON, err := json.Marshal(common.UsersGraphData{})
 	if err != nil {
 		log.Fatal(err)
@@ -1005,8 +1041,8 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenRetrievingGraphDataReturnsAnErr
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
-	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 	mockController.AssertNotCalled(t, "SaveProcessedGraphData")
 }
 
@@ -1181,6 +1217,16 @@ func TestDoesProcessedGraphDataExistReturnsInvalidWhenItCannotRetrieveGraphData(
 	randomError := errors.New("random error")
 	mockController.On("DoesProcessedGraphDataExist", crawlID).Return(false, randomError)
 
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"failed to get processed graph data",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/doesprocessedgraphdataexist/%s", serverPort, crawlID), "application/json", nil)
 	if err != nil {
 		log.Fatal(err)
@@ -1191,8 +1237,8 @@ func TestDoesProcessedGraphDataExistReturnsInvalidWhenItCannotRetrieveGraphData(
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
-	assert.Contains(t, string(body), defaultPanicErrorMessageStarter)
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 	mockController.AssertNumberOfCalls(t, "DoesProcessedGraphDataExist", 1)
 }
 
@@ -1332,6 +1378,92 @@ func TestCalculateShortestDistanceInfoReturnsExistingDataForExistingCrawl(t *tes
 	}
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "GetShortestDistanceInfo", 1)
+}
+
+func TestGetShortestDistanceInfoReturnsExistingDataForExistingCrawl(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	firstCrawlID := ksuid.New().String()
+	secondCrawlID := ksuid.New().String()
+
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{
+		CrawlIDs: []string{firstCrawlID, secondCrawlID},
+	}
+	requestBodyJSON, err := json.Marshal(crawlIDsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedShortestDistanceInfo := datastructures.ShortestDistanceInfo{
+		CrawlIDs: crawlIDsInput.CrawlIDs,
+	}
+	response := struct {
+		Status string                              `json:"status"`
+		Data   datastructures.ShortestDistanceInfo `json:"shortestdistanceinfo"`
+	}{
+		"success",
+		expectedShortestDistanceInfo,
+	}
+	expectedJSONResponse, err := json.Marshal(response)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(expectedShortestDistanceInfo, nil)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	mockController.AssertNumberOfCalls(t, "GetShortestDistanceInfo", 1)
+}
+
+func TestGetShortestDistanceInfoReturnsErrorWhenNoShortestDistanceWasFound(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+	firstCrawlID := ksuid.New().String()
+	secondCrawlID := ksuid.New().String()
+
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{
+		CrawlIDs: []string{firstCrawlID, secondCrawlID},
+	}
+	requestBodyJSON, err := json.Marshal(crawlIDsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"could not get shortest distance",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	randomError := errors.New("random err")
+	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(datastructures.ShortestDistanceInfo{}, randomError)
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 	mockController.AssertNumberOfCalls(t, "GetShortestDistanceInfo", 1)
 }

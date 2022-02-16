@@ -54,7 +54,6 @@ func InitConfig() error {
 	InitAndSetInfluxClient()
 	InitSQLDBConnection()
 
-	fmt.Printf("the val is: %+v\n", OVERWRITE_USERS_BEYOND)
 	return nil
 }
 

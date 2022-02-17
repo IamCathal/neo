@@ -18,3 +18,4 @@ All services must have the following environment variables
 | `ENDPOINT_LATENCIES_BUCKET_TOKEN`   | Bucket token for endpoint latencies metrics        |
 | `ORG`   | Org name for grafana        |
 | `INFLUXDB_URL`   | Full URL for connecting to influxDB        |
+| `AUTH_KEY`     | Authentication key used by services for authorized only endpoints |

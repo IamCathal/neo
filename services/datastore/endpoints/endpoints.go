@@ -93,7 +93,6 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		}
-
 		next.ServeHTTP(w, r)
 	})
 }

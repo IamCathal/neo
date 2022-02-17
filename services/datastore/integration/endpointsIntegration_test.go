@@ -1,10 +1,10 @@
-//go:build integration
-
 package integration
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +20,10 @@ import (
 	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
+)
+
+var (
+	validSteamID = "76561198092048556"
 )
 
 func TestMain(m *testing.M) {
@@ -62,7 +66,6 @@ func initLocalServer(serverIsReady chan bool) {
 		WriteTimeout: 30 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-	configuration.Logger.Info(fmt.Sprintf("datastore start up and serving requests on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	serverIsReady <- true
 	log.Fatal(srv.ListenAndServe())
 }
@@ -89,4 +92,126 @@ func TestGetKnownUser(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, expectedUserAccDetails, returnedUser.User.AccDetails)
+}
+
+func TestGetDetailsForGames(t *testing.T) {
+	gameIDs := []int{730, 271590}
+
+	expectedResponse := dtos.GetDetailsForGamesDTO{
+		Status: "success",
+		Games: []common.BareGameInfo{
+			{
+				AppID: 730,
+				Name:  "Counter-Strike: Global Offensive",
+			},
+			{
+				AppID: 271590,
+				Name:  "Grand Theft Auto V",
+			},
+		},
+	}
+	expectedResponseJSON, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	requestBody := dtos.GetDetailsForGamesInputDTO{
+		GameIDs: gameIDs,
+	}
+	requestBodyJSON, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%s/api/getdetailsforgames", os.Getenv("API_PORT")), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+}
+
+func TestHasUserBeenCrawledBefore(t *testing.T) {
+
+	requestBody := dtos.HasBeenCrawledBeforeInputDTO{
+		SteamID: validSteamID,
+		Level:   2,
+	}
+	requestBodyJSON, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Post(fmt.Sprintf("http://localhost:%s/api/hasbeencrawledbefore", os.Getenv("API_PORT")), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
+
+func TestHasUserBeenCrawledBeforeForUserThatDoesHasNotBeenCrawled(t *testing.T) {
+
+	requestBody := dtos.HasBeenCrawledBeforeInputDTO{
+		SteamID: validSteamID,
+		Level:   999,
+	}
+	requestBodyJSON, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Fatal(err)
+	}
+	expectedResponse := common.BasicAPIResponse{
+		Status:  "success",
+		Message: "",
+	}
+	expectedResponseJSON, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%s/api/hasbeencrawledbefore", os.Getenv("API_PORT")), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(body))
+}
+
+func TestGetCrawlingStatus(t *testing.T) {
+	targetCrawlID := "253v0czhdyyYWfce4LhfN1x1Nhv"
+
+	expectedResponse := dtos.GetCrawlingStatusDTO{
+		Status: "success",
+		CrawlingStatus: common.CrawlingStatus{
+			TimeStarted:         1644768362,
+			CrawlID:             targetCrawlID,
+			OriginalCrawlTarget: "76561198079437417",
+			MaxLevel:            2,
+			TotalUsersToCrawl:   13,
+			UsersCrawled:        13,
+		},
+	}
+	expectedResponseJSON, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getcrawlingstatus/%s", os.Getenv("API_PORT"), targetCrawlID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Nil(t, err)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(res))
 }

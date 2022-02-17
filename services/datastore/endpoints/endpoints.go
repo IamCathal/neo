@@ -389,12 +389,9 @@ func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Re
 		gameDetails = []common.BareGameInfo{}
 	}
 
-	response := struct {
-		Status string                `json:"status"`
-		Games  []common.BareGameInfo `json:"games"`
-	}{
-		"success",
-		gameDetails,
+	response := dtos.GetDetailsForGamesDTO{
+		Status: "success",
+		Games:  gameDetails,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

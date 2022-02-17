@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"testing"
@@ -35,6 +34,7 @@ var (
 	validFormatSteamID              = "76561197960287930"
 	invalidFormatSteamID            = validFormatSteamID + "zzz"
 	defaultPanicErrorMessageStarter = "Give the code monkeys this ID:"
+	currServerPort                  = 10000
 )
 
 func TestMain(m *testing.M) {
@@ -67,17 +67,18 @@ func createMockInfluxDBClient() {
 func initServerAndDependencies() (*controller.MockCntrInterface, int) {
 	mockController := &controller.MockCntrInterface{}
 	configuration.DBClient = &mongo.Client{}
-	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
+
+	currServerPort++
+	go runServer(mockController, ctx, currServerPort)
+
 	go func() {
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 		cancel()
 	}()
-	time.Sleep(3 * time.Millisecond)
-	return mockController, randomPort
+	time.Sleep(4 * time.Millisecond)
+	return mockController, currServerPort
 }
 
 func initTestData() {

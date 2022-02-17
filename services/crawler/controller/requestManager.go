@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"net/http"
 	"sync"
 	"time"
 
@@ -39,7 +40,7 @@ func MakeNetworkGETRequest(targetURL string) ([]byte, error) {
 				time.Sleep(1 * time.Millisecond)
 				requestMakeLock.Unlock()
 			}()
-			res, err := commonUtil.GetAndRead(targetURL)
+			res, err := commonUtil.GetAndRead(targetURL, []http.Header{})
 			return res, err
 		}
 	}

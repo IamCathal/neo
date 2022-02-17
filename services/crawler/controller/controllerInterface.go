@@ -163,13 +163,14 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 	if err != nil {
 		return false, commonUtil.MakeErr(err)
 	}
+
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
 	if err != nil {
 		return false, err
 	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authentication", "something")
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
 	res := &http.Response{}
@@ -223,7 +224,7 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authentication", "something")
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
 	res := &http.Response{}
@@ -281,7 +282,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authentication", "something")
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
 	res := &http.Response{}
@@ -330,7 +331,7 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authentication", "something")
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
 	res := &http.Response{}
@@ -378,7 +379,7 @@ func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraph
 		return dtos.GetGraphableDataForUserDTO{}, err
 	}
 	req.Close = true
-	req.Header.Set("Authentication", "something")
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
 	res := &http.Response{}
@@ -435,7 +436,7 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authentication", "something")
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
 	res := &http.Response{}
@@ -563,7 +564,7 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 	}
 	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authentication", "something")
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
 	res := &http.Response{}

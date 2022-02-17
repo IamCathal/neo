@@ -296,7 +296,7 @@ func TestGetUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -310,7 +310,7 @@ func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.
 	getUserError := errors.New("couldn't get user")
 	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, getUserError)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -343,7 +343,7 @@ func TestGetCrawlingStatsReturnsInvalidCrawlIDWhenGivenAnInvalidID(t *testing.T)
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/gobbeldygook", serverPort))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/gobbeldygook", serverPort), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -374,7 +374,7 @@ func TestGetCrawlingStatsReturnsCorrectCrawlingStatusWhenGivenValidCrawlID(t *te
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/%s", serverPort, expectedCrawlingStatus.CrawlID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/%s", serverPort, expectedCrawlingStatus.CrawlID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -388,7 +388,7 @@ func TestGetCrawlingStatsReturnsCouldntGetCrawlingStatusWhenDBReturnsAnError(t *
 	randomError := errors.New("hello world")
 	mockController.On("GetCrawlingStatusFromDBFromCrawlID", mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(common.CrawlingStatus{}, randomError)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/%s", serverPort, ksuid.New().String()))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlingstatus/%s", serverPort, ksuid.New().String()), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -526,7 +526,7 @@ func TestGetGraphableDataReturnsGraphableDataForAValidUser(t *testing.T) {
 
 	mockController.On("GetUser", mock.Anything, foundUser.AccDetails.SteamID).Return(foundUser, nil)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, foundUser.AccDetails.SteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, foundUser.AccDetails.SteamID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -549,7 +549,7 @@ func TestGetGraphableDataReturnsCouldntGetUserWhenNoUserIsFound(t *testing.T) {
 	randomError := errors.New("hello world")
 	mockController.On("GetUser", mock.Anything, validFormatSteamID).Return(common.UserDocument{}, randomError)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, validFormatSteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, validFormatSteamID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -570,7 +570,7 @@ func TestGetGraphableDataReturnsInvalidInputForInvalidFormatSteamIDs(t *testing.
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, invalidFormatSteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, invalidFormatSteamID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1268,7 +1268,7 @@ func TestGetCrawlingUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1299,7 +1299,7 @@ func TestGetCrawlingUserReturnsNotBeingCrawledWhenUserIsNotBeingCrawled(t *testi
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1330,7 +1330,7 @@ func TestGetCrawlingUserReturnsUserDoesNotExistWhenUserIsNotFound(t *testing.T) 
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getcrawlinguser/%s", serverPort, crawlID), []http.Header{})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -46,7 +46,6 @@ func TestMain(m *testing.M) {
 	isReady := <-serverIsReadyChan
 	if isReady {
 		code := m.Run()
-
 		os.Exit(code)
 	}
 }

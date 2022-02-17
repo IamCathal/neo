@@ -104,6 +104,10 @@ github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjY
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
 github.com/neosteamfriendgraphing/common v0.0.0-20220215222425-6528d9b748e6 h1:W0Nb074SsENrJK7Qg0SXcvl93audCeuafXJgXqtoxaA=
 github.com/neosteamfriendgraphing/common v0.0.0-20220215222425-6528d9b748e6/go.mod h1:TmrIQZw6KRImTnXAtRYu9cbhGzSVViSk1qnGHDwuXqA=
+github.com/neosteamfriendgraphing/common v0.0.0-20220217132945-f5f8e753147d h1:SqcSrj3Y5u7j62mEcVeXzF8N9sN/ErYnByP+oWX2YxQ=
+github.com/neosteamfriendgraphing/common v0.0.0-20220217132945-f5f8e753147d/go.mod h1:TmrIQZw6KRImTnXAtRYu9cbhGzSVViSk1qnGHDwuXqA=
+github.com/neosteamfriendgraphing/common v0.0.0-20220217140043-566f3d03287e h1:dGYCHa1G/wNbloG5ljy3twado8910srFFalSIh3AZz0=
+github.com/neosteamfriendgraphing/common v0.0.0-20220217140043-566f3d03287e/go.mod h1:TmrIQZw6KRImTnXAtRYu9cbhGzSVViSk1qnGHDwuXqA=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=

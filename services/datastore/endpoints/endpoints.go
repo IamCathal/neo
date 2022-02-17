@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/IamCathal/neo/services/datastore/app"
@@ -32,12 +31,23 @@ var (
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
+	authRequiredEndpoints map[string]bool
 )
 
 type Endpoints struct {
 	Cntr controller.CntrInterface
 }
 
+func init() {
+	authRequiredEndpoints = make(map[string]bool)
+	authRequiredEndpoints["saveuser"] = true
+	authRequiredEndpoints["insertgame"] = true
+	authRequiredEndpoints["getuser"] = true
+	authRequiredEndpoints["getdetailsforgames"] = true
+	authRequiredEndpoints["savecrawlingstats"] = true
+	authRequiredEndpoints["getgraphabledata"] = true
+	authRequiredEndpoints["getusernamesfromsteamids"] = true
+}
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 
@@ -58,6 +68,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/doesprocessedgraphdataexist/{crawlid}", endpoints.DoesProcessedGraphDataExist).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/calculateshortestdistanceinfo", endpoints.CalculateShortestDistanceInfo).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getshortestdistanceinfo", endpoints.GetShortestDistanceInfo).Methods("POST", "OPTIONS")
+	apiRouter.Use(endpoints.AuthMiddleware)
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
 	wsRouter := r.PathPrefix("/ws").Subrouter()
@@ -65,6 +76,26 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	wsRouter.HandleFunc("/crawlingstatstream/{crawlid}", endpoints.CrawlingStatsUpdateStream).Methods("GET")
 
 	return r
+}
+
+func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		baseURLPath := util.GetBaseURLPath(r)
+		if _, requiresAuth := authRequiredEndpoints[baseURLPath]; requiresAuth {
+			if r.Header.Get("Authentication") != os.Getenv("AUTH_KEY") {
+				w.WriteHeader(http.StatusForbidden)
+				response := struct {
+					Error string `json:"error"`
+				}{
+					"You are not authorized to access this endpoint",
+				}
+				json.NewEncoder(w).Encode(response)
+				return
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
@@ -121,28 +152,13 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 			zap.String("path", r.URL.EscapedPath()),
 		)
 
-		urlPathBasic := ""
-		urlPath := strings.Split(r.URL.EscapedPath(), "/")
-		if len(urlPath) > 1 {
-			urlPathBasic = urlPath[1]
-		} else {
-			urlPathBasic = "/"
-		}
-
 		writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
 		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
-			AddTag("path", urlPathBasic).
+			AddTag("path", util.GetBaseURLPath(r)).
 			AddTag("service", "datastore").
 			AddField("latency", util.GetCurrentTimeInMs()-requestStartTime).
 			SetTime(time.Now())
 		writeAPI.WritePoint(point)
-	})
-}
-
-func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Authenticate JWT
-		next.ServeHTTP(w, r)
 	})
 }
 

@@ -84,7 +84,10 @@ func TestGetKnownUser(t *testing.T) {
 	}
 
 	returnedUser := dtos.GetUserDTO{}
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getuser/%s", os.Getenv("API_PORT"), validSteamID))
+	authHeader := http.Header{}
+	authHeader.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getuser/%s", os.Getenv("API_PORT"), validSteamID), []http.Header{authHeader})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -123,7 +126,12 @@ func TestGetDetailsForGames(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%s/api/getdetailsforgames", os.Getenv("API_PORT")), "application/json", bytes.NewBuffer(requestBodyJSON))
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%s/api/getdetailsforgames", os.Getenv("API_PORT")), bytes.NewBuffer(requestBodyJSON))
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -175,7 +183,11 @@ func TestHasUserBeenCrawledBeforeForUserThatDoesHasNotBeenCrawled(t *testing.T) 
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%s/api/hasbeencrawledbefore", os.Getenv("API_PORT")), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%s/api/hasbeencrawledbefore", os.Getenv("API_PORT")), bytes.NewBuffer(requestBodyJSON))
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -208,7 +220,9 @@ func TestGetCrawlingStatus(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getcrawlingstatus/%s", os.Getenv("API_PORT"), targetCrawlID))
+	authHeader := http.Header{}
+	authHeader.Set("Authentication", os.Getenv("AUTH_KEY"))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getcrawlingstatus/%s", os.Getenv("API_PORT"), targetCrawlID), []http.Header{authHeader})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -270,7 +284,9 @@ func TestGetGraphableData(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getgraphabledata/%s", os.Getenv("API_PORT"), validSteamID))
+	authHeader := http.Header{}
+	authHeader.Set("Authentication", os.Getenv("AUTH_KEY"))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getgraphabledata/%s", os.Getenv("API_PORT"), validSteamID), []http.Header{authHeader})
 	if err != nil {
 		log.Fatal(err)
 	}

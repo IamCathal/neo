@@ -15,7 +15,7 @@ require (
 	github.com/klauspost/compress v1.14.3 // indirect
 	github.com/lib/pq v1.10.4
 	github.com/mackerelio/go-osstat v0.2.1
-	github.com/neosteamfriendgraphing/common v0.0.0-20220217140043-566f3d03287e
+	github.com/neosteamfriendgraphing/common v0.0.0-20220217143054-05a10906483d
 	github.com/pkg/errors v0.9.1
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/objx v0.3.0 // indirect

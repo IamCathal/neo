@@ -48,6 +48,7 @@ jobs:
         echo SYSTEM_STATS_BUCKET_TOKEN=${{ secrets.SYSTEM_STATS_BUCKET_TOKEN }} >> .env
         echo ENDPOINT_LATENCIES_BUCKET=${{ secrets.ENDPOINT_LATENCIES_BUCKET }} >> .env
         echo ENDPOINT_LATENCIES_BUCKET_TOKEN=${{ secrets.ENDPOINT_LATENCIES_BUCKET_TOKEN }} >> .env
+        echo AUTH_KEY=${{ secrets.AUTH_KEY }} >> .env
 
         cp .env services/datastore/integration
         cp .env services/datastore/endpoints

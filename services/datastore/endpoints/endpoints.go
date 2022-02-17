@@ -610,11 +610,16 @@ func (endpoints *Endpoints) CalculateShortestDistanceInfo(w http.ResponseWriter,
 		return
 	}
 
-	if len(crawlIDsInput.CrawlIDs) != 2 {
-		if crawlIDsInput.CrawlIDs[0] == "" || crawlIDsInput.CrawlIDs[1] == "" {
-			util.SendBasicInvalidResponse(w, r, "invalid input", vars, http.StatusBadRequest)
+	for _, crawlID := range crawlIDsInput.CrawlIDs {
+		_, err := ksuid.Parse(crawlID)
+		if err != nil {
+			util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusBadRequest)
 			return
 		}
+	}
+	if len(crawlIDsInput.CrawlIDs) != 2 {
+		util.SendBasicInvalidResponse(w, r, "two crawl IDS must be given", vars, http.StatusBadRequest)
+		return
 	}
 
 	existingShortestDistanceInfo, err := endpoints.Cntr.GetShortestDistanceInfo(context.TODO(), crawlIDsInput.CrawlIDs)
@@ -673,6 +678,17 @@ func (endpoints *Endpoints) GetShortestDistanceInfo(w http.ResponseWriter, r *ht
 	err := json.NewDecoder(r.Body).Decode(&crawlIDsInput)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
+	for _, crawlID := range crawlIDsInput.CrawlIDs {
+		_, err := ksuid.Parse(crawlID)
+		if err != nil {
+			util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusBadRequest)
+			return
+		}
+	}
+	if len(crawlIDsInput.CrawlIDs) != 2 {
+		util.SendBasicInvalidResponse(w, r, "two crawl IDS must be given", vars, http.StatusBadRequest)
 		return
 	}
 

@@ -73,19 +73,18 @@ func initLocalServer(serverIsReady chan bool) {
 }
 
 func TestGetKnownUser(t *testing.T) {
-	targetSteamID := "76561197989571618"
 
 	expectedUserAccDetails := common.AccDetailsDocument{
-		SteamID:        targetSteamID,
-		Personaname:    "madeforpvp",
-		Profileurl:     "https://steamcommunity.com/profiles/76561197989571618/",
-		Avatar:         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/35/35783d9d4a03ccf95c48f22f0af350614f2330d7.jpg",
-		Timecreated:    1177342433,
-		Loccountrycode: "SV",
+		SteamID:        validSteamID,
+		Personaname:    "和平戰士",
+		Profileurl:     "https://steamcommunity.com/id/vanek4d/",
+		Avatar:         "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/12/124898e6c4a01af630d1045ce4eb272315372115.jpg",
+		Timecreated:    1369245328,
+		Loccountrycode: "UA",
 	}
 
 	returnedUser := dtos.GetUserDTO{}
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getuser/%s", os.Getenv("API_PORT"), targetSteamID))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getuser/%s", os.Getenv("API_PORT"), validSteamID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -210,6 +209,68 @@ func TestGetCrawlingStatus(t *testing.T) {
 	}
 
 	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getcrawlingstatus/%s", os.Getenv("API_PORT"), targetCrawlID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Nil(t, err)
+	assert.Equal(t, string(expectedResponseJSON)+"\n", string(res))
+}
+
+func TestGetGraphableData(t *testing.T) {
+	expectedResponse := dtos.GetGraphableDataForUserDTO{
+		Username: "和平戰士",
+		SteamID:  validSteamID,
+		FriendIDs: []string{
+			"76561198191107486",
+			"76561198136510967",
+			"76561198131449116",
+			"76561198190732702",
+			"76561198088474430",
+			"76561198083409284",
+			"76561198045282617",
+			"76561198317155994",
+			"76561198126587585",
+			"76561198142760569",
+			"76561198086269353",
+			"76561198159247789",
+			"76561198143843680",
+			"76561198133307284",
+			"76561198101073166",
+			"76561198024839524",
+			"76561198090235873",
+			"76561198069919140",
+			"76561198085289737",
+			"76561198123717365",
+			"76561198188277111",
+			"76561198083190558",
+			"76561198126591801",
+			"76561198213247165",
+			"76561198088194219",
+			"76561198034583226",
+			"76561198216495733",
+			"76561198186273698",
+			"76561198011819964",
+			"76561198082232131",
+			"76561198016413581",
+			"76561198028922601",
+			"76561198140370577",
+			"76561198144084014",
+			"76561198071341378",
+			"76561198078629620",
+			"76561197963431679",
+			"76561198093076042",
+			"76561198122809510",
+			"76561198120025773",
+			"76561198047139630",
+		},
+	}
+	expectedResponseJSON, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%s/api/getgraphabledata/%s", os.Getenv("API_PORT"), validSteamID))
 	if err != nil {
 		log.Fatal(err)
 	}

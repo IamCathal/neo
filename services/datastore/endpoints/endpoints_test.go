@@ -1383,6 +1383,146 @@ func TestCalculateShortestDistanceInfoReturnsExistingDataForExistingCrawl(t *tes
 	mockController.AssertNumberOfCalls(t, "GetShortestDistanceInfo", 1)
 }
 
+func TestCalculateShortestDistanceReturnsInvalidResponseWhenOnlyOneCrawlIDIsGiven(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{
+		CrawlIDs: []string{ksuid.New().String()},
+	}
+	requestBodyJSON, err := json.Marshal(crawlIDsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"two crawl IDS must be given",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/calculateshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestCalculateShortestDistanceReturnsInvalidResponseWhenOneOrMoreCrawlIDIsGiven(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{
+		CrawlIDs: []string{ksuid.New().String(), "sdfsdfsdf"},
+	}
+	requestBodyJSON, err := json.Marshal(crawlIDsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"invalid crawlid",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/calculateshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestGetShortestDistanceReturnsInvalidCrawlIDForOneOrMoreInvalidCrawlIDs(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{
+		CrawlIDs: []string{ksuid.New().String(), "sdfsdfsdf"},
+	}
+	requestBodyJSON, err := json.Marshal(crawlIDsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"invalid crawlid",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestGetShortestDistanceReturnsInvalidResponseWhenOnlyOneCrawlIDIsGiven(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+
+	crawlIDsInput := datastructures.GetShortestDistanceInfoDataInputDTO{
+		CrawlIDs: []string{ksuid.New().String()},
+	}
+	requestBodyJSON, err := json.Marshal(crawlIDsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"two crawl IDS must be given",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
 func TestGetShortestDistanceInfoReturnsExistingDataForExistingCrawl(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()
 	firstCrawlID := ksuid.New().String()

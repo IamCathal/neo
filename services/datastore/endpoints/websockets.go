@@ -20,11 +20,11 @@ func (endpoints *Endpoints) NewUserStream(w http.ResponseWriter, r *http.Request
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		if _, ok := err.(websocket.HandshakeError); !ok {
-			configuration.Logger.Sugar().Errorf("error upgrading websocket connection (handshake error): %+v", err)
+			configuration.Logger.Sugar().Errorf("error upgrading websocket connection (handshake error): %+v", util.MakeErr(err))
 			util.SendBasicInvalidResponse(w, r, "unable to upgrade websocket", vars, http.StatusBadRequest)
 			return
 		}
-		configuration.Logger.Sugar().Errorf("error upgrading websocket connection: %+v", err)
+		configuration.Logger.Sugar().Errorf("error upgrading websocket connection: %+v", util.MakeErr(err))
 		util.SendBasicInvalidResponse(w, r, "unable to upgrade websocket", vars, http.StatusBadRequest)
 		return
 	}
@@ -41,16 +41,13 @@ func (endpoints *Endpoints) NewUserStream(w http.ResponseWriter, r *http.Request
 	for _, event := range dbmonitor.LastEightUserEvents {
 		jsonEvent, err := json.Marshal(event)
 		if err != nil {
-			configuration.Logger.Sugar().Errorf("failed to marhsal recent user event %+v: %+v", event, err)
-			panic(err)
+			configuration.Logger.Sugar().Panicf("failed to marhsal recent user event %+v: %+v", event, util.MakeErr(err))
 		}
 		err = ws.WriteMessage(1, jsonEvent)
 		if err != nil {
-			configuration.Logger.Sugar().Errorf("error writing to websocket connection: %+v", err)
-			panic(err)
+			configuration.Logger.Sugar().Panicf("error writing to websocket connection: %+v", util.MakeErr(err))
 		}
 	}
-	// go writer(ws, vars["requestid"])
 	wsReader(websocketConn, "newuser")
 }
 
@@ -68,11 +65,11 @@ func (endpoints *Endpoints) CrawlingStatsUpdateStream(w http.ResponseWriter, r *
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		if _, ok := err.(websocket.HandshakeError); !ok {
-			configuration.Logger.Sugar().Errorf("error upgrading websocket connection (handshake error): %+v", err)
+			configuration.Logger.Sugar().Errorf("error upgrading websocket connection (handshake error): %+v", util.MakeErr(err))
 			util.SendBasicInvalidResponse(w, r, "unable to upgrade websocket", vars, http.StatusBadRequest)
 			return
 		}
-		configuration.Logger.Sugar().Errorf("error upgrading websocket connection: %+v", err)
+		configuration.Logger.Sugar().Errorf("error upgrading websocket connection: %+v", util.MakeErr(err))
 		util.SendBasicInvalidResponse(w, r, "unable to upgrade websocket", vars, http.StatusBadRequest)
 		return
 	}

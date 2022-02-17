@@ -1,6 +1,7 @@
 package dbmonitor
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
+	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 )
 
@@ -73,7 +75,7 @@ func RemoveAWebsocketConnection(websocketID string, connections []WebsocketConn,
 	if websocketFound {
 		return connections, nil
 	}
-	return []WebsocketConn{}, fmt.Errorf("failed to remove non existant websocket %s from ws connection list", websocketID)
+	return []WebsocketConn{}, util.MakeErr(errors.New("tried to remove non existant websocket"), fmt.Sprintf("failed to remove non existant websocket %s from ws connection list", websocketID))
 }
 
 func addUserEventToMostRecent(event datastructures.AddUserEvent) {

@@ -9,6 +9,7 @@ import (
 	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/IamCathal/neo/services/datastore/graphing"
 	"github.com/neosteamfriendgraphing/common"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 )
 
 func CalulateShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, secondCrawlID string) (bool, datastructures.ShortestDistanceInfo, error) {
@@ -67,7 +68,7 @@ func getUserDetailsForShortestDistancePath(cntr controller.CntrInterface, userOn
 func toInt64(steamID string) int64 {
 	intVersion, err := strconv.ParseInt(steamID, 10, 64)
 	if err != nil {
-		panic(err)
+		panic(commonUtil.MakeErr(err))
 	}
 	return intVersion
 }

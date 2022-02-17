@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -32,7 +31,7 @@ var (
 func InitConfig() error {
 	ApplicationStartUpTime = time.Now()
 	if err := godotenv.Load(); err != nil {
-		return err
+		return util.MakeErr(err)
 	}
 
 	err := util.EnsureAllEnvVarsAreSet("MONGODB_USER",
@@ -41,12 +40,12 @@ func InitConfig() error {
 		"POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB",
 		"POSTGRES_INSTANCE_IP", "SHORTEST_DISTANCE_COLLECTION")
 	if err != nil {
-		return err
+		return util.MakeErr(err)
 	}
 
 	logConfig, err := LoadLoggingConfig()
 	if err != nil {
-		log.Fatal(err)
+		return util.MakeErr(err)
 	}
 
 	InitAndSetLogger(logConfig)
@@ -107,21 +106,18 @@ func InitMongoDBConnection() {
 	mongoInstanceIP := os.Getenv("MONGO_INSTANCE_IP")
 
 	if mongoDBUser == "" || mongoDBPassword == "" || mongoInstanceIP == "" {
-		Logger.Fatal("one or more mongoDB env vars are not set")
-		log.Fatal("err")
+		Logger.Panic("one or more mongoDB env vars are not set")
 	}
 
 	mongoDBConnectionURL := fmt.Sprintf("mongodb://%s:%s@%s:27017/maindb?authSource=maindb&readPreference=primary&directConnection=true", mongoDBUser, mongoDBPassword, mongoInstanceIP)
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoDBConnectionURL))
 	if err != nil {
-		Logger.Fatal(fmt.Sprintf("unable to connect to mongoDB with url '%s': %v", mongoDBConnectionURL, err))
-		log.Fatal(err)
+		Logger.Sugar().Panicf("unable to connect to mongoDB with url '%s': %v", mongoDBConnectionURL, util.MakeErr(err))
 	}
 
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		Logger.Fatal(fmt.Sprintf("unable to ping mongoDB: %v", err))
-		log.Fatal(err)
+		Logger.Sugar().Panicf("unable to ping mongoDB: %v", util.MakeErr(err))
 	}
 
 	DBClient = client
@@ -139,16 +135,12 @@ func InitSQLDBConnection() {
 
 	db, err := sql.Open("postgres", connURL)
 	if err != nil {
-		logMsg := fmt.Sprintf("couldn't open connection to SQL db: %+v", err)
-		Logger.Fatal(logMsg)
-		panic(logMsg)
+		Logger.Sugar().Panicf("couldn't open connection to SQL db: %+v", util.MakeErr(err))
 	}
 
 	pingErr := db.Ping()
 	if pingErr != nil {
-		logMsg := fmt.Sprintf("couldn't ping sql db: %+v", err)
-		Logger.Fatal(logMsg)
-		panic(logMsg)
+		Logger.Sugar().Panicf("couldn't ping sql db: %+v", util.MakeErr(err))
 	}
 
 	SQLClient = db

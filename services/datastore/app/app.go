@@ -2,13 +2,13 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/neosteamfriendgraphing/common"
+	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -31,7 +31,7 @@ func SaveUserToDB(cntr controller.CntrInterface, userDocument common.UserDocumen
 
 	bsonObj, err := bson.Marshal(UserDocument)
 	if err != nil {
-		return err
+		return commonUtil.MakeErr(err)
 	}
 
 	userCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("USER_COLLECTION"))
@@ -60,7 +60,7 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, currentLevel int, craw
 
 			bsonObj, err := bson.Marshal(crawlingStatus)
 			if err != nil {
-				return err
+				return commonUtil.MakeErr(err)
 			}
 
 			_, err = cntr.InsertOne(context.TODO(), crawlingStatsCollection, bsonObj)
@@ -82,8 +82,7 @@ func SaveCrawlingStatsToDB(cntr controller.CntrInterface, currentLevel int, craw
 		if !docExisted {
 			// For when the crawling status document has been deleted but
 			// some jobs still remain in the queue that must be killed off
-			warningMsg := fmt.Sprintf("crawlID '%s' originalcrawltarget '%s' has no crawling status entry", crawlingStatus.CrawlID, crawlingStatus.OriginalCrawlTarget)
-			configuration.Logger.Warn(warningMsg)
+			configuration.Logger.Sugar().Warnf("crawlID '%s' originalcrawltarget '%s' has no crawling status entry", crawlingStatus.CrawlID, crawlingStatus.OriginalCrawlTarget)
 			return nil
 		}
 	}

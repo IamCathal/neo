@@ -10,6 +10,7 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/dbmonitor"
+	"github.com/neosteamfriendgraphing/common/util"
 )
 
 func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
@@ -41,19 +42,19 @@ func (rw *responseWriter) WriteHeader(code int) {
 func gunzip(body io.ReadCloser) ([]byte, error) {
 	requestBodyGzipData, err := ioutil.ReadAll(body)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, util.MakeErr(err)
 	}
 	byteBuffer := bytes.NewBuffer(requestBodyGzipData)
 	var reader io.Reader
 	reader, err = gzip.NewReader(byteBuffer)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, util.MakeErr(err)
 	}
 
 	var resBytes bytes.Buffer
 	_, err = resBytes.ReadFrom(reader)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, util.MakeErr(err)
 	}
 	return resBytes.Bytes(), nil
 }
@@ -62,10 +63,10 @@ func gzipData(inputbytes []byte) (bytes.Buffer, error) {
 	gzippedData := bytes.Buffer{}
 	gz := gzip.NewWriter(&gzippedData)
 	if _, err := gz.Write(inputbytes); err != nil {
-		return bytes.Buffer{}, err
+		return bytes.Buffer{}, util.MakeErr(err)
 	}
 	if err := gz.Close(); err != nil {
-		return bytes.Buffer{}, err
+		return bytes.Buffer{}, util.MakeErr(err)
 	}
 	return gzippedData, nil
 }
@@ -84,19 +85,17 @@ func wsReader(ws dbmonitor.WebsocketConn, streamType string) {
 			case "newuser":
 				newUserSteamWebsockets, err := dbmonitor.RemoveAWebsocketConnection(ws.ID, dbmonitor.NewUserStreamWebsockets, &dbmonitor.NewUserStreamLock)
 				if err != nil {
-					configuration.Logger.Fatal(err.Error())
-					panic(err)
+					configuration.Logger.Panic(err.Error())
 				}
 				dbmonitor.SetNewUserStreamWebsocketConnections(newUserSteamWebsockets)
-				configuration.Logger.Sugar().Infof("websocket %s is exiting", ws.ID)
+				configuration.Logger.Sugar().Infof("new users websocket %s is exiting", ws.ID)
 			case "crawlingstats":
 				crawlingStatWebsockets, err := dbmonitor.RemoveAWebsocketConnection(ws.ID, dbmonitor.CrawlingStatsStreamWebsockets, &dbmonitor.CrawlingStatsStreamLock)
 				if err != nil {
-					configuration.Logger.Fatal(err.Error())
-					panic(err)
+					configuration.Logger.Panic(err.Error())
 				}
 				dbmonitor.SetCrawlingStatsStreamWebsocketConnections(crawlingStatWebsockets)
-				configuration.Logger.Sugar().Infof("websocket %s is exiting", ws.ID)
+				configuration.Logger.Sugar().Infof("crawling stats websocket %s is exiting", ws.ID)
 			}
 			break
 		}

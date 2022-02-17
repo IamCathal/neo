@@ -1,18 +1,19 @@
 package configuration
 
 import (
-	"log"
 	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/neosteamfriendgraphing/common/util"
 )
 
 func GetLocalIPAddress() string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		log.Fatal(err)
+		panic(util.MakeErr(err))
 	}
 	defer conn.Close()
 	addrWithNoPort := strings.Split(conn.LocalAddr().(*net.UDPAddr).String(), ":")
@@ -26,7 +27,7 @@ func GetCurrentTimeInMs() int64 {
 func GetRequestStartTimeInTimeFormat(requestStartTimeString string) int64 {
 	requestStartTime, err := strconv.ParseInt(requestStartTimeString, 10, 64)
 	if err != nil {
-		panic(err)
+		panic(util.MakeErr(err))
 	}
 	return requestStartTime
 }

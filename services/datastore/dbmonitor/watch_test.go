@@ -85,7 +85,7 @@ func TestRemoveNewUserStreamWebsocketConnectionWithNonExistantReturnsAnError(t *
 	_, err := RemoveAWebsocketConnection(nonExistantID, NewUserStreamWebsockets, &NewUserStreamLock)
 
 	expectedErrorString := fmt.Sprintf("failed to remove non existant websocket %s from ws connection list", nonExistantID)
-	assert.EqualError(t, err, expectedErrorString)
+	assert.Contains(t, err.Error(), expectedErrorString)
 }
 
 func TestAddUserEventToMostRecent(t *testing.T) {

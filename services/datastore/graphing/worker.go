@@ -8,6 +8,7 @@ import (
 	"github.com/IamCathal/neo/services/datastore/controller"
 	dijkstra "github.com/iamcathal/dijkstra2"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/util"
 )
 
 type CrawlJob struct {
@@ -165,7 +166,7 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 
 	best, err := graph.Shortest(workerConfig.steamIDToGraphID[toInt64(userOne.UserDetails.User.AccDetails.SteamID)], workerConfig.steamIDToGraphID[toInt64(userTwo.UserDetails.User.AccDetails.SteamID)])
 	if err != nil {
-		return false, []int64{}, err
+		return false, []int64{}, util.MakeErr(err)
 	}
 	bestPathSteamIDs := []int64{}
 	for _, graphID := range best.Path {

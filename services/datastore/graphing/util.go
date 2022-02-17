@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/util"
 )
 
 func GetIDToUserMap(userOne, userTwo common.UsersGraphData) map[string]common.UserDocument {
@@ -37,7 +38,7 @@ func ifKeyExists(key string, idMap map[string]common.UserDocument) bool {
 func toInt64(steamID string) int64 {
 	intVersion, err := strconv.ParseInt(steamID, 10, 64)
 	if err != nil {
-		panic(err)
+		panic(util.MakeErr(err))
 	}
 	return intVersion
 }

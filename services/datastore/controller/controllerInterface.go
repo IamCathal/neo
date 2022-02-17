@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"runtime"
-	"strings"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/lib/pq"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -47,7 +46,7 @@ func (control Cntr) InsertOne(ctx context.Context, collection *mongo.Collection,
 		if mongo.IsDuplicateKeyError(err) {
 			return insertionResult, nil
 		}
-		return nil, fmt.Errorf("failed to insert document: %+v", err)
+		return nil, util.MakeErr(err, "failed to insert document")
 	}
 	return insertionResult, nil
 }
@@ -70,7 +69,7 @@ func (control Cntr) UpdateCrawlingStatus(ctx context.Context, collection *mongo.
 	}
 	// Document did exist but a different error was returned
 	if updatedDoc.Err() != nil {
-		return false, updatedDoc.Err()
+		return false, util.MakeErr(updatedDoc.Err())
 	}
 	// Document did exist (best case)
 	return true, nil
@@ -86,7 +85,7 @@ func (control Cntr) GetUser(ctx context.Context, steamID string) (common.UserDoc
 		if err == mongo.ErrNoDocuments {
 			return common.UserDocument{}, nil
 		}
-		return common.UserDocument{}, err
+		return common.UserDocument{}, util.MakeErr(err)
 	}
 	return userDoc, nil
 }
@@ -101,15 +100,9 @@ func (control Cntr) GetCrawlingStatusFromDBFromCrawlID(ctx context.Context, craw
 		if err == mongo.ErrNoDocuments {
 			return common.CrawlingStatus{}, nil
 		}
-		return common.CrawlingStatus{}, MakeErr(err)
+		return common.CrawlingStatus{}, util.MakeErr(err)
 	}
 	return crawlingStatus, nil
-}
-
-func MakeErr(err error, msg ...string) error {
-	_, file, line, _ := runtime.Caller(1)
-	path, _ := os.Getwd()
-	return fmt.Errorf("%s:%d %s %s", strings.TrimPrefix(file, path), line, msg, err)
 }
 
 func (control Cntr) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level int, steamID string) (string, error) {
@@ -128,7 +121,7 @@ func (control Cntr) HasUserBeenCrawledBeforeAtLevel(ctx context.Context, level i
 		if err == mongo.ErrNoDocuments {
 			return "", nil
 		}
-		return "", fmt.Errorf("failed to find existing crawlingstatus: %+v", err)
+		return "", util.MakeErr(err, "failed to find existing crawlingstatus")
 	}
 
 	return crawlStatus.CrawlID, nil
@@ -148,7 +141,7 @@ func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[st
 		if err == mongo.ErrNoDocuments {
 			return make(map[string]string), nil
 		}
-		return make(map[string]string), err
+		return make(map[string]string), util.MakeErr(err)
 	}
 	defer cursor.Close(ctx)
 
@@ -157,7 +150,7 @@ func (control Cntr) GetUsernames(ctx context.Context, steamIDs []string) (map[st
 	for cursor.Next(ctx) {
 		err = cursor.Decode(&singleUser)
 		if err != nil {
-			return make(map[string]string), err
+			return make(map[string]string), util.MakeErr(err)
 		}
 		allUsers = append(allUsers, singleUser)
 	}
@@ -177,7 +170,7 @@ func (control Cntr) InsertGame(ctx context.Context, game common.BareGameInfo) (b
 
 	bsonObj, err := bson.Marshal(game)
 	if err != nil {
-		return false, err
+		return false, util.MakeErr(err)
 	}
 
 	_, err = gamesCollection.InsertOne(ctx, bsonObj)
@@ -187,7 +180,7 @@ func (control Cntr) InsertGame(ctx context.Context, game common.BareGameInfo) (b
 		if mongo.IsDuplicateKeyError(err) {
 			return true, nil
 		}
-		return false, err
+		return false, util.MakeErr(err)
 	}
 	return true, nil
 }
@@ -202,7 +195,7 @@ func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]com
 		if err == mongo.ErrNoDocuments {
 			return []common.BareGameInfo{}, nil
 		}
-		return []common.BareGameInfo{}, err
+		return []common.BareGameInfo{}, util.MakeErr(err)
 	}
 	defer cursor.Close(ctx)
 
@@ -211,7 +204,7 @@ func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]com
 	for cursor.Next(ctx) {
 		err = cursor.Decode(&singleGame)
 		if err != nil {
-			return []common.BareGameInfo{}, err
+			return []common.BareGameInfo{}, util.MakeErr(err)
 		}
 		allGames = append(allGames, singleGame)
 	}
@@ -222,11 +215,11 @@ func (control Cntr) SaveShortestDistance(ctx context.Context, shortestDistanceIn
 	shortestDistanceCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("SHORTEST_DISTANCE_COLLECTION"))
 	bsonObj, err := bson.Marshal(shortestDistanceInfo)
 	if err != nil {
-		return false, err
+		return false, util.MakeErr(err)
 	}
 	_, err = control.InsertOne(context.TODO(), shortestDistanceCollection, bsonObj)
 	if err != nil {
-		return false, err
+		return false, util.MakeErr(err)
 	}
 	return true, nil
 }
@@ -240,7 +233,7 @@ func (control Cntr) GetShortestDistanceInfo(ctx context.Context, crawlIDs []stri
 		if err == mongo.ErrNoDocuments {
 			return datastructures.ShortestDistanceInfo{}, nil
 		}
-		return datastructures.ShortestDistanceInfo{}, err
+		return datastructures.ShortestDistanceInfo{}, util.MakeErr(err)
 	}
 	return shortestDistanceInfo, nil
 }
@@ -248,7 +241,7 @@ func (control Cntr) GetShortestDistanceInfo(ctx context.Context, crawlIDs []stri
 func (control Cntr) SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error) {
 	jsonBody, err := json.Marshal(graphData)
 	if err != nil {
-		return false, fmt.Errorf("failed to unmarshal graphdata json: %+v", err)
+		return false, util.MakeErr(err, "failed to unmarshal graphdata json")
 	}
 
 	queryString := `INSERT INTO graphdata (crawlid, graphdata) VALUES ($1, $2)`
@@ -257,9 +250,9 @@ func (control Cntr) SaveProcessedGraphData(crawlID string, graphData common.User
 		if err, ok := err.(*pq.Error); ok {
 			// Attempts to duplicate an insert are not an issue
 			if err.Code.Name() != "unique_violation" {
-				return false, fmt.Errorf("failed to exec insert into graphdata: %+v", err)
+				return false, util.MakeErr(err, "failed to exec insert into graphdata")
 			} else {
-				configuration.Logger.Sugar().Infof("duplicate insert of crawlid %s was attempted", crawlID)
+				configuration.Logger.Sugar().Infof("duplicate insert processed data for crawlid %s was attempted", crawlID)
 			}
 		}
 	}
@@ -272,13 +265,13 @@ func (control Cntr) GetProcessedGraphData(crawlID string) (common.UsersGraphData
 	queryString := `SELECT * FROM graphdata WHERE crawlid = $1`
 	res, err := configuration.SQLClient.Query(queryString, crawlID)
 	if err != nil {
-		return common.UsersGraphData{}, err
+		return common.UsersGraphData{}, util.MakeErr(err)
 	}
 	graphDataJSON := ""
 	for res.Next() {
 		crawlID := ""
 		if err := res.Scan(&crawlID, &graphDataJSON); err != nil {
-			return common.UsersGraphData{}, fmt.Errorf("failed to scan returned row: %+v", err)
+			return common.UsersGraphData{}, util.MakeErr(err, "failed to scan returned row")
 		}
 	}
 	if len(graphDataJSON) == 0 {
@@ -295,12 +288,12 @@ func (control Cntr) DoesProcessedGraphDataExist(crawlID string) (bool, error) {
 	queryString := `SELECT crawlid FROM graphdata WHERE crawlid = $1`
 	res, err := configuration.SQLClient.Query(queryString, crawlID)
 	if err != nil {
-		return false, err
+		return false, util.MakeErr(err)
 	}
 	crawlIDFromRow := ""
 	for res.Next() {
 		if err := res.Scan(&crawlIDFromRow); err != nil {
-			return false, fmt.Errorf("failed to scan returned row: %+v", err)
+			return false, util.MakeErr(err, "failed to scan returned row")
 		}
 	}
 	if len(crawlIDFromRow) == 0 {

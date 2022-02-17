@@ -28,6 +28,7 @@ import (
 
 var (
 	validFormatSteamID = "76561197960287930"
+	currServerPort     = 10000
 )
 
 func TestMain(m *testing.M) {
@@ -48,17 +49,17 @@ func TestMain(m *testing.M) {
 func initServerAndDependencies() (*controller.MockCntrInterface, int) {
 	mockController := &controller.MockCntrInterface{}
 	rand.Seed(time.Now().UnixNano())
-	randomPort := rand.Intn(48150) + 1024
+	currServerPort++
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
-	go runServer(mockController, ctx, randomPort)
+	go runServer(mockController, ctx, currServerPort)
 	go func() {
 		time.Sleep(15 * time.Millisecond)
 		cancel()
 	}()
 	time.Sleep(1 * time.Millisecond)
-	return mockController, randomPort
+	return mockController, currServerPort
 }
 
 func runServer(cntr controller.CntrInterface, ctx context.Context, port int) {

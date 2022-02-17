@@ -61,5 +61,5 @@ jobs:
     - name: Run service tests
       run: cd services/datastore && go test -v ./...
     
-    - name: Run integration tests tests
+    - name: Run integration tests
       run: cd services/datastore/integration && go test -v ./... --tags=integration

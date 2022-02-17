@@ -161,7 +161,14 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -169,6 +176,7 @@ func TestSaveUserWithExistingUser(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	assert.Equal(t, res.StatusCode, 200)
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }
@@ -186,10 +194,18 @@ func TestSaveUserReturnsInvalidResponseWhenSaveCrawlingStatsReturnsAnError(t *te
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
 		log.Fatal(err)
 	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Fatal(err)
@@ -218,7 +234,14 @@ func TestSaveUserReturnsInvalidResponseWhenSaveUserToDBReturnsAnError(t *testing
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -264,7 +287,14 @@ func TestSaveUserOnlyCallsUpdateCrawlingStatusIfUserIsAtMaxLevel(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/saveuser", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -296,12 +326,24 @@ func TestGetUser(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID), []http.Header{})
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	assert.Equal(t, string(expectedJSONResponse)+"\n", string(res))
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }
 
 func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.T) {
@@ -310,7 +352,9 @@ func TestGetUserReturnsInvalidResponseWhenGetUseFromDBReturnsAnError(t *testing.
 	getUserError := errors.New("couldn't get user")
 	mockController.On("GetUser", mock.Anything, mock.AnythingOfType("string")).Return(common.UserDocument{}, getUserError)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID), []http.Header{})
+	authHeader := http.Header{}
+	authHeader.Set("Authentication", os.Getenv("AUTH_KEY"))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, testUser.AccDetails.SteamID), []http.Header{authHeader})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -427,7 +471,14 @@ func TestGetUsernamesFromSteamIDsReturnsUsernamesForSteamID(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -452,7 +503,14 @@ func TestGetUsernamesReturnsInvalidInputForAnyInvalidFormatSteamIDsGiven(t *test
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -486,7 +544,14 @@ func TestGetUsernamesFromSteamIDsReturnsInvalidRequestWhenCallToDataStoreFails(t
 		log.Fatal(err)
 	}
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/getusernamesfromsteamids", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -526,7 +591,9 @@ func TestGetGraphableDataReturnsGraphableDataForAValidUser(t *testing.T) {
 
 	mockController.On("GetUser", mock.Anything, foundUser.AccDetails.SteamID).Return(foundUser, nil)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, foundUser.AccDetails.SteamID), []http.Header{})
+	authHeader := http.Header{}
+	authHeader.Set("Authentication", os.Getenv("AUTH_KEY"))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, foundUser.AccDetails.SteamID), []http.Header{authHeader})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -549,7 +616,9 @@ func TestGetGraphableDataReturnsCouldntGetUserWhenNoUserIsFound(t *testing.T) {
 	randomError := errors.New("hello world")
 	mockController.On("GetUser", mock.Anything, validFormatSteamID).Return(common.UserDocument{}, randomError)
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, validFormatSteamID), []http.Header{})
+	authHeader := http.Header{}
+	authHeader.Set("Authentication", os.Getenv("AUTH_KEY"))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, validFormatSteamID), []http.Header{authHeader})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -570,7 +639,9 @@ func TestGetGraphableDataReturnsInvalidInputForInvalidFormatSteamIDs(t *testing.
 		log.Fatal(err)
 	}
 
-	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, invalidFormatSteamID), []http.Header{})
+	authHeader := http.Header{}
+	authHeader.Set("Authentication", os.Getenv("AUTH_KEY"))
+	res, err := util.GetAndRead(fmt.Sprintf("http://localhost:%d/api/getgraphabledata/%s", serverPort, invalidFormatSteamID), []http.Header{authHeader})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -596,7 +667,14 @@ func TestSaveCrawlingStatsToDB(t *testing.T) {
 	}
 	mockController.On("UpdateCrawlingStatus", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
 
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/savecrawlingstats", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/savecrawlingstats", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -616,7 +694,15 @@ func TestInsertGame(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/insertgame", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/insertgame", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -638,7 +724,15 @@ func TestInsertGameReturnsCouldntInsertGameWhenAnErrorOccurs(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/insertgame", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/insertgame", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -677,7 +771,15 @@ func TestGetDetailsForGames(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -709,7 +811,15 @@ func TestGetDetailsForGamesReturnsErrorWhenNoneOrMoreThanTwentyGamesAreRequested
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -738,7 +848,15 @@ func TestGetDetailsForGamesReturnsAnErrorWhenGetGameDetailsReturnsAnError(t *tes
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -776,7 +894,14 @@ func TestGetDetailsForGamesReturnsAnEmptyGameDetailsResponseWhenNoGameDetailsAre
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/getdetailsforgames", serverPort), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}

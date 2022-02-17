@@ -24,11 +24,35 @@ jobs:
     - name: Create .env and move into endpoints/
       run: |
         touch .env
+        echo MONGODB_USER=${{ secrets.DATASTORE_MONGODB_USER }} >> .env
+        echo MONGODB_PASSWORD=${{ secrets.DATASTORE_MONGODB_PASSWORD }} >> .env
+        echo MONGO_INSTANCE_IP=${{ secrets.DATASTORE_MONGO_INSTANCE_IP }} >> .env
+        echo DB_NAME=${{ secrets.DATASTORE_DB_NAME }} >> .env
+        echo USER_COLLECTION=${{ secrets.DATASTORE_USER_COLLECTION }} >> .env
+        echo CRAWLING_STATS_COLLECTION=${{ secrets.DATASTORE_CRAWLING_STATS_COLLECTION }} >> .env
+        echo POSTGRES_USER=${{ secrets.DATASTORE_POSTGRES_USER }} >> .env
+        echo POSTGRES_PASSWORD=${{ secrets.DATASTORE_POSTGRES_PASSWORD }} >> .env
+        echo POSTGRES_DB=${{ secrets.DATASTORE_POSTGRES_DB }} >> .env
+        echo POSTGRES_INSTANCE_IP=${{ secrets.DATASTORE_POSTGRES_INSTANCE_IP }} >> .env
+        echo OVERWRITE_USERS_BEYOND=${{ secrets.DATASTORE_OVERWRITE_USERS_BEYOND }} >> .env
+        echo SHORTEST_DISTANCE_COLLECTION=${{ secrets.DATASTORE_SHORTEST_DISTANCE_COLLECTION }} >> .env
+
+        echo API_PORT=${{ secrets.DATASTORE_API_PORT }} >> .env
+        echo LOG_PATH=${{ secrets.DATASTORE_LOG_PATH }} >> .env
+        echo NODE_NAME=${{ secrets.DATASTORE_NODE_NAME }} >> .env
+        echo NODE_DC=${{ secrets.DATASTORE_NODE_DC }} >> .env
+        echo SERVICE=${{ secrets.DATASTORE_SERVICE }} >> .env
+        echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
         echo ORG=${{ secrets.ORG }} >> .env
         echo SYSTEM_STATS_BUCKET=${{ secrets.SYSTEM_STATS_BUCKET }} >> .env
         echo SYSTEM_STATS_BUCKET_TOKEN=${{ secrets.SYSTEM_STATS_BUCKET_TOKEN }} >> .env
-        echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
-        mv .env services/datastore/endpoints
+        echo ENDPOINT_LATENCIES_BUCKET=${{ secrets.ENDPOINT_LATENCIES_BUCKET }} >> .env
+        echo ENDPOINT_LATENCIES_BUCKET_TOKEN=${{ secrets.ENDPOINT_LATENCIES_BUCKET_TOKEN }} >> .env
+
+        cp .env services/datastore/integration
+        cp .env services/datastore/endpoints
+        cp .env services/datastore
+        
         cat services/datastore/endpoints/.env
 
     - name: Build the module
@@ -36,3 +60,6 @@ jobs:
 
     - name: Run service tests
       run: cd services/datastore && go test -v ./...
+    
+    - name: Run integration tests tests
+      run: cd services/datastore/integration && go test -v ./... --tags=integration

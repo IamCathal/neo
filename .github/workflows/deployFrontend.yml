@@ -27,6 +27,7 @@ jobs:
         echo ENDPOINT_LATENCIES_BUCKET_TOKEN=${{ secrets.ENDPOINT_LATENCIES_BUCKET_TOKEN }} >> .env
         echo ORG=${{ secrets.ORG }} >> .env
         echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
+        echo LOGSTASH_INSTANCE_URL=${{ secrets.LOGSTASH_INSTANCE_URL }} >> .env
 
         mv .env services/frontend
         cat services/frontend/.env

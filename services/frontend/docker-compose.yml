@@ -4,5 +4,17 @@ services:
   frontend:
     build:
       context: .
+    volumes:
+      - ./logs/:/logs/
     ports:
       - "${API_PORT}:${API_PORT}"
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:6.5.1
+    environment:
+      LOGSTASH_INSTANCE_URL: $LOGSTASH_INSTANCE_URL
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./logs/:/logs/
+    depends_on:
+      - frontend

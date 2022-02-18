@@ -6,7 +6,12 @@ jobs:
   build:
     name: Deploy frontend job
     runs-on: [self-hosted, s1]
+
     steps:
+    - name: Update permissions for local repo directory
+      run: |
+        sudo chown -R ghrunner:ghrunner /home/github/actions-runner/_work/
+
     - uses: actions/checkout@v2
 
     - name: Create .env file

@@ -83,6 +83,10 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 		baseURLPath := util.GetBaseURLPath(r)
 		if _, requiresAuth := authRequiredEndpoints[baseURLPath]; requiresAuth {
 			if r.Header.Get("Authentication") != os.Getenv("AUTH_KEY") {
+
+				configuration.Logger.Sugar().Infof("ip: %s with user-agent: %s wasn't authorized to access %s",
+					r.RemoteAddr, r.Header.Get("User-Agent"), util.GetBaseURLPath(r))
+
 				w.WriteHeader(http.StatusForbidden)
 				response := struct {
 					Error string `json:"error"`

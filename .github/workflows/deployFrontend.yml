@@ -29,6 +29,8 @@ jobs:
         echo ORG=${{ secrets.ORG }} >> .env
         echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
         echo LOGSTASH_INSTANCE_URL=${{ secrets.LOGSTASH_INSTANCE_URL }} >> .env
+        echo AUTH_KEY=${{ secrets.AUTH_KEY }} >> .env
+        echo SERVICE=frontend >> .env
 
         mv .env services/frontend
         cat services/frontend/.env

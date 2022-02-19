@@ -173,11 +173,11 @@ func (endpoints *Endpoints) CrawlPage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	// Validate crawlid
-	// _, err := ksuid.Parse(vars["crawlid"])
-	// if err != nil {
-	// 	util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
-	// 	return
-	// }
+	_, err := ksuid.Parse(vars["crawlid"])
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
+		return
+	}
 
 	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/crawlPage.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
 	if err != nil {

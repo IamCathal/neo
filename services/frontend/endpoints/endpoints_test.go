@@ -16,6 +16,7 @@ import (
 
 	"github.com/IamCathal/neo/services/frontend/configuration"
 	"github.com/IamCathal/neo/services/frontend/controller"
+	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/segmentio/ksuid"
@@ -36,6 +37,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	configuration.Logger = log
+	createMockInfluxDBClient()
 
 	code := m.Run()
 
@@ -70,6 +72,14 @@ func runServer(cntr controller.CntrInterface, ctx context.Context, port int) {
 		ReadTimeout:  10 * time.Second,
 	}
 	log.Fatal(srv.ListenAndServe())
+}
+
+func createMockInfluxDBClient() {
+	os.Setenv("ENDPOINT_LATENCIES_BUCKET", "testDataBucket")
+
+	configuration.InfluxDBClient = influxdb2.NewClient(
+		os.Getenv("INFLUXDB_URL"),
+		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"))
 }
 
 func TestGetAPIStatus(t *testing.T) {

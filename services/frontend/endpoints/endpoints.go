@@ -14,6 +14,7 @@ import (
 	"github.com/IamCathal/neo/services/frontend/configuration"
 	"github.com/IamCathal/neo/services/frontend/controller"
 	"github.com/gorilla/mux"
+	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	"github.com/neosteamfriendgraphing/common/util"
@@ -151,6 +152,14 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
 			zap.String("path", r.URL.EscapedPath()),
 		)
+
+		writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
+		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
+			AddTag("path", util.GetBaseURLPath(r)).
+			AddTag("service", "frontend").
+			AddField("latency", util.GetCurrentTimeInMs()-requestStartTime).
+			SetTime(time.Now())
+		writeAPI.WritePoint(point)
 	})
 }
 
@@ -255,7 +264,7 @@ func (endpoints *Endpoints) GetGameDetails(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	targetURL := fmt.Sprintf("https://store.steampowered.com/api/appdetails?appids=%d", appID)
-	res, err := util.GetAndRead(targetURL)
+	res, err := util.GetAndRead(targetURL, []http.Header{})
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "could not get game details", vars, http.StatusBadRequest)
 		configuration.Logger.Sugar().Warnf("could not get game details for %s: %v", vars["appid"], err)

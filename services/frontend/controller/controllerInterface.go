@@ -59,6 +59,7 @@ func (control Cntr) SaveCrawlingStats(crawlingStatusJSON []byte) (bool, error) {
 
 func (contrl Cntr) CallIsPrivateProfile(steamID string) ([]byte, error) {
 	res, err := util.GetAndRead(
-		fmt.Sprintf("%s/isprivateprofile/%s", os.Getenv("CRAWLER_INSTANCE"), steamID))
+		fmt.Sprintf("%s/isprivateprofile/%s", os.Getenv("CRAWLER_INSTANCE"), steamID),
+		[]http.Header{})
 	return res, err
 }

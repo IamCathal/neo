@@ -2,8 +2,10 @@ package configuration
 
 import (
 	"log"
+	"os"
 	"time"
 
+	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/joho/godotenv"
 	"github.com/neosteamfriendgraphing/common/util"
 	"go.uber.org/zap"
@@ -12,6 +14,7 @@ import (
 var (
 	Logger                 *zap.Logger
 	ApplicationStartUpTime time.Time
+	InfluxDBClient         influxdb2.Client
 )
 
 func InitConfig() error {
@@ -30,6 +33,16 @@ func InitConfig() error {
 
 	logger := util.InitLogger(logConfig)
 	Logger = logger
+	InitAndSetInfluxClient()
 
 	return nil
+}
+
+func InitAndSetInfluxClient() {
+	client := influxdb2.NewClientWithOptions(
+		os.Getenv("INFLUXDB_URL"),
+		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"),
+		influxdb2.DefaultOptions().SetBatchSize(10))
+	InfluxDBClient = client
+	Logger.Info("InfluxDB client initialied successfully")
 }

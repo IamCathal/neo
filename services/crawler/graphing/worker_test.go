@@ -77,7 +77,7 @@ func TestCrawlerDoesFinish(t *testing.T) {
 		MaxLevel:          2,
 	}
 
-	allUsersGraphableData, err := Control2Func(mockController, firstUser.AccDetails.SteamID, ksuid.New().String(), graphWorkerConfig)
+	allUsersGraphableData, err := Control2Func(mockController, ksuid.New().String(), firstUser.AccDetails.SteamID, graphWorkerConfig)
 
 	assert.Nil(t, err)
 	assert.Len(t, allUsersGraphableData, 3)

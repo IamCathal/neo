@@ -67,7 +67,7 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 	}
 }
 
-func Control2Func(cntr controller.CntrInterface, steamID, crawlID string, workerConfig GraphWorkerConfig) ([]common.UsersGraphInformation, error) {
+func Control2Func(cntr controller.CntrInterface, crawlID, steamID string, workerConfig GraphWorkerConfig) ([]common.UsersGraphInformation, error) {
 	jobsChan := make(chan datastructures.CrawlJob, 70000)
 	resChan := make(chan common.UsersGraphInformation, 70000)
 

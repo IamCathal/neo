@@ -506,6 +506,7 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 	req.Close = true
 	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Content-Type", "application/javascript")
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
 	res := &http.Response{}

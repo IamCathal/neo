@@ -32,6 +32,9 @@ func TestMain(m *testing.M) {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
+	if err := os.Mkdir("logs", os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
 
 	err := configuration.InitConfig()
 	if err != nil {
@@ -52,6 +55,8 @@ func TestMain(m *testing.M) {
 	isReady := <-serverIsReadyChan
 	if isReady {
 		code := m.Run()
+
+		os.RemoveAll("logs/")
 		os.Exit(code)
 	}
 }

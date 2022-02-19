@@ -43,8 +43,8 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 				panic("EMPTY JOB, most likely means channel was closed and read from")
 			}
 
-			configuration.Logger.Sugar().Infof("[ID:%d][jobs:%d][res:%d] worker received job: %+v",
-				id, len(jobs), len(res), currentJob)
+			configuration.Logger.Sugar().Infof("[CrawlID:%s][ID:%d][jobs:%d][res:%d] worker received job: %+v",
+				currentJob.CrawlID, id, len(jobs), len(res), currentJob)
 
 			userGraphData, err := cntr.GetUserFromDataStore(currentJob.SteamID)
 			if err != nil {
@@ -82,6 +82,7 @@ func Control2Func(cntr controller.CntrInterface, crawlID, steamID string, worker
 	allUsersGraphData := []common.UsersGraphInformation{}
 
 	firstJob := datastructures.CrawlJob{
+		CrawlID:      crawlID,
 		SteamID:      steamID,
 		FromID:       steamID,
 		CurrentLevel: 1,
@@ -129,6 +130,7 @@ func Control2Func(cntr controller.CntrInterface, crawlID, steamID string, worker
 			if res.CurrentLevel < res.MaxLevel {
 				for _, friendID := range res.User.FriendIDs {
 					newCrawlJob := datastructures.CrawlJob{
+						CrawlID:      crawlID,
 						SteamID:      friendID,
 						FromID:       res.User.AccDetails.SteamID,
 						CurrentLevel: res.CurrentLevel + 1,

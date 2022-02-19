@@ -36,6 +36,7 @@ type AmqpChannel struct {
 }
 
 type CrawlJob struct {
+	CrawlID string
 	SteamID string
 
 	FromID       string

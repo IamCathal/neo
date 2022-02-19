@@ -34,7 +34,7 @@ var (
 	validFormatSteamID              = "76561197960287930"
 	invalidFormatSteamID            = validFormatSteamID + "zzz"
 	defaultPanicErrorMessageStarter = "Give the code monkeys this ID:"
-	currServerPort                  = 10000
+	currServerPort                  = 30000
 )
 
 func TestMain(m *testing.M) {
@@ -961,12 +961,18 @@ func TestSaveProcessedGraphData(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", &requestBodyJSONGzipped)
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), &requestBodyJSONGzipped)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	defer res.Body.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -992,12 +998,19 @@ func TestSaveProcessedGraphDataReturnsInvalidInputForInvalidFormatCrawlID(t *tes
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", bytes.NewBuffer(requestBodyJSON))
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), bytes.NewBuffer(requestBodyJSON))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	defer res.Body.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -1032,12 +1045,18 @@ func TestSaveProcessedGraphDataReturnsAnErrorWhenGraphDataCannotBeRetrieved(t *t
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), "application/json", &requestBodyJSONGzipped)
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:%d/api/saveprocessedgraphdata/%s", serverPort, crawlID), &requestBodyJSONGzipped)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
+	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	defer res.Body.Close()
 	if err != nil {
 		log.Fatal(err)
 	}

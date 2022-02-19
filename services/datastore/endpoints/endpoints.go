@@ -47,6 +47,7 @@ func init() {
 	authRequiredEndpoints["savecrawlingstats"] = true
 	authRequiredEndpoints["getgraphabledata"] = true
 	authRequiredEndpoints["getusernamesfromsteamids"] = true
+	authRequiredEndpoints["saveprocessedgraphdata"] = true
 }
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()

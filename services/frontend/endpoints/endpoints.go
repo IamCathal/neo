@@ -35,13 +35,6 @@ type responseWriter struct {
 	wroteHeader bool
 }
 
-// TODO Move to commom
-func setupCORS(w *http.ResponseWriter, req *http.Request) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-}
-
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/", endpoints.HomeHandler).Methods("GET")
@@ -100,7 +93,7 @@ func (endpoints *Endpoints) DisallowFileBrowsing(next http.Handler) http.Handler
 
 func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		setupCORS(&w, r)
+		util.SetupCORS(&w, r)
 		if (*r).Method == "OPTIONS" {
 			return
 		}

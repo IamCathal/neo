@@ -111,6 +111,31 @@ func TestIsPrivateProfileWithPublicProfileReturnsPublic(t *testing.T) {
 	assert.Equal(t, res.StatusCode, 200)
 	assert.Equal(t, string(expectedJSONResponse), string(body))
 }
+func TestIsPrivateProfileWithNoFriendsReturnsPrivate(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	testFriendsList := []string{}
+	mockController.On("CallGetFriends", mock.AnythingOfType("string")).Return(testFriendsList, nil)
+	expectedResponse := common.BasicAPIResponse{
+		Status:  "success",
+		Message: "private",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/isprivateprofile/%s", serverPort, validFormatSteamID))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, res.StatusCode, 200)
+	assert.Equal(t, string(expectedJSONResponse), string(body))
+}
 
 func TestIsPrivateProfileReturnsInvalidResponseWithInvalidFormatSteamID(t *testing.T) {
 	mockController, serverPort := initServerAndDependencies()

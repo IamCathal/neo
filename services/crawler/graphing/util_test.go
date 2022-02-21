@@ -1,10 +1,12 @@
 package graphing
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/neosteamfriendgraphing/common"
+	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -169,4 +171,28 @@ func TestGetTopTenOverallGameNames(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, expected, topTenGames)
+}
+
+func TestGetTopTenOverallGamesRrturnsanErrorWhenGameDetailsCannotBeRetrieved(t *testing.T) {
+	mockController := &controller.MockCntrInterface{}
+
+	users := []common.UsersGraphInformation{
+		{
+			User: common.UserDocument{
+				GamesOwned: []common.GameOwnedDocument{
+					{AppID: 90, Playtime_Forever: 10500},
+					{AppID: 80, Playtime_Forever: 65},
+				},
+			},
+		},
+	}
+
+	randomErr := util.MakeErr(errors.New("new error"), "some indepth message")
+	mockController.On("GetGameDetailsFromIDs", []int{90, 80}).Return([]common.BareGameInfo{}, randomErr)
+
+	topTenOverallGames, err := getTopTenOverallGameNames(mockController, users)
+
+	mockController.AssertNumberOfCalls(t, "GetGameDetailsFromIDs", 1)
+	assert.Equal(t, []common.BareGameInfo{}, topTenOverallGames)
+	assert.Equal(t, randomErr, err)
 }

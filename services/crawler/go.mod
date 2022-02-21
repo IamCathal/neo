@@ -9,7 +9,7 @@ require (
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/joho/godotenv v1.4.0
 	github.com/mackerelio/go-osstat v0.2.1
-	github.com/neosteamfriendgraphing/common v0.0.0-20220217143054-05a10906483d
+	github.com/neosteamfriendgraphing/common v0.0.0-20220221130044-c2a70b374c1a
 	github.com/segmentio/ksuid v1.0.4
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/objx v0.3.0 // indirect

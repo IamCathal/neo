@@ -173,7 +173,7 @@ func TestHasUserBeenCrawledBeforeForUserThatDoesHasNotBeenCrawled(t *testing.T) 
 
 	requestBody := dtos.HasBeenCrawledBeforeInputDTO{
 		SteamID: validSteamID,
-		Level:   999,
+		Level:   3,
 	}
 	requestBodyJSON, err := json.Marshal(requestBody)
 	if err != nil {

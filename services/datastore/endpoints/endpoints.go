@@ -86,7 +86,7 @@ func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 			if r.Header.Get("Authentication") != os.Getenv("AUTH_KEY") {
 
 				configuration.Logger.Sugar().Infof("ip: %s with user-agent: %s wasn't authorized to access %s",
-					r.RemoteAddr, r.Header.Get("User-Agent"), util.GetBaseURLPath(r))
+					r.RemoteAddr, r.Header.Get("User-Agent"), r.URL.Path)
 
 				w.WriteHeader(http.StatusForbidden)
 				response := struct {
@@ -328,6 +328,10 @@ func (endpoints *Endpoints) HasBeenCrawledBefore(w http.ResponseWriter, r *http.
 		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		return
 	}
+	if crawlDetails.Level < 1 || crawlDetails.Level > 3 {
+		util.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
+		return
+	}
 
 	crawlID, err := endpoints.Cntr.HasUserBeenCrawledBeforeAtLevel(context.TODO(), crawlDetails.Level, crawlDetails.SteamID)
 	if err != nil {
@@ -405,7 +409,6 @@ func (endpoints *Endpoints) GetDetailsForGames(w http.ResponseWriter, r *http.Re
 	}
 
 	if len(gameDetails) == 0 {
-		configuration.Logger.Info("No game details were found")
 		gameDetails = []common.BareGameInfo{}
 	}
 

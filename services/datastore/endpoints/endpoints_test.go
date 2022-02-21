@@ -1752,3 +1752,31 @@ func TestGetShortestDistanceInfoReturnsErrorWhenNoShortestDistanceWasFound(t *te
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 	mockController.AssertNumberOfCalls(t, "GetShortestDistanceInfo", 1)
 }
+
+func TestAttemptToAccessAuthenticatedUseOnlyAPIWithoutCredentials(t *testing.T) {
+	mockController, serverPort := initServerAndDependencies()
+
+	expectedResponse := struct {
+		Error string `json:"error"`
+	}{
+		"You are not authorized to access this endpoint",
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/api/getuser/%s", serverPort, validFormatSteamID))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusForbidden, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+	mockController.AssertNotCalled(t, "GetUser")
+}

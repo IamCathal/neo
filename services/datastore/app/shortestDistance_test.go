@@ -109,6 +109,20 @@ func TestIndexOf(t *testing.T) {
 	assert.Equal(t, expectedIndex, indexOf(1337, mySlice))
 }
 
+func TestGetIndexOfNonExistantElement(t *testing.T) {
+	defer func() {
+		if err := recover(); err == nil {
+			assert.Fail(t, "Did not fail to get index of non existant index")
+		}
+	}()
+
+	steamIDs := []int64{1, 2, 3, 4}
+	findIndexOf := 1337
+
+	_ = indexOf(int64(findIndexOf), steamIDs)
+
+}
+
 func TestToInt64(t *testing.T) {
 	steamID := "123423454"
 	expected := int64(123423454)

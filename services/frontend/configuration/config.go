@@ -23,7 +23,7 @@ func InitConfig() error {
 		return err
 	}
 	if err := util.EnsureAllEnvVarsAreSet("CRAWLER_INSTANCE", "STATIC_CONTENT_DIR_NAME",
-		"DATASTORE_URL"); err != nil {
+		"DATASTORE_INSTANCE"); err != nil {
 		log.Fatal(err)
 	}
 	logConfig, err := util.LoadLoggingConfig()

@@ -21,7 +21,7 @@ type CntrInterface interface {
 }
 
 func (control Cntr) SaveCrawlingStats(crawlingStatusJSON []byte) (bool, error) {
-	targetURL := fmt.Sprintf("%s/savecrawlingstats", os.Getenv("DATASTORE_URL"))
+	targetURL := fmt.Sprintf("http://%s/savecrawlingstats", os.Getenv("DATASTORE_INSTANCE"))
 	req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(crawlingStatusJSON))
 	if err != nil {
 		configuration.Logger.Sugar().Infof("error creating POST /savecrawlingstats request: %+v")
@@ -59,7 +59,7 @@ func (control Cntr) SaveCrawlingStats(crawlingStatusJSON []byte) (bool, error) {
 
 func (contrl Cntr) CallIsPrivateProfile(steamID string) ([]byte, error) {
 	res, err := util.GetAndRead(
-		fmt.Sprintf("%s/isprivateprofile/%s", os.Getenv("CRAWLER_INSTANCE"), steamID),
+		fmt.Sprintf("http://%s/isprivateprofile/%s", os.Getenv("CRAWLER_INSTANCE"), steamID),
 		[]http.Header{})
 	return res, err
 }

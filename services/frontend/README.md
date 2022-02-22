@@ -14,7 +14,7 @@ Frontend expects the following variables to be set in .env
 | ----------- | ----------- |
 | `STATIC_CONTENT_DIR_NAME`      | Name of the static content directory i.e `./static`     |
 | `CRAWLER_INSTANCE`      | URL (port included) for any crawler instance     |
-| `DATASTORE_URL` | URL (port included) of the datastore instance    |
+| `DATASTORE_INSTANCE` | URL (port included) of the datastore instance    |
 
 ## Running 
 

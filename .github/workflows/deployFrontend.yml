@@ -34,6 +34,11 @@ jobs:
 
         mv .env services/frontend
         cat services/frontend/.env
+    
+    - name: Update references from local to deployed datastore instance
+      run: |
+        cd services/frontend && sed -i "s|localhost:2590|${{ secrets.DATASTORE_URL}}:2590|g" static/javascript/*.js 
+    
 
     - name: Deploy docker-compose service
       run: cd services/frontend && docker-compose up -d --build --force-recreate

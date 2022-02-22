@@ -15,7 +15,7 @@ jobs:
         touch .env
         echo STATIC_CONTENT_DIR_NAME=${{ secrets.FRONTEND_STATIC_CONTENT_DIR_NAME }} >> .env
         echo CRAWLER_INSTANCE=${{ secrets.FRONTEND_CRAWLER_INSTANCE }} >> .env
-        echo DATASTORE_URL=${{ secrets.DATASTORE_URL }} >> .env
+        echo DATASTORE_INSTANCE=${{ secrets.DATASTORE_INSTANCE }} >> .env
         
 
         echo API_PORT=${{ secrets.FRONTEND_API_PORT }} >> .env
@@ -37,7 +37,7 @@ jobs:
     
     - name: Update references from local to deployed datastore instance
       run: |
-        cd services/frontend && sed -i "s|localhost:2590|${{ secrets.DATASTORE_URL}}:2590|g" static/javascript/*.js 
+        cd services/frontend && sed -i "s|localhost:2590|${{ secrets.DATASTORE_INSTANCE}}:2590|g" static/javascript/*.js 
     
 
     - name: Deploy docker-compose service

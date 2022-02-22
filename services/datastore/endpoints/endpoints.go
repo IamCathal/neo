@@ -126,6 +126,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 						zap.Int("status", http.StatusInternalServerError),
 						zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
 						zap.String("path", r.URL.EscapedPath()),
+						zap.String("shortPath", util.GetBaseURLPath(r)),
 					)
 					panic(timeParseErr)
 				}
@@ -135,6 +136,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 					zap.Int("status", http.StatusInternalServerError),
 					zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
 					zap.String("path", r.URL.EscapedPath()),
+					zap.String("shortPath", util.GetBaseURLPath(r)),
 				)
 			}
 		}()
@@ -154,6 +156,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 			zap.Int("status", wrapped.status),
 			zap.Int64("duration", util.GetCurrentTimeInMs()-requestStartTime),
 			zap.String("path", r.URL.EscapedPath()),
+			zap.String("shortPath", util.GetBaseURLPath(r)),
 		)
 
 		writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))

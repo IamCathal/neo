@@ -38,6 +38,10 @@ jobs:
     - name: Update references from local to deployed datastore instance
       run: |
         cd services/frontend && sed -i "s|localhost:2590|${{ secrets.DATASTORE_INSTANCE}}:2590|g" static/javascript/*.js 
+        
+    - name: Update references from local to deployed crawler instance
+      run: |
+        cd services/frontend && sed -i "s|localhost:2570|${{ secrets.CRAWLER_INSTANCE}}|g" static/javascript/*.js 
     
 
     - name: Deploy docker-compose service

@@ -18,10 +18,10 @@ jobs:
         touch .env
         echo WORKER_AMOUNT=${{ secrets.CRAWLER_WORKER_AMOUNT}} >> .env
         echo STEAM_API_KEYS=${{ secrets.CRAWLER_STEAM_API_KEYS }} >> .env
-        echo KEY_USAGE_TIMER=${{ secrets.CRAWLER_KEY_USAGE_TIME }} >> .env
+        echo KEY_USAGE_TIMER=${{ secrets.CRAWLER_KEY_USAGE_TIMER }} >> .env
         echo RABBITMQ_USER=${{ secrets.CRAWLER_RABBITMQ_USER }} >> .env
         echo RABBITMQ_PASSWORD=${{ secrets.CRAWLER_RABBITMQ_PASSWORD }} >> .env
-        echo RABBITMQ_URL=${{ secrets.RABBITMQ_URL }} >> .env
+        echo RABBITMQ_URL=${{ secrets.CRAWLER_RABBITMQ_URL }} >> .env
         echo RABBITMQ_QUEUE_NAME=${{ secrets.CRAWLER_RABBITMQ_QUEUE_NAME }} >> .env
         echo DATASTORE_INSTANCE=${{ secrets.DATASTORE_INSTANCE }} >> .env
 

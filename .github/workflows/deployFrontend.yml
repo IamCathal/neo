@@ -36,4 +36,4 @@ jobs:
         cat services/frontend/.env
 
     - name: Deploy docker-compose service
-      run: cd services/frontend && docker-compose up -d --build
+      run: cd services/frontend && docker-compose up -d --build --force-recreate

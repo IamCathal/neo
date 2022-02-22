@@ -158,7 +158,7 @@ func (control Cntr) ConsumeFromJobsQueue() (<-chan amqp.Delivery, error) {
 // SaveUserToDataStore sends a user to the datastore service to be saved
 // 		userWasSaved, err := SaveUserToDataStore(user)
 func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error) {
-	targetURL := fmt.Sprintf("%s/api/saveuser", os.Getenv("DATASTORE_URL"))
+	targetURL := fmt.Sprintf("http://%s/api/saveuser", os.Getenv("DATASTORE_INSTANCE"))
 	jsonObj, err := json.Marshal(saveUser)
 	if err != nil {
 		return false, commonUtil.MakeErr(err)
@@ -217,7 +217,7 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 // GetUserFromDataStore gets a user from the datastore service
 // 		userFromDataStore, err := GetUserFromDataStore(steamID)
 func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, error) {
-	targetURL := fmt.Sprintf("%s/api/getuser/%s", os.Getenv("DATASTORE_URL"), steamID)
+	targetURL := fmt.Sprintf("http://%s/api/getuser/%s", os.Getenv("DATASTORE_INSTANCE"), steamID)
 	req, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
 		return common.UserDocument{}, err
@@ -267,7 +267,7 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 }
 
 func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatus common.CrawlingStatus) (bool, error) {
-	targetURL := fmt.Sprintf("%s/api/savecrawlingstats", os.Getenv("DATASTORE_URL"))
+	targetURL := fmt.Sprintf("http://%s/api/savecrawlingstats", os.Getenv("DATASTORE_INSTANCE"))
 	crawlingStatsDTO := dtos.SaveCrawlingStatsDTO{
 		CurrentLevel:   currentLevel,
 		CrawlingStatus: crawlingStatus,
@@ -324,7 +324,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 }
 
 func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
-	targetURL := fmt.Sprintf("%s/api/getcrawlingstatus/%s", os.Getenv("DATASTORE_URL"), crawlID)
+	targetURL := fmt.Sprintf("http://%s/api/getcrawlingstatus/%s", os.Getenv("DATASTORE_INSTANCE"), crawlID)
 	req, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
 		return common.CrawlingStatus{}, err
@@ -373,7 +373,7 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 }
 
 func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {
-	targetURL := fmt.Sprintf("%s/api/getgraphabledata/%s", os.Getenv("DATASTORE_URL"), steamID)
+	targetURL := fmt.Sprintf("http://%s/api/getgraphabledata/%s", os.Getenv("DATASTORE_INSTANCE"), steamID)
 	req, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
 		return dtos.GetGraphableDataForUserDTO{}, err
@@ -421,7 +421,7 @@ func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraph
 }
 
 func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]string, error) {
-	targetURL := fmt.Sprintf("%s/api/getusernamesfromsteamids", os.Getenv("DATASTORE_URL"))
+	targetURL := fmt.Sprintf("http://%s/api/getusernamesfromsteamids", os.Getenv("DATASTORE_INSTANCE"))
 	steamIDsInput := dtos.GetUsernamesFromSteamIDsInputDTO{
 		SteamIDs: steamIDs,
 	}
@@ -483,7 +483,7 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 }
 
 func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData common.UsersGraphData) (bool, error) {
-	targetURL := fmt.Sprintf("%s/api/saveprocessedgraphdata/%s", os.Getenv("DATASTORE_URL"), crawlID)
+	targetURL := fmt.Sprintf("http://%s/api/saveprocessedgraphdata/%s", os.Getenv("DATASTORE_INSTANCE"), crawlID)
 
 	jsonObj, err := json.Marshal(graphData)
 	if err != nil {
@@ -549,7 +549,7 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 }
 
 func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo, error) {
-	targetURL := fmt.Sprintf("%s/api/getdetailsforgames", os.Getenv("DATASTORE_URL"))
+	targetURL := fmt.Sprintf("http://%s/api/getdetailsforgames", os.Getenv("DATASTORE_INSTANCE"))
 
 	detailsForGamesInput := dtos.GetDetailsForGamesInputDTO{
 		GameIDs: gameIDs,

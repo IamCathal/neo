@@ -33,7 +33,7 @@ func InitConfig() error {
 		return err
 	}
 	commonUtil.EnsureAllEnvVarsAreSet("RABBITMQ_PASSWORD", "RABBITMQ_USER",
-		"RABBITMQ_URL", "DATASTORE_URL", "WORKER_AMOUNT", "STEAM_API_KEYS",
+		"RABBITMQ_URL", "DATASTORE_INSTANCE", "WORKER_AMOUNT", "STEAM_API_KEYS",
 		"KEY_SLEEP_TIME")
 	InitAndSetWorkerConfig()
 	logConfig, err := commonUtil.LoadLoggingConfig()

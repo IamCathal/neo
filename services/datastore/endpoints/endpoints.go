@@ -81,13 +81,12 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 
 func (endpoints *Endpoints) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
 		baseURLPath := util.GetBaseURLPath(r)
 		if _, requiresAuth := authRequiredEndpoints[baseURLPath]; requiresAuth {
 			if r.Header.Get("Authentication") != os.Getenv("AUTH_KEY") {
 
 				configuration.Logger.Sugar().Infof("ip: %s with user-agent: %s wasn't authorized to access %s",
-					r.RemoteAddr, r.Header.Get("User-Agent"), r.URL.Path, zap.String("requestID", vars["requestID"]))
+					r.RemoteAddr, r.Header.Get("User-Agent"), r.URL.Path)
 
 				w.WriteHeader(http.StatusForbidden)
 				response := struct {

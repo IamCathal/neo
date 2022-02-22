@@ -1,0 +1,47 @@
+name: Deploy Crawler
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    name: Deploy crawler job
+    runs-on: [self-hosted, crawler]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Create .env and move into crawler/
+      run: |
+        touch .env
+        echo WORKER_AMOUNT=${{ secrets.CRAWLER_WORKER_AMOUNT}} >> .env
+        echo STEAM_API_KEYS=${{ secrets.CRAWLER_STEAM_API_KEYS }} >> .env
+        echo KEY_USAGE_TIMER=${{ secrets.CRAWLER_KEY_USAGE_TIME }} >> .env
+        echo RABBITMQ_USER=${{ secrets.CRAWLER_RABBITMQ_USER }} >> .env
+        echo RABBITMQ_PASSWORD=${{ secrets.CRAWLER_RABBITMQ_PASSWORD }} >> .env
+        echo RABBITMQ_URL=${{ secrets.RABBITMQ_URL }} >> .env
+        echo RABBITMQ_QUEUE_NAME=${{ secrets.CRAWLER_RABBITMQ_QUEUE_NAME }} >> .env
+        echo DATASTORE_INSTANCE=${{ secrets.DATASTORE_INSTANCE }} >> .env
+
+        echo API_PORT=${{ secrets.CRAWLER_API_PORT }} >> .env
+        echo LOG_PATH=${{ secrets.CRAWLER_LOG_PATH }} >> .env
+        echo NODE_NAME=${{ secrets.CRAWLER_NODE_NAME }} >> .env
+        echo NODE_DC=${{ secrets.CRAWLER_NODE_DC }} >> .env
+        echo SERVICE=${{ secrets.CRAWLER_SERVICE }} >> .env
+        echo INFLUXDB_URL=${{ secrets.INFLUXDB_URL }} >> .env
+        echo ORG=${{ secrets.ORG }} >> .env
+        echo SYSTEM_STATS_BUCKET=${{ secrets.SYSTEM_STATS_BUCKET }} >> .env
+        echo SYSTEM_STATS_BUCKET_TOKEN=${{ secrets.SYSTEM_STATS_BUCKET_TOKEN }} >> .env
+        echo ENDPOINT_LATENCIES_BUCKET=${{ secrets.ENDPOINT_LATENCIES_BUCKET }} >> .env
+        echo ENDPOINT_LATENCIES_BUCKET_TOKEN=${{ secrets.ENDPOINT_LATENCIES_BUCKET_TOKEN }} >> .env
+        echo AUTH_KEY=${{ secrets.AUTH_KEY }} >> .env
+        echo LOGSTASH_INSTANCE_URL=${{ secrets.LOGSTASH_INSTANCE_URL }} >> .env
+
+        cp .env services/crawler
+        
+        cat services/crawler/.env
+
+    - name: Deploy docker-compose service
+      run: cd services/crawler && docker-compose up -d --build --force-recreate

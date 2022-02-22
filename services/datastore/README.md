@@ -1,6 +1,6 @@
 # Datastore
 
-![datastore test status badge](https://github.com/IamCathal/neo/actions/workflows/buildDatastore.yml/badge.svg)   ![datastore deploy status]() 
+![datastore test status badge](https://github.com/IamCathal/neo/actions/workflows/buildDatastore.yml/badge.svg)   ![datastore deploy status](https://github.com/IamCathal/neo/actions/workflows/deployDataStore.yml/badge.svg) 
 
 Datastore is the thin client that sits infront of the database
 

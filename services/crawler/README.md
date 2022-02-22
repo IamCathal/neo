@@ -1,6 +1,6 @@
 # Crawler
 
-![test status badge](https://github.com/IamCathal/neo/actions/workflows/buildCrawler.yml/badge.svg)
+![test status badge](https://github.com/IamCathal/neo/actions/workflows/buildCrawler.yml/badge.svg)  ![crawler deploy status](https://github.com/IamCathal/neo/actions/workflows/deployCrawler.yml/badge.svg)
 
 The crawler service asynchronously consumes jobs from rabbitMQ for crawling and outputs the user's crawled profile information to long term storage.
 

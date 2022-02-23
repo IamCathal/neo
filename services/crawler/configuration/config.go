@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/datastructures"
@@ -20,9 +21,10 @@ var (
 
 	WorkerConfig datastructures.WorkerConfig
 
-	Queue          amqp.Queue
-	ConsumeChannel amqp.Channel
-	AmqpChannels   []amqp.Channel
+	Queue           amqp.Queue
+	ConsumeChannel  amqp.Channel
+	AmqpChannels    []amqp.Channel
+	amqlChannelLock sync.Mutex
 
 	UsableAPIKeys datastructures.APIKeysInUse
 )
@@ -35,19 +37,18 @@ func InitConfig() error {
 	commonUtil.EnsureAllEnvVarsAreSet("RABBITMQ_PASSWORD", "RABBITMQ_USER",
 		"RABBITMQ_URL", "DATASTORE_INSTANCE", "WORKER_AMOUNT", "STEAM_API_KEYS",
 		"KEY_SLEEP_TIME")
-	InitAndSetWorkerConfig()
 	logConfig, err := commonUtil.LoadLoggingConfig()
 	if err != nil {
 		return commonUtil.MakeErr(err)
 	}
-
 	logger := commonUtil.InitLogger(logConfig)
 	Logger = logger
 
+	InitAndSetWorkerConfig()
 	newQueue, channel := InitRabbitMQConnection()
 	Queue = newQueue
 	ConsumeChannel = channel
-	InitAMQPChannels()
+	InitExtraAMQPChannels()
 
 	return nil
 }
@@ -98,10 +99,23 @@ func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 	return queue, *channel
 }
 
-func InitAMQPChannels() {
-	for i := 0; i < 4; i++ {
-		_, newChannel := InitRabbitMQConnection()
-		AmqpChannels = append(AmqpChannels, newChannel)
+func InitExtraAMQPChannels() {
+	extraChannels := 5
+	var waitG sync.WaitGroup
+	waitG.Add(extraChannels)
+
+	for i := 0; i < extraChannels; i++ {
+		go initAndAddAMQPChannel(&waitG)
 	}
+	waitG.Wait()
 	Logger.Sugar().Infof("initialised %d rabbitMQ channels successfully", len(AmqpChannels))
+}
+
+func initAndAddAMQPChannel(waitG *sync.WaitGroup) {
+	defer waitG.Done()
+
+	_, newChannel := InitRabbitMQConnection()
+	amqlChannelLock.Lock()
+	AmqpChannels = append(AmqpChannels, newChannel)
+	amqlChannelLock.Unlock()
 }

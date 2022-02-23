@@ -328,7 +328,7 @@ function fillInGamesStatBoxes(graphData) {
 }
 
 function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
-    const steamGameInfoAPI = "http://localhost:8088/getgamedetails"
+    const steamGameInfoAPI = "/getgamedetails"
 
     const usersFavoriteGame = graphData.userdetails.User.gamesowned[0];
     if (usersFavoriteGame != undefined) {

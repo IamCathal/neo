@@ -18,7 +18,8 @@ var (
 
 // InitApiKeys initialises the structure that manages rate limitted
 // access to the steam web API keys
-func InitApiKeys() {
+func InitApiKeys(waitG *sync.WaitGroup) {
+	defer waitG.Done()
 	APIKeysFromEnv := strings.Split(os.Getenv("STEAM_API_KEYS"), ",")
 	for _, APIKey := range APIKeysFromEnv {
 		newAPIKey := datastructures.APIKey{
@@ -33,6 +34,7 @@ func InitApiKeys() {
 		panic(err)
 	}
 	keyUsageTime = time.Duration(keyTime * int(time.Millisecond))
+	configuration.Logger.Sugar().Infof("%d API keys initialised", len(configuration.UsableAPIKeys.APIKeys))
 }
 
 // GetSteamAPIKey gets a steam API key. It picks any steam API key

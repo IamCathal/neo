@@ -3,6 +3,7 @@ package worker
 import (
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
@@ -17,7 +18,8 @@ func InitWorkerConfig() datastructures.WorkerConfig {
 	}
 }
 
-func StartUpWorkers(cntr controller.CntrInterface) {
+func StartUpWorkers(cntr controller.CntrInterface, waitG *sync.WaitGroup) {
+	defer waitG.Done()
 	for i := 0; i < 10; i++ {
 		go ControlFunc(cntr)
 	}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
@@ -27,9 +28,13 @@ func main() {
 	endpoints := &endpoints.Endpoints{
 		Cntr: controller,
 	}
-	apikeymanager.InitApiKeys()
 
-	worker.StartUpWorkers(controller)
+	var waitG sync.WaitGroup
+	waitG.Add(2)
+	go apikeymanager.InitApiKeys(&waitG)
+	go worker.StartUpWorkers(controller, &waitG)
+	waitG.Wait()
+
 	go statsmonitoring.CollectAndShipStats()
 	router := endpoints.SetupRouter()
 

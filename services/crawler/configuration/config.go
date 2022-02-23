@@ -34,6 +34,7 @@ func InitConfig() error {
 	if err := godotenv.Load(); err != nil {
 		return err
 	}
+	var waitG sync.WaitGroup
 	commonUtil.EnsureAllEnvVarsAreSet("RABBITMQ_PASSWORD", "RABBITMQ_USER",
 		"RABBITMQ_URL", "DATASTORE_INSTANCE", "WORKER_AMOUNT", "STEAM_API_KEYS",
 		"KEY_SLEEP_TIME")
@@ -44,16 +45,17 @@ func InitConfig() error {
 	logger := commonUtil.InitLogger(logConfig)
 	Logger = logger
 
-	InitAndSetWorkerConfig()
-	newQueue, channel := InitRabbitMQConnection()
-	Queue = newQueue
-	ConsumeChannel = channel
-	InitExtraAMQPChannels()
+	waitG.Add(3)
+	go InitAndSetWorkerConfig(&waitG)
+	go setupMainAMQPConnection(&waitG)
+	go InitExtraAMQPChannels(&waitG)
 
+	waitG.Wait()
 	return nil
 }
 
-func InitAndSetWorkerConfig() {
+func InitAndSetWorkerConfig(waitG *sync.WaitGroup) {
+	defer waitG.Done()
 	workerConfig := datastructures.WorkerConfig{}
 
 	workerAmountFromEnv, _ := strconv.Atoi(os.Getenv("WORKER_AMOUNT"))
@@ -99,16 +101,25 @@ func InitRabbitMQConnection() (amqp.Queue, amqp.Channel) {
 	return queue, *channel
 }
 
-func InitExtraAMQPChannels() {
+func setupMainAMQPConnection(waitG *sync.WaitGroup) {
+	defer waitG.Done()
+
+	newQueue, channel := InitRabbitMQConnection()
+	Queue = newQueue
+	ConsumeChannel = channel
+}
+
+func InitExtraAMQPChannels(waitG *sync.WaitGroup) {
+	defer waitG.Done()
 	extraChannels := 5
-	var waitG sync.WaitGroup
-	waitG.Add(extraChannels)
+	var extraWorkersWaitG sync.WaitGroup
+	extraWorkersWaitG.Add(extraChannels)
 
 	for i := 0; i < extraChannels; i++ {
-		go initAndAddAMQPChannel(&waitG)
+		go initAndAddAMQPChannel(&extraWorkersWaitG)
 	}
-	waitG.Wait()
-	Logger.Sugar().Infof("initialised %d rabbitMQ channels successfully", len(AmqpChannels))
+
+	extraWorkersWaitG.Wait()
 }
 
 func initAndAddAMQPChannel(waitG *sync.WaitGroup) {

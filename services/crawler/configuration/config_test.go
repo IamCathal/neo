@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/iamcathal/neo/services/crawler/datastructures"
@@ -18,7 +19,9 @@ func TestInitAndSetWorkerConfig(t *testing.T) {
 	expectedWorkerConfig := datastructures.WorkerConfig{
 		WorkerAmount: 8,
 	}
-	InitAndSetWorkerConfig()
-
+	var waitG sync.WaitGroup
+	waitG.Add(1)
+	InitAndSetWorkerConfig(&waitG)
+	waitG.Wait()
 	assert.Equal(t, expectedWorkerConfig, WorkerConfig)
 }

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go"
@@ -29,6 +30,7 @@ var (
 )
 
 func InitConfig() error {
+	startTime := time.Now()
 	ApplicationStartUpTime = time.Now()
 	if err := godotenv.Load(); err != nil {
 		return util.MakeErr(err)
@@ -47,22 +49,18 @@ func InitConfig() error {
 	if err != nil {
 		return util.MakeErr(err)
 	}
-
 	InitAndSetLogger(logConfig)
-	InitMongoDBConnection()
-	InitAndSetInfluxClient()
-	InitSQLDBConnection()
 
+	var waitG sync.WaitGroup
+	waitG.Add(3)
+	go InitMongoDBConnection(&waitG)
+	go InitAndSetInfluxClient(&waitG)
+	go InitSQLDBConnection(&waitG)
+
+	waitG.Wait()
+
+	fmt.Printf("Init took %v\n", time.Since(startTime))
 	return nil
-}
-
-func InitAndSetInfluxClient() {
-	client := influxdb2.NewClientWithOptions(
-		os.Getenv("INFLUXDB_URL"),
-		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"),
-		influxdb2.DefaultOptions().SetBatchSize(10))
-	InfluxDBClient = client
-	Logger.Info("InfluxDB client initialied successfully")
 }
 
 func LoadLoggingConfig() (common.LoggingFields, error) {
@@ -100,7 +98,8 @@ func InitAndSetLogger(logFieldsConfig common.LoggingFields) {
 	Logger = log
 }
 
-func InitMongoDBConnection() {
+func InitMongoDBConnection(waitG *sync.WaitGroup) {
+	defer waitG.Done()
 	mongoDBUser := os.Getenv("MONGODB_USER")
 	mongoDBPassword := os.Getenv("MONGODB_PASSWORD")
 	mongoInstanceIP := os.Getenv("MONGO_INSTANCE_IP")
@@ -124,7 +123,18 @@ func InitMongoDBConnection() {
 	Logger.Info("MongoDB connection initialised successfully")
 }
 
-func InitSQLDBConnection() {
+func InitAndSetInfluxClient(waitG *sync.WaitGroup) {
+	defer waitG.Done()
+	client := influxdb2.NewClientWithOptions(
+		os.Getenv("INFLUXDB_URL"),
+		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"),
+		influxdb2.DefaultOptions().SetBatchSize(10))
+	InfluxDBClient = client
+	Logger.Info("InfluxDB client initialied successfully")
+}
+
+func InitSQLDBConnection(waitG *sync.WaitGroup) {
+	defer waitG.Done()
 	postgresUser := os.Getenv("POSTGRES_USER")
 	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
 	postgresDB := os.Getenv("POSTGRES_DB")

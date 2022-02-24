@@ -143,25 +143,22 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 // or the steam web API.
 // 		userWasFoundInDB, friendIDs, err := GetFriends(cntr, steamID)
 func GetFriends(cntr controller.CntrInterface, steamID string) (bool, []string, error) {
-	userWasFoundInDB := false
 	userFromDB, err := cntr.GetUserFromDataStore(steamID)
 	if err != nil {
 		configuration.Logger.Sugar().Infof("error getting user in DB: %+v", err)
 	}
-	if userFromDB.AccDetails.SteamID == "" {
-		configuration.Logger.Sugar().Infof("user %s was not found in DB", steamID)
-	} else {
-		userWasFoundInDB = true
-		// configuration.Logger.Sugar().Infof("returning user retrieved from DB: %+v", userFromDB.AccDetails.SteamID)
-		return userWasFoundInDB, userFromDB.FriendIDs, nil
+	if userFromDB.AccDetails.SteamID != "" {
+		configuration.Logger.Sugar().Infof("returning user retrieved from DB: %+v", userFromDB.AccDetails.SteamID)
+		return true, userFromDB.FriendIDs, nil
 	}
 
+	configuration.Logger.Sugar().Infof("user %s was not found in DB", steamID)
 	// User was not found in DB, call the API
 	friendsList, err := cntr.CallGetFriends(steamID)
 	if err != nil {
-		return userWasFoundInDB, []string{}, err
+		return false, []string{}, err
 	}
-	return userWasFoundInDB, friendsList, nil
+	return false, friendsList, nil
 }
 
 // ControlFunc manages workers

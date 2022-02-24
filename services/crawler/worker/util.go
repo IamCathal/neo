@@ -67,7 +67,7 @@ func getGamesOwned(cntr controller.CntrInterface, steamID string) ([]common.Game
 	return ownedGamesResponse.Games, nil
 }
 
-func getPlayerSummaries(cntr controller.CntrInterface, job datastructures.Job, friendIDs []string) ([]common.Player, error) {
+func getPlayerSummaries(cntr controller.CntrInterface, friendIDs []string) ([]common.Player, error) {
 	// Only 100 steamIDs can be queried per call
 	stacksOfSteamIDs := breakIntoStacksOf100OrLessSteamIDs(friendIDs)
 

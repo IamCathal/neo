@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/amqpchannelmanager"
@@ -52,61 +53,51 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		}
 		return
 	}
-	// User was never crawled before
-	playerSummaries, err := cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
-	if err != nil {
-		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
-		log.Fatal(err)
-	}
-
-	// Sometimes occurs with accounts that have complex combinatioons of data privacy settings
-	if len(playerSummaries) == 0 {
-		playerSummaries, err = cntr.CallGetPlayerSummaries(job.CurrentTargetSteamID)
-		if err != nil {
-			configuration.Logger.Sugar().Panicf(fmt.Sprintf("failed AGAIN to get player summary for target user: %+v", err))
-		}
-		if len(playerSummaries) == 0 {
-			configuration.Logger.Sugar().Panicf("failed to get a non empty player summary for target user for a second time: %+v", err)
-		}
-	}
-	playerSummaryForCurrentUser := playerSummaries[0]
-
-	allGamesOwnedForCurrentUser, err := getGamesOwned(cntr, job.CurrentTargetSteamID)
-	if err != nil {
-		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
-		log.Fatal(err)
-	}
-	topFiftyOrFewerTopPlayedGames := getTopFiftyOrFewerGames(allGamesOwnedForCurrentUser)
-	topFiftyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topFiftyOrFewerTopPlayedGames)
-
+	playerSummaryForCurrentUser := common.Player{}
+	fiftyOrFewerGamesOwnedForCurrentUser := []common.GameOwnedDocument{}
 	friendPlayerSummaries := []common.Player{}
+	var waitG sync.WaitGroup
 
-	if len(friendsList) != 0 {
-		friendPlayerSummaries, err = getPlayerSummaries(cntr, job, friendsList)
-		if err != nil {
-			configuration.Logger.Fatal(fmt.Sprintf("failed to get player summaries for friends: %v", err.Error()))
-			log.Fatal(err)
-		}
-	}
+	waitG.Add(1)
+	go getSummaryForMainUserFunc(
+		cntr,
+		job.CurrentTargetSteamID,
+		&playerSummaryForCurrentUser,
+		&waitG)
 
-	friendPlayerSummarySteamIDs := getSteamIDsFromPlayers(friendPlayerSummaries)
-	friendsShoudlBeCrawled := util.JobIsNotLevelOneAndNotMax(job)
-	if friendsShoudlBeCrawled {
-		err = putFriendsIntoQueue(cntr, job, friendPlayerSummarySteamIDs)
-		if err != nil {
-			configuration.Logger.Fatal(fmt.Sprintf("failed publish friends from steamID: %s to queue: %v", job.CurrentTargetSteamID, err.Error()))
-			log.Fatal(err)
-		}
-	}
+	waitG.Add(1)
+	go getFiftyOrFewerGamesOwnedFunc(
+		cntr,
+		job.CurrentTargetSteamID,
+		&fiftyOrFewerGamesOwnedForCurrentUser,
+		&waitG)
+
+	waitG.Add(1)
+	go getSummariesForFriendsFunc(
+		cntr,
+		friendsList,
+		&friendPlayerSummaries,
+		&waitG)
+
+	waitG.Wait()
+
+	// ASYNC BLOCK TWO
 
 	privateFriendCount := len(friendsList) - len(friendPlayerSummaries)
 	publicFriendCount := len(friendsList) - privateFriendCount
+
 	logMsg := fmt.Sprintf("Got data for [%s][%s][%s][%d public %d private friends][%d games]",
 		playerSummaryForCurrentUser.Steamid, playerSummaryForCurrentUser.Personaname, playerSummaryForCurrentUser.Loccountrycode,
-		publicFriendCount, privateFriendCount, len(topFiftyOrFewerGamesOwnedSlimmedDown))
+		publicFriendCount, privateFriendCount, len(fiftyOrFewerGamesOwnedForCurrentUser))
 	configuration.Logger.Info(logMsg)
 
-	// Save game details to DB
+	// PUT FRIENDS INTO QUEUE
+	friendPlayerSummarySteamIDs := getSteamIDsFromPlayers(friendPlayerSummaries)
+	friendsShoudlBeCrawled := util.JobIsNotLevelOneAndNotMax(job)
+	if friendsShoudlBeCrawled {
+		waitG.Add(1)
+		go publishFriendsToQueueFunc(cntr, job, friendPlayerSummarySteamIDs, &waitG)
+	}
 
 	// // Save user to DB
 	saveUser := dtos.SaveUserDTO{
@@ -124,19 +115,14 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 				Loccountrycode: playerSummaryForCurrentUser.Loccountrycode,
 			},
 			FriendIDs:  friendPlayerSummarySteamIDs,
-			GamesOwned: topFiftyOrFewerGamesOwnedSlimmedDown,
+			GamesOwned: fiftyOrFewerGamesOwnedForCurrentUser,
 		},
-		// GamesOwnedFull: topTwentyOrFewerGamesSlimmedDown,
 	}
 
-	success, err := cntr.SaveUserToDataStore(saveUser)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if !success {
-		configuration.Logger.Sugar().Errorf("failed to save user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err)
-		panic(fmt.Sprintf("failed to save user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err))
-	}
+	waitG.Add(1)
+	go saveUserFunc(cntr, saveUser, &waitG)
+
+	waitG.Wait()
 }
 
 // GetFriends gets the friendslist for a given user through either datastore
@@ -224,4 +210,69 @@ func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int
 		configuration.Logger.Info(fmt.Sprintf("placed job steamID: %s level: %d into queue", steamID, level))
 	}
 	return err
+}
+
+func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, mainUser *common.Player, waitG *sync.WaitGroup) {
+	defer waitG.Done()
+	playerSummaries, err := cntr.CallGetPlayerSummaries(steamID)
+	if err != nil {
+		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
+		log.Fatal(err)
+	}
+
+	// Sometimes occurs with accounts that have complex combinatioons of data privacy settings
+	if len(playerSummaries) == 0 {
+		playerSummaries, err = cntr.CallGetPlayerSummaries(steamID)
+		if err != nil {
+			configuration.Logger.Sugar().Panicf(fmt.Sprintf("failed AGAIN to get player summary for target user: %+v", err))
+		}
+		if len(playerSummaries) == 0 {
+			configuration.Logger.Sugar().Panicf("failed to get a non empty player summary for target user for a second time: %+v", err)
+		}
+	}
+	*mainUser = playerSummaries[0]
+}
+
+func getFiftyOrFewerGamesOwnedFunc(cntr controller.CntrInterface, steamID string, gamesOwned *[]common.GameOwnedDocument, waitG *sync.WaitGroup) {
+	defer waitG.Done()
+	allGamesOwnedForCurrentUser, err := getGamesOwned(cntr, steamID)
+	if err != nil {
+		configuration.Logger.Sugar().Panicf("failed to get player summaries for friends: %+v", err)
+	}
+	topFiftyOrFewerTopPlayedGames := getTopFiftyOrFewerGames(allGamesOwnedForCurrentUser)
+	topFiftyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topFiftyOrFewerTopPlayedGames)
+	*gamesOwned = topFiftyOrFewerGamesOwnedSlimmedDown
+}
+
+func getSummariesForFriendsFunc(cntr controller.CntrInterface, friendIDs []string, friends *[]common.Player, waitG *sync.WaitGroup) {
+	defer waitG.Done()
+	if len(friendIDs) == 0 {
+		return
+	}
+
+	friendPlayerSummaries, err := getPlayerSummaries(cntr, friendIDs)
+	if err != nil {
+		configuration.Logger.Sugar().Panicf("failed to get player summaries for friends: %+v", err)
+		log.Fatal(err)
+	}
+	*friends = friendPlayerSummaries
+}
+
+func publishFriendsToQueueFunc(cntr controller.CntrInterface, job datastructures.Job, friendIDs []string, waitG *sync.WaitGroup) {
+	defer waitG.Done()
+	err := putFriendsIntoQueue(cntr, job, friendIDs)
+	if err != nil {
+		configuration.Logger.Sugar().Panicf("failed publish friends from steamID: %s to queue: %+v", job.CurrentTargetSteamID, err)
+	}
+}
+
+func saveUserFunc(cntr controller.CntrInterface, saveUser dtos.SaveUserDTO, waitG *sync.WaitGroup) {
+	defer waitG.Done()
+	success, err := cntr.SaveUserToDataStore(saveUser)
+	if err != nil {
+		configuration.Logger.Sugar().Panicf("error when saving user user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err)
+	}
+	if !success {
+		configuration.Logger.Sugar().Panicf("failed to save user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err)
+	}
 }

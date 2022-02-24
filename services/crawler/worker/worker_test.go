@@ -487,18 +487,10 @@ func TestGetPlayerSummariesReturnsOnlyPublicProfiles(t *testing.T) {
 			Communityvisibilitystate: 1,
 		},
 	}
-	currentJob := datastructures.Job{
-		JobType:               "crawl",
-		OriginalTargetSteamID: "12345",
-		CurrentTargetSteamID:  "12345",
-		CrawlID:               "2345345346546sdfdfbhfd",
-		MaxLevel:              1,
-		CurrentLevel:          1,
-	}
 
 	mockController.On("CallGetPlayerSummaries", mock.AnythingOfType("string")).Return(examplePlayers, nil)
 
-	playerSummaries, err := getPlayerSummaries(mockController, currentJob, []string{"testid1,testid2,testid3"})
+	playerSummaries, err := getPlayerSummaries(mockController, []string{"testid1,testid2,testid3"})
 
 	mockController.AssertNumberOfCalls(t, "CallGetPlayerSummaries", 1)
 	assert.Equal(t, []common.Player{expectedPublicProfile}, playerSummaries)
@@ -508,18 +500,10 @@ func TestGetPlayerSummariesReturnsOnlyPublicProfiles(t *testing.T) {
 func TestGetPlayerSummariesReturnsNothingWhenGetPlayerSummariesReturnsAnError(t *testing.T) {
 	mockController := &controller.MockCntrInterface{}
 
-	currentJob := datastructures.Job{
-		JobType:               "crawl",
-		OriginalTargetSteamID: "12345",
-		CurrentTargetSteamID:  "12345",
-		CrawlID:               "2345345346546sdfdfbhfd",
-		MaxLevel:              1,
-		CurrentLevel:          1,
-	}
 	expectedError := errors.New("hello world")
 	mockController.On("CallGetPlayerSummaries", mock.AnythingOfType("string")).Return([]common.Player{}, expectedError)
 
-	playerSummaries, err := getPlayerSummaries(mockController, currentJob, []string{"testid1,testid2,testid3"})
+	playerSummaries, err := getPlayerSummaries(mockController, []string{"testid1,testid2,testid3"})
 
 	mockController.AssertNumberOfCalls(t, "CallGetPlayerSummaries", 1)
 	assert.Equal(t, []common.Player{}, playerSummaries)

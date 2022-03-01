@@ -48,12 +48,38 @@ type CntrInterface interface {
 func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	friendsListObj := common.UserDetails{}
 	apiKey := apikeymanager.GetSteamAPIKey()
+	maxRetryCount := 3
+	successfulRequest := false
+
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
 		apiKey, steamID)
 	res, err := MakeNetworkGETRequest(targetURL)
 	if err != nil {
+		configuration.Logger.Sugar().Infof("error from first call to GetFriendsList with key: %s steamids: %+v, retrying", steamID, apiKey)
+		for i := 0; i < maxRetryCount; i++ {
+			// A fresh key must be used
+			apiKey := apikeymanager.GetSteamAPIKey()
+			targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
+				apiKey, steamID)
+
+			res, err = MakeNetworkGETRequest(targetURL)
+			if err == nil {
+				configuration.Logger.Sugar().Infof("success on the %d request", i)
+				successfulRequest = true
+				break
+			}
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 12
+			configuration.Logger.Sugar().Infof("failed to call get friends with  key: %s steamids: %+v, %d times. Sleeping for %d ms", steamID, apiKey, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
+		}
+	} else {
+		successfulRequest = true
+	}
+
+	if !successfulRequest {
 		return []string{}, err
 	}
+
 	// if valid := IsValidAPIResponseForSteamId(string(res)); !valid {
 	// 	return friendsListObj, MakeErr(fmt.Errorf("invalid steamID %s given", steamID))
 	// }

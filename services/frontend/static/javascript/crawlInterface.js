@@ -144,8 +144,8 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
             }
 
             document.getElementById("isPrivateCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
-            let firstUserHasBeenCrawled = hasBeenCrawled(firstSteamID);
-            let secondUserHasBeenCrawled = hasBeenCrawled(secondSteamID)
+            let firstUserHasBeenCrawled = hasBeenCrawled(firstSteamID, level);
+            let secondUserHasBeenCrawled = hasBeenCrawled(secondSteamID, level)
 
             Promise.all([firstUserHasBeenCrawled, secondUserHasBeenCrawled]).then(crawlIDs => {
                 if (crawlIDs[0] != "" && crawlIDs[1] != "") {

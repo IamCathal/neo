@@ -22,7 +22,7 @@ import (
 func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	userWasFoundInDB, friendsList, err := GetFriends(cntr, job.CurrentTargetSteamID)
 	if err != nil {
-		log.Fatal(err)
+		configuration.Logger.Sugar().Panicf("error getting friends initially in worker: %+v", err)
 	}
 	if userWasFoundInDB {
 		crawlingStatus := common.CrawlingStatus{
@@ -34,11 +34,10 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 
 		success, err := cntr.SaveCrawlingStatsToDataStore(job.CurrentLevel, crawlingStatus)
 		if err != nil {
-			log.Fatal(err)
+			configuration.Logger.Sugar().Panicf("error saving crawling stats in worker: %+v", err)
 		}
 		if !success {
-			configuration.Logger.Sugar().Fatalf("failed to save crawling stats to DB for existing user: %+v", err)
-			log.Fatal(err)
+			configuration.Logger.Sugar().Panicf("failed to save crawling stats in worker: %+v", err)
 		}
 
 		friendsShoudlBeCrawled := util.JobIsNotLevelOneAndNotMax(job)
@@ -47,8 +46,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		if friendsShoudlBeCrawled {
 			err = putFriendsIntoQueue(cntr, job, friendsList)
 			if err != nil {
-				configuration.Logger.Fatal(fmt.Sprintf("failed publish friends from steamID: %s to queue: %v", job.CurrentTargetSteamID, err.Error()))
-				log.Fatal(err)
+				configuration.Logger.Sugar().Panicf("error publishing friends from steamID: %s to queue: %+v", job.CurrentTargetSteamID, err)
 			}
 		}
 		return

@@ -261,7 +261,9 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	for i := 1; i <= maxRetryCount; i++ {
 		res, callErr = client.Do(req)
 		if callErr != nil {
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s %d times", targetURL, i)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
 		} else {
 			successfulRequest = true

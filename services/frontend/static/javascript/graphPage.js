@@ -875,16 +875,28 @@ function fillInFlagsDiv(friends) {
     let uniqueCountryCode = extractUniqueCountryCodesFromFriends(friends)
     let i = 0;
     uniqueCountryCode.forEach(countryCode => {
+        // limit the amount of flags that can be rendered
         if (i == 48) {
             return
         }
+        const usersFromCountryFormatted = `Friends from ${countryCodeToName(countryCode)}:\n${getUsernamesFromCountry(friends, countryCode).join("\n")}`
         document.getElementById("allFlagsDiv").innerHTML += `
         <div class="col-1">
-            <p style="font-size: 1.7rem">${getFlagEmoji(countryCode)}</p>
+            <p style="font-size: 1.7rem" title="${usersFromCountryFormatted}">${getFlagEmoji(countryCode)}</p>
         </div>
         `;
         i++;
     });
+}
+
+function getUsernamesFromCountry(friends, countryCode) {
+    let usersFromCountry = []
+    friends.forEach(friend => {
+        if (friend.User.accdetails.loccountrycode == countryCode) {
+            usersFromCountry.push(friend.User.accdetails.personaname)
+        }
+    });
+    return usersFromCountry;
 }
 
 function generateOverallGamerScore(graphData) {

@@ -877,13 +877,30 @@
             <div class="col"></div>
         </div>
 
+        <div class="row">
+            <div class="col-3"></div>
+            <div class="col box">
+                <div class="row text-center">
+                    <p style="font-size: 2rem">View your interactive graph</p>
+                </div>
+                <div class="row mt-2">
+                    <a id="interactiveGraphLink" href="" target="_blank">
+                        <video 
+                            autoplay loop autobuffer muted playsinline
+                            src="/static/images/finished.mp4"
+                            style="border-radius: 12px;"
+                        >
+                    </a>
+                </div>
+            </div>
+            <div class="col-3"></div>
+        </div>
+
     </div>
 
     </div>
     </div>
 
-    <script src="https://unpkg.com/three"></script>
-    <script src="https://unpkg.com/3d-force-graph"></script>
     <div id="3d-graph"></div>
     <script src="/static/javascript/graphPage.js" type="module"></script>
 </body>

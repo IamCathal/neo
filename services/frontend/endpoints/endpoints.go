@@ -40,6 +40,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r.HandleFunc("/", endpoints.HomeHandler).Methods("GET")
 	r.HandleFunc("/crawl/{crawlid}", endpoints.CrawlPage).Methods("GET")
 	r.HandleFunc("/graph/{crawlid}", endpoints.ServeGraph).Methods("GET")
+	r.HandleFunc("/graph/{crawlid}/interactive", endpoints.ServeInteractiveGraph).Methods("GET")
 	r.HandleFunc("/shortestdistance", endpoints.ShortestDistance).Methods("GET")
 	r.HandleFunc("/status", endpoints.Status).Methods("POST")
 	r.HandleFunc("/isprivateprofile/{steamid}", endpoints.IsPrivateProfile).Methods("GET")
@@ -192,6 +193,21 @@ func (endpoints *Endpoints) HomeHandler(w http.ResponseWriter, req *http.Request
 func (endpoints *Endpoints) ServeGraph(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/graphPage.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
+	if err != nil {
+		configuration.Logger.Sugar().Fatalf("could not generate crawl page: %+v", err)
+		panic(err)
+	}
+	templateData := struct {
+		CrawlID string
+	}{
+		vars["crawlid"],
+	}
+	tmpl.Execute(w, templateData)
+}
+
+func (endpoints *Endpoints) ServeInteractiveGraph(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/interactiveGraph.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
 	if err != nil {
 		configuration.Logger.Sugar().Fatalf("could not generate crawl page: %+v", err)
 		panic(err)

@@ -47,10 +47,8 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
         fillInOldestAndNewestUserCards(crawlDataObj.usergraphdata)
         initAndRenderAccountAgeVsFriendCountChart(crawlDataObj.usergraphdata)
 
-        // Three JS bottom test graph
-        initThreeJSGraph(crawlDataObj.usergraphdata)
-
         initGamerScore(crawlDataObj.usergraphdata)
+        initLinkForInteractiveGraphPage()
 
         var myChart = echarts.init(document.getElementById('graphContainer'));
         const graph = getDataInGraphFormat(crawlDataObj.usergraphdata, countryFrequencies)
@@ -510,6 +508,10 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     };
 
     option && myChart.setOption(option);
+}
+
+function initLinkForInteractiveGraphPage() {
+    document.getElementById("interactiveGraphLink").href = `/graph/${crawlID}/interactive`
 }
 
 function monthsSince(timestamp) {

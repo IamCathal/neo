@@ -42,37 +42,50 @@ function fillInShortestPathMenu(shortestDistanceInfo) {
     document.getElementById("firstUserUsername").textContent = shortestDistanceInfo.firstuser.accdetails.personaname
     document.getElementById("secondUserUsername").textContent = shortestDistanceInfo.seconduser.accdetails.personaname
     shortestDistanceInfo.shortestdistance.forEach(user => {
-        let fullResProfiler = user.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
-        document.getElementById("shortestPathDiv").innerHTML += `
-        <div class="row pl-3 pr-3 mt-4">
-                <div class="col">
-                    <div class="row">
-                        <div class="col-3">
-                            <div class="text-center">
+
+    let fullResProfiler = user.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
+    const creationDate = new Date(user.accdetails.timecreated*1000);
+    const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
+    const timeSinceString = `(${timezSince(creationDate)} ago)`
+
+    document.getElementById("shortestPathDiv").innerHTML += `
+    <div class="row pl-3 pr-3 mt-4">
+            <div class="col">
+                <div class="row">
+                    <div class="col-3">
+                        <div class="text-center">
+                            <a href="${user.accdetails.profileurl}">
                                 <img class="mr-1 skeleton" style="border-radius: 10px; height: 10rem; width: 10rem" src="${fullResProfiler}"></img>
-                            </div>
+                            </a>
                         </div>
-                        <div class="col">
-                            <div class="row m-0">
-                                <p class="truncate mb-0" style="font-size: 3rem; font-weight: 500;">
-                                    ${user.accdetails.personaname}
-                                </p>
-                            </div>
-                            <div class="row m-0 mt-2">
-                                <p class="skeleton skeleton-text mb-1"></p>
-                            </div>
-                            <div class="row m-0">
-                                <p class="skeleton skeleton-text mb-1"></p>
-                            </div>
-                            <div class="row m-0">
-                                <p class="skeleton skeleton-text mb-1"></p>
-                            </div>
+                    </div>
+                    <div class="col">
+                        <div class="row m-0">
+                            <p class="truncate mb-0" style="font-size: 3rem; font-weight: 500;">
+                                ${user.accdetails.personaname}
+                            </p>
+                        </div>
+                        <div class="row m-0 mt-0">
+                            <p class="mb-0">
+                                ${user.friendids.length} friends
+                            </p>
+                        </div>
+                        <div class="row m-0">
+                            <p class="mb-0">
+                                From ${getFlagEmoji(user.accdetails.loccountrycode)}
+                            </p>
+                        </div>
+                        <div class="row m-0">
+                            <p class="mb-0">
+                                Created: ${dateString} ${timeSinceString}
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        `;
+    </div>
+    `;
     });
 }
 
@@ -85,6 +98,32 @@ function getAllCountriesInShortestPath(shortestDistancePath) {
         }
     })
     return countries
+}
+
+// COMMON
+function timezSince(targetDate) {
+    let seconds = Math.floor((new Date()-targetDate)/1000)
+    let interval = seconds / 31536000 
+    if (interval > 1) {
+        return Math.floor(interval) + " years";
+    }
+    interval = seconds / 2592000; // months
+    if (interval > 1) {
+        return Math.floor(interval) + " months";
+      }
+    interval = seconds / 86400; // days
+    if (interval > 1) {
+      return Math.floor(interval) + "d ago";
+    }
+    interval = seconds / 3600;
+    if (interval > 1) {
+      return Math.floor(interval) + "h ago";
+    }
+    interval = seconds / 60;
+    if (interval > 1) {
+      return Math.floor(interval) + "m ago";
+    }
+    return Math.floor(seconds) + "s";
 }
 
 function getShortestDistance(bothCrawlIDs) {
@@ -203,6 +242,16 @@ function initEchartsGraph(shortestDistanceData) {
     };
     myChart.setOption(option);
     option && myChart.setOption(option);
+}
+
+// COMMON
+// https://dev.to/jorik/country-code-to-flag-emoji-a21
+function getFlagEmoji(countryCode) {
+    const codePoints = countryCode
+      .toUpperCase()
+      .split('')
+      .map(char =>  127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
 }
 
 function fillInIndivCrawlDataBoxes(shortestDistanceInfo) {

@@ -6,42 +6,52 @@ const crawlIDs = getCrawlIDs()
 if (crawlIDs.length == 2) {
     getShortestDistanceInfo(crawlIDs).then(shortestDistanceInfo => {
         if (shortestDistanceInfo.crawlids === null) {
+            // Shortest distance has not been calculated yet
             renderCrawlStatusBoxes(2)
 
-            let initAndMonitorCrawlOne = initAndMonitorCrawlingStatusWebsocket(crawlIDs[0], "firstCrawl")
-            let initAndMonitorCrawlTwo = initAndMonitorCrawlingStatusWebsocket(crawlIDs[1], "secondCrawl")
+            // Get crawling status of both, either none are finished or one has already been crawled before
+            const firstUserIsDone = isCrawlingFinished(crawlIDs[0])
+            const secondUserIsDone = isCrawlingFinished(crawlIDs[1])
 
-            getCrawlingUserWhenAvailable(crawlIDs[0], "firstCrawl").then(res => {}, err => {
-                console.error(`error getting first crawling user: ${JSON.stringify(err)}`)
-            })
-            getCrawlingUserWhenAvailable(crawlIDs[1], "secondCrawl").then(res => {}, err => {
-                console.error(`error getting second crawling user: ${JSON.stringify(err)}`)
-            })
+            Promise.all([firstUserIsDone, secondUserIsDone]).then(isDones => {
 
-            Promise.all([initAndMonitorCrawlOne, initAndMonitorCrawlTwo]).then(vals => {
-                let firstUserStartCreateGraph = startCreateGraph(crawlIDs[0])
-                let secondUserStartCreateGraph = startCreateGraph(crawlIDs[1])
-
-                Promise.all([firstUserStartCreateGraph, secondUserStartCreateGraph]).then(vals => {
-                    let firstUserGraphExists = waitUntilGraphDataExists(crawlIDs[0])
-                    let secondUserGraphExists = waitUntilGraphDataExists(crawlIDs[1])
-
-                    Promise.all([firstUserGraphExists, secondUserGraphExists]).then(vals => {
-                        startCalculateGetShortestDistance(crawlIDs).then(res => {
-                            console.log(res);
-                            window.location.href = `/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
-                        }, err => {
-                            console.error(`err calculating shortest distance: ${JSON.stringify(err)}`)
-                        })
-                        
-                    }, err => {
-                        console.error(`error waiting until both graphs existed: ${JSON.stringify(err)}`)
-                    })
-                }, errs => {
-                    console.error(errs)
+                let initAndMonitorCrawlOne = initAndMonitorCrawlingStatusWebsocket(crawlIDs[0], "firstCrawl", isDones[0])
+                let initAndMonitorCrawlTwo = initAndMonitorCrawlingStatusWebsocket(crawlIDs[1], "secondCrawl", isDones[1])
+    
+                getCrawlingUserWhenAvailable(crawlIDs[0], "firstCrawl").then(res => {}, err => {
+                    console.error(`error getting first crawling user: ${JSON.stringify(err)}`)
                 })
-            }, err => {
-                console.error(err)
+                getCrawlingUserWhenAvailable(crawlIDs[1], "secondCrawl").then(res => {}, err => {
+                    console.error(`error getting second crawling user: ${JSON.stringify(err)}`)
+                })
+    
+                Promise.all([initAndMonitorCrawlOne, initAndMonitorCrawlTwo]).then(vals => {
+                    let firstUserStartCreateGraph = startCreateGraph(crawlIDs[0])
+                    let secondUserStartCreateGraph = startCreateGraph(crawlIDs[1])
+    
+                    Promise.all([firstUserStartCreateGraph, secondUserStartCreateGraph]).then(vals => {
+                        let firstUserGraphExists = waitUntilGraphDataExists(crawlIDs[0])
+                        let secondUserGraphExists = waitUntilGraphDataExists(crawlIDs[1])
+    
+                        Promise.all([firstUserGraphExists, secondUserGraphExists]).then(vals => {
+                            startCalculateGetShortestDistance(crawlIDs).then(res => {
+                                console.log(res);
+                                window.location.href = `/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
+                            }, err => {
+                                console.error(`err calculating shortest distance: ${JSON.stringify(err)}`)
+                            })
+                            
+                        }, err => {
+                            console.error(`error waiting until both graphs existed: ${JSON.stringify(err)}`)
+                        })
+                    }, errs => {
+                        console.error(errs)
+                    })
+                }, err => {
+                    console.error(err)
+                })
+            }, (errs) => {
+                console.error(`error(s) calling isCrawlingFinished: ${errs}`)
             })
         } else {
             window.location.href = `/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
@@ -130,6 +140,25 @@ function startCalculateGetShortestDistance(crawlIDs) {
     })
 }
 
+function isCrawlingFinished(crawlID) {
+    return new Promise((resolve, reject) => {
+        fetch(`http://localhost:2590/api/getcrawlingstatus/${crawlID}`, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then((res => res.json()))
+        .then(data => {
+            console.log(data.crawlingstatus)
+            if (data.crawlingstatus.totaluserstocrawl == data.crawlingstatus.userscrawled) {
+                resolve(true)
+            }
+            resolve(false)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}
+
 function startCreateGraph(crawlID) {
     return new Promise((resolve, reject) => {
         fetch(`http://localhost:2570/creategraph/${crawlID}`, {
@@ -182,6 +211,28 @@ function waitUntilGraphDataExists(crawlID) {
     })
 }
 
+// COMMON COPIED
+function hasBeenCrawled(steamID, level) {
+    return new Promise((resolve, reject) => {
+        reqBody = {
+            "level": parseInt(level),
+            "steamid": steamID
+        }
+        fetch(`http://localhost:2590/api/hasbeencrawledbefore`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(reqBody),
+        }).then(res => res.json())
+        .then(data => {
+            resolve(data.message)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+} 
+
 function usersCrawledIsMoreThanZero(idPrefix) {
     if (parseInt(document.getElementById(`${idPrefix}UsersCrawled`).textContent) >= 1) {
         return true
@@ -190,16 +241,15 @@ function usersCrawledIsMoreThanZero(idPrefix) {
 }
 
 function getCrawlIDs() {
-    const URLarr = window.location.href.split("/");
-    let firstCrawlID = URLarr[URLarr.length-1];
-
     const queryParams = new URLSearchParams(window.location.search);
+    const firstCrawlID = queryParams.get("firstcrawlid")
     const secondCrawlID = queryParams.get("secondcrawlid")
 
     if (secondCrawlID != undefined) {
-        firstCrawlID = firstCrawlID.split("?")[0]
+        console.log(`return crawlids: ${[firstCrawlID, secondCrawlID]}`)
         return [firstCrawlID, secondCrawlID]
     } else {
+        console.log(`return crawlid: ${[firstCrawlID]}`)
         return [firstCrawlID]
     }
 }

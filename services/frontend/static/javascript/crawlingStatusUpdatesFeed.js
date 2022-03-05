@@ -1,14 +1,19 @@
-export function initAndMonitorCrawlingStatusWebsocket(crawlID, idPrefix) {
+export function initAndMonitorCrawlingStatusWebsocket(crawlID, idPrefix, isAlreadyDone) {
   return new Promise((resolve, reject) => {
+    if (isAlreadyDone) {
+      resolve()
+    }
+
     let wsConn = new WebSocket(`ws://localhost:2590/ws/crawlingstatstream/${crawlID}`);
     wsConn.addEventListener("close", (evt) => {
         console.log("CLOSED!");
     })
-
+    
     wsConn.addEventListener("message", (evt) => {
         let crawlingStatUpdate = JSON.parse(evt.data);
         if (crawlingStatUpdate.userscrawled === crawlingStatUpdate.totaluserstocrawl) {
             document.getElementById(`${idPrefix}CrawlStatus`).textContent = "Processing graph"
+            wsConn.close()
             resolve()
         }
 

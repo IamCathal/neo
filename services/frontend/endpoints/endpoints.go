@@ -38,7 +38,7 @@ type responseWriter struct {
 func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/", endpoints.HomeHandler).Methods("GET")
-	r.HandleFunc("/crawl/{crawlid}", endpoints.CrawlPage).Methods("GET")
+	r.HandleFunc("/crawl", endpoints.CrawlPage).Methods("GET")
 	r.HandleFunc("/graph/{crawlid}", endpoints.ServeGraph).Methods("GET")
 	r.HandleFunc("/graph/{crawlid}/interactive", endpoints.ServeInteractiveGraph).Methods("GET")
 	r.HandleFunc("/shortestdistance", endpoints.ShortestDistance).Methods("GET")
@@ -167,10 +167,19 @@ func (endpoints *Endpoints) CrawlPage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	// Validate crawlid
-	_, err := ksuid.Parse(vars["crawlid"])
+	firstCrawlID := r.URL.Query().Get("firstcrawlid")
+	_, err := ksuid.Parse(firstCrawlID)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
 		return
+	}
+	secondCrawlID := r.URL.Query().Get("secondcrawlid")
+	if secondCrawlID != "" {
+		_, err := ksuid.Parse(firstCrawlID)
+		if err != nil {
+			util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
+			return
+		}
 	}
 
 	tmpl, err := template.ParseFiles(fmt.Sprintf("%s/templates/crawlPage.html", os.Getenv("STATIC_CONTENT_DIR_NAME")))
@@ -181,7 +190,7 @@ func (endpoints *Endpoints) CrawlPage(w http.ResponseWriter, r *http.Request) {
 	templateData := struct {
 		CrawlID string
 	}{
-		vars["crawlid"],
+		firstCrawlID,
 	}
 	tmpl.Execute(w, templateData)
 }

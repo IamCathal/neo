@@ -22,7 +22,6 @@ type ShortestDistanceInfo struct {
 	SecondUser       common.UserDocument   `json:"seconduser"`
 	ShortestDistance []common.UserDocument `json:"shortestdistance"`
 	TotalNetworkSpan int                   `json:"totalnetworkspan"`
-	AllFriends       []common.UserDocument `json:"allfriends"`
 }
 
 type GetShortestDistanceInfoDataInputDTO struct {

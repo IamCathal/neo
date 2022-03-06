@@ -11,10 +11,9 @@ var (
 	userTwoGraphData common.UsersGraphData
 
 	// Two users who share one common friend
-	userOneWithOneSharedCommonFriendGraphData         common.UsersGraphData
-	userTwoWithOneSharedCommonFriendGraphData         common.UsersGraphData
-	commonFriendGraphData                             common.UsersGraphData
-	twoUsersWhoShareOneCommonFriendExpectedAllFriends []common.UserDocument
+	userOneWithOneSharedCommonFriendGraphData common.UsersGraphData
+	userTwoWithOneSharedCommonFriendGraphData common.UsersGraphData
+	commonFriendGraphData                     common.UsersGraphData
 )
 
 func initTestData() {
@@ -141,14 +140,6 @@ func initTestData() {
 		FriendDetails: []common.UsersGraphInformation{
 			userOneWithOneSharedCommonFriendGraphData.UserDetails,
 			userTwoWithOneSharedCommonFriendGraphData.UserDetails,
-		},
-	}
-	twoUsersWhoShareOneCommonFriendExpectedAllFriends = []common.UserDocument{
-		{
-			AccDetails: common.AccDetailsDocument{
-				SteamID: commonFriendID,
-			},
-			FriendIDs: []string{userOneID, userTwoID},
 		},
 	}
 }

@@ -41,7 +41,6 @@ func CalulateShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, s
 		SecondUser:       secondUserGraphData.UserDetails.User,
 		ShortestDistance: userDetailsForShortestPath,
 		TotalNetworkSpan: len(uniqueFriends) + 2,
-		AllFriends:       uniqueFriends,
 	}
 
 	return true, shortestDistanceInfo, nil

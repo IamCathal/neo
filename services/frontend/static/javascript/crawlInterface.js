@@ -175,12 +175,12 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                         // Two new crawls are starting
                         console.log("both new")
                         console.log(newCrawlIDs)
-                        window.location.href = `/crawl?firstcrawlid=${newCrawlIDs[0]}?secondcrawlid=${newCrawlIDs[1]}`
+                        window.location.href = `/crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${newCrawlIDs[1]}`
+                    } else {
+                        crawlIDs = crawlIDs.filter(k => k)
+                        console.log(`One or more were existing, going to /crawl/${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`)
+                        window.location.href = `/crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`
                     }
-                    crawlIDs = crawlIDs.filter(k => k)
-                    console.log(`One or more were existing, going to /crawl/${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`)
-                    window.location.href = `/crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`
-                    
                 }, (err) => {
                     console.error(`startCrawl: ${err}`);
                 })

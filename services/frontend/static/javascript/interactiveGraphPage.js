@@ -3,10 +3,32 @@ console.log("Eeeeeeeeeeeeee")
 
 if (crawlIDs.length == 2) {
     console.log("two IDS: " + crawlIDs)
-    getShortestDistance(crawlIDs).then(shortestDistanceInfo => {
-        initThreeJSGraphForTwoUsersCombined(shortestDistanceInfo)
-    }, err => {
-        console.error(`error getting shortest distance info: ${err}`)
+    // Get graph data for both users and merge
+
+    const firstUserProcessedGraphData = getProcessedGraphData(crawlIDs[0])
+    const secondUserProcessedGraphData = getProcessedGraphData(crawlIDs[0])
+
+    Promise.all([firstUserProcessedGraphData, secondUserProcessedGraphData]).then(graphDatas => {
+        console.log("now I have both lots of graph data")
+        console.log(graphDatas[0])
+        console.log(graphDatas[1])
+
+        combinedGraphData = {
+            "firstuser": graphDatas[0].usergraphdata.userdetails.User,
+            "seconduser": graphDatas[1].usergraphdata.userdetails.User,
+            "allfriends": combineNetworks(graphDatas[0].usergraphdata, graphDatas[1].usergraphdata)
+        }
+        console.log(combinedGraphData)
+
+        getShortestDistance(crawlIDs).then(shortestDistanceInfo => {
+            console.log(shortestDistanceInfo)
+            combinedGraphData["shortestdistance"] = shortestDistanceInfo.shortestdistance
+            initThreeJSGraphForTwoUsersCombined(shortestDistanceInfo)
+        }, err => {
+            console.error(`error getting shortest distance info: ${err}`)
+        })
+    }, errs => {
+        console.error(`error(s) retrieving graph datas: ${errs}`);
     })
     
 } 
@@ -331,6 +353,25 @@ function initThreeJSGraphForTwoUsersCombined(crawlData) {
     .distance(link => {
         return 80 + (link.source.neighbourNodes.length * 8);
     });
+}
+
+function combineNetworks(firstUser, secondUser) {
+    let allUsers = []
+    let seenUsers = new Map()
+    seenUsers.set(firstUser.userdetails.User.accdetails.steamid, true)
+    seenUsers.set(secondUser.userdetails.User.accdetails.steamid, true)
+
+    firstUser.frienddetails.forEach(user => {
+        const friend = user.User
+        seenUsers.set(friend.accdetails.steamid, true)
+        allUsers.push(friend.accdetails)
+    })
+    secondUser.frienddetails.forEach(user => {
+        const friend = user.User
+        seenUsers.set(friend.accdetails.steamid, true)
+        allUsers.push(friend.accdetails)
+    })
+    return allUsers
 }
 
 function linkInShortestPath(src, dest, shortestPath) {

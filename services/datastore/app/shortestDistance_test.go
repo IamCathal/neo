@@ -74,6 +74,16 @@ func TestGetShortestDistanceWithTwoUsersWhoShareOneCommonFriend(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestGetUniqueFriends(t *testing.T) {
+	expectedUniqueFriends := []common.UserDocument{commonFriendGraphData.UserDetails.User}
+
+	uniqueFriends := getUniqueFriends(
+		userOneWithOneSharedCommonFriendGraphData,
+		userTwoWithOneSharedCommonFriendGraphData)
+
+	assert.Equal(t, expectedUniqueFriends, uniqueFriends)
+}
+
 func TestIfSteamIDSeenBefore(t *testing.T) {
 	steamID := int64(1234325425345)
 	steamIDToGraphIDMap := make(map[int64]int)

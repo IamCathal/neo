@@ -511,7 +511,7 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
 }
 
 function initLinkForInteractiveGraphPage() {
-    document.getElementById("interactiveGraphLink").href = `/graph/${crawlID}/interactive`
+    document.getElementById("interactiveGraphLink").href = `/graph/interactive?firstcrawlid=${crawlID}`
 }
 
 function monthsSince(timestamp) {

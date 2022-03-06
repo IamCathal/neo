@@ -10,6 +10,8 @@ getShortestDistance(crawlIDs).then(shortestDistanceInfo => {
     initEchartsGraph(shortestDistanceInfo)
     fillInIndivCrawlDataBoxes(shortestDistanceInfo)
 
+    initLinkForInteractiveGraphPage()
+
 }, (err) => {
     console.error(err)
 })
@@ -87,6 +89,14 @@ function fillInShortestPathMenu(shortestDistanceInfo) {
     </div>
     `;
     });
+}
+
+function initLinkForInteractiveGraphPage() {
+    if (crawlIDs.length == 2) {
+        document.getElementById("interactiveGraphLink").href = `/graph/interactive?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
+        return
+    }
+    document.getElementById("interactiveGraphLink").href = `/graph/interactive?firstcrawlid=${crawlIDs[0]}`
 }
 
 function getAllCountriesInShortestPath(shortestDistancePath) {

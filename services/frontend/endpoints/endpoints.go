@@ -170,14 +170,14 @@ func (endpoints *Endpoints) CrawlPage(w http.ResponseWriter, r *http.Request) {
 	firstCrawlID := r.URL.Query().Get("firstcrawlid")
 	_, err := ksuid.Parse(firstCrawlID)
 	if err != nil {
-		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
+		util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusBadRequest)
 		return
 	}
 	secondCrawlID := r.URL.Query().Get("secondcrawlid")
 	if secondCrawlID != "" {
 		_, err := ksuid.Parse(firstCrawlID)
 		if err != nil {
-			util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusNotFound)
+			util.SendBasicInvalidResponse(w, r, "invalid crawlid", vars, http.StatusBadRequest)
 			return
 		}
 	}

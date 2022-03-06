@@ -41,6 +41,7 @@ func CalulateShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, s
 		SecondUser:       secondUserGraphData.UserDetails.User,
 		ShortestDistance: userDetailsForShortestPath,
 		TotalNetworkSpan: len(firstUserGraphData.FriendDetails) + len(secondUserGraphData.FriendDetails),
+		AllFriends:       getUniqueFriends(firstUserGraphData, secondUserGraphData),
 	}
 
 	return true, shortestDistanceInfo, nil
@@ -63,6 +64,29 @@ func getUserDetailsForShortestDistancePath(cntr controller.CntrInterface, userOn
 	}
 
 	return true, shortestPathUserDetails, nil
+}
+
+func getUniqueFriends(firstUserGraphData, secondUserGraphData common.UsersGraphData) []common.UserDocument {
+	uniqueFriendsGraphInformation := []common.UserDocument{}
+	seenIDs := make(map[string]bool)
+
+	// Original users do not belong in the friend list
+	seenIDs[firstUserGraphData.UserDetails.User.AccDetails.SteamID] = true
+	seenIDs[secondUserGraphData.UserDetails.User.AccDetails.SteamID] = true
+
+	for _, graphData := range firstUserGraphData.FriendDetails {
+		if isTrue := ifIsTrue(graphData.User.AccDetails.SteamID, seenIDs); !isTrue {
+			seenIDs[graphData.User.AccDetails.SteamID] = true
+			uniqueFriendsGraphInformation = append(uniqueFriendsGraphInformation, graphData.User)
+		}
+	}
+	for _, graphData := range secondUserGraphData.FriendDetails {
+		if isTrue := ifIsTrue(graphData.User.AccDetails.SteamID, seenIDs); !isTrue {
+			seenIDs[graphData.User.AccDetails.SteamID] = true
+			uniqueFriendsGraphInformation = append(uniqueFriendsGraphInformation, graphData.User)
+		}
+	}
+	return uniqueFriendsGraphInformation
 }
 
 func toInt64(steamID string) int64 {

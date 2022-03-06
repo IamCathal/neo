@@ -26,6 +26,7 @@ func TestGetShortestDistanceWithTwoUsersWhoAreDirectFriendsWithEachother(t *test
 			userTwoGraphData.UserDetails.User,
 		},
 		TotalNetworkSpan: len(userOneGraphData.FriendDetails) + len(userTwoGraphData.FriendDetails),
+		AllFriends:       []common.UserDocument{},
 	}
 
 	mockController.On("GetProcessedGraphData", firstUserCrawlID).Return(userOneGraphData, nil)
@@ -57,6 +58,7 @@ func TestGetShortestDistanceWithTwoUsersWhoShareOneCommonFriend(t *testing.T) {
 			userTwoWithOneSharedCommonFriendGraphData.UserDetails.User,
 		},
 		TotalNetworkSpan: len(userOneWithOneSharedCommonFriendGraphData.FriendDetails) + len(userTwoWithOneSharedCommonFriendGraphData.FriendDetails),
+		AllFriends:       twoUsersWhoShareOneCommonFriendExpectedAllFriends,
 	}
 
 	mockController.On("GetProcessedGraphData", firstUserCrawlID).Return(userOneWithOneSharedCommonFriendGraphData, nil)

@@ -34,14 +34,14 @@ func CalulateShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, s
 	if !exists {
 		return false, datastructures.ShortestDistanceInfo{}, nil
 	}
-
+	uniqueFriends := getUniqueFriends(firstUserGraphData, secondUserGraphData)
 	shortestDistanceInfo := datastructures.ShortestDistanceInfo{
 		CrawlIDs:         []string{firstCrawlID, secondCrawlID},
 		FirstUser:        firstUserGraphData.UserDetails.User,
 		SecondUser:       secondUserGraphData.UserDetails.User,
 		ShortestDistance: userDetailsForShortestPath,
-		TotalNetworkSpan: len(firstUserGraphData.FriendDetails) + len(secondUserGraphData.FriendDetails),
-		AllFriends:       getUniqueFriends(firstUserGraphData, secondUserGraphData),
+		TotalNetworkSpan: len(uniqueFriends) + 2,
+		AllFriends:       uniqueFriends,
 	}
 
 	return true, shortestDistanceInfo, nil
@@ -59,7 +59,6 @@ func getUserDetailsForShortestDistancePath(cntr controller.CntrInterface, userOn
 	idToUserMap := graphing.GetIDToUserMap(userOne, userTwo)
 	shortestPathUserDetails := []common.UserDocument{}
 	for i := 0; i < len(shortestPathIDs); i++ {
-		fmt.Println(shortestPathIDs[i])
 		shortestPathUserDetails = append(shortestPathUserDetails, idToUserMap[fmt.Sprint(shortestPathIDs[i])])
 	}
 

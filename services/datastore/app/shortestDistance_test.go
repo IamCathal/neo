@@ -25,7 +25,7 @@ func TestGetShortestDistanceWithTwoUsersWhoAreDirectFriendsWithEachother(t *test
 			userOneGraphData.UserDetails.User,
 			userTwoGraphData.UserDetails.User,
 		},
-		TotalNetworkSpan: len(userOneGraphData.FriendDetails) + len(userTwoGraphData.FriendDetails),
+		TotalNetworkSpan: 2,
 		AllFriends:       []common.UserDocument{},
 	}
 
@@ -57,7 +57,7 @@ func TestGetShortestDistanceWithTwoUsersWhoShareOneCommonFriend(t *testing.T) {
 			commonFriendGraphData.UserDetails.User,
 			userTwoWithOneSharedCommonFriendGraphData.UserDetails.User,
 		},
-		TotalNetworkSpan: len(userOneWithOneSharedCommonFriendGraphData.FriendDetails) + len(userTwoWithOneSharedCommonFriendGraphData.FriendDetails),
+		TotalNetworkSpan: len(twoUsersWhoShareOneCommonFriendExpectedAllFriends) + 2,
 		AllFriends:       twoUsersWhoShareOneCommonFriendExpectedAllFriends,
 	}
 

@@ -6,7 +6,7 @@ if (crawlIDs.length == 2) {
     // Get graph data for both users and merge
 
     const firstUserProcessedGraphData = getProcessedGraphData(crawlIDs[0])
-    const secondUserProcessedGraphData = getProcessedGraphData(crawlIDs[0])
+    const secondUserProcessedGraphData = getProcessedGraphData(crawlIDs[1])
 
     Promise.all([firstUserProcessedGraphData, secondUserProcessedGraphData]).then(graphDatas => {
         console.log("now I have both lots of graph data")
@@ -178,6 +178,7 @@ function initThreeJSGraph(crawlData) {
 }
 
 function initThreeJSGraphForTwoUsersCombined(crawlData) {
+    console.log(crawlData)
     const shortestDistanceIDs = crawlData.shortestdistance.map(n => n.accdetails.steamid)
     let seenNodes = new Map()
     let nodes = []
@@ -284,12 +285,14 @@ function combineNetworks(firstUser, secondUser) {
 
     firstUser.frienddetails.forEach(user => {
         const friend = user.User
-        seenUsers.set(friend.accdetails.steamid, true)
-        allUsers.push(friend)
+        if (!seenUsers.has(friend.accdetails.steamid)) {
+            seenUsers.set(friend.accdetails.steamid, true)
+            allUsers.push(friend)
+        }
     })
     secondUser.frienddetails.forEach(user => {
         const friend = user.User
-        if (seenUsers.get(friend.accdetails.steamid) == false) {
+        if (!seenUsers.has(friend.accdetails.steamid)) {
             seenUsers.set(friend.accdetails.steamid, true)
             allUsers.push(friend)
         }

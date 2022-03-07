@@ -23,7 +23,7 @@ if (crawlIDs.length == 2) {
         getShortestDistance(crawlIDs).then(shortestDistanceInfo => {
             console.log(shortestDistanceInfo)
             combinedGraphData["shortestdistance"] = shortestDistanceInfo.shortestdistance
-            initThreeJSGraphForTwoUsersCombined(shortestDistanceInfo)
+            initThreeJSGraphForTwoUsersCombined(combinedGraphData)
         }, err => {
             console.error(`error getting shortest distance info: ${err}`)
         })
@@ -233,29 +233,6 @@ function initThreeJSGraphForTwoUsersCombined(crawlData) {
         })
     })
 
-    console.log(crawlData)
-    links.forEach(link => {
-        const src = nodes.filter(node => node.id === link.source)[0];
-        const dst = nodes.filter(node => node.id === link.target)[0];
-
-        if (src.neighbourNodes === undefined) {
-            src.neighbourNodes = []
-        }
-        if (dst.neighbourNodes === undefined) {
-            dst.neighbourNodes = []
-        }
-        if (src.neighbourLinks === undefined) {
-            src.neighbourLinks = []
-        }
-        if (dst.neighbourLinks === undefined) {
-            dst.neighbourLinks = []
-        }
-        src.neighbourNodes.push(dst)
-        dst.neighbourNodes.push(src)
-        src.neighbourLinks.push(link)
-        dst.neighbourLinks.push(link)
-    });
-
     const threeJSGraphData = {
         nodes: nodes,
         links: links
@@ -263,31 +240,8 @@ function initThreeJSGraphForTwoUsersCombined(crawlData) {
     console.log(threeJSGraphData)
 
     const threeJSGraphDiv = document.getElementById('3d-graph');
-    let hoveredNode = null;
-    let highlightedNodes = new Set()
-    let highlightedLinks = new Set()
     const g = ForceGraph3D()(threeJSGraphDiv)
         .graphData(threeJSGraphData)
-        // .linkColor(link => {
-        //     if (highlightedLinks.has(link)) {
-        //         return '#00ffcf';
-        //     }
-        //     if (shortestDistanceIDs.includes(link.source) && shortestDistanceIDs.includes(link.target)) {
-        //         return 'green'
-        //     } else {
-        //         return 'white'
-        //     }
-        // })
-        // .linkAutoColorBy(link => {
-        //     if (highlightedLinks.has(link)) {
-        //         return '#00ffcf';
-        //     }
-        //     if (shortestDistanceIDs.includes(link.source) && shortestDistanceIDs.includes(link.target)) {
-        //         return 'green'
-        //     } else {
-        //         return 'white'
-        //     }
-        // })
         .nodeThreeObject(({ avatar }) => {
             const imgTexture = new THREE.TextureLoader().load(avatar);
             const material = new THREE.SpriteMaterial({ map: imgTexture });
@@ -310,49 +264,16 @@ function initThreeJSGraphForTwoUsersCombined(crawlData) {
             }, 3300)
         })
         .linkWidth(link => {
-            if (highlightedLinks.has(link)) { 
-                return 4
-            }
             if (shortestDistanceIDs.includes(link.source) && shortestDistanceIDs.includes(link.target)) {
                 return 8;
             } else {
                 return 1;
             }
         });
-        // .linkWidth(link => highlightedLinks.has(link) ? 4 : 1)
-        // .linkColor(link => highlightedLinks.has(link) ? 'green' : 'white')
-        // .linkDirectionalParticles(link => highlightedLinks.has(link) ? 8 : 0)
-        // .linkDirectionalParticleWidth(3)
-        // .linkDirectionalParticleColor(() => 'green')
-        // .onNodeHover(node => {
-        //     if ((!node && !highlightedNodes.size) || (node && hoveredNode === node)) {
-        //         return;
-        //     }
-
-        //     highlightedLinks.clear()
-        //     highlightedNodes.clear()
-        //     if (node != undefined && node != false) {
-        //         highlightedNodes.add(node)
-        //         node.neighbourNodes.forEach(neighourNode => {
-        //             highlightedNodes.add(neighourNode);
-        //         });
-        //         node.neighbourLinks.forEach(neighbourLink => {
-        //             highlightedLinks.add(neighbourLink)
-        //         })
-        //     }
-
-        //     hoveredNode = node || null;
-
-        //     g.nodeColor(g.nodeColor())
-        //         .linkWidth(g.linkWidth())
-        //         .linkDirectionalParticles(g.linkDirectionalParticles());
-        // });
 
     const linkForce = g
     .d3Force("link")
-    .distance(link => {
-        return 80 + (link.source.neighbourNodes.length * 8);
-    });
+    .distance(160);
 }
 
 function combineNetworks(firstUser, secondUser) {
@@ -364,12 +285,14 @@ function combineNetworks(firstUser, secondUser) {
     firstUser.frienddetails.forEach(user => {
         const friend = user.User
         seenUsers.set(friend.accdetails.steamid, true)
-        allUsers.push(friend.accdetails)
+        allUsers.push(friend)
     })
     secondUser.frienddetails.forEach(user => {
         const friend = user.User
-        seenUsers.set(friend.accdetails.steamid, true)
-        allUsers.push(friend.accdetails)
+        if (seenUsers.get(friend.accdetails.steamid) == false) {
+            seenUsers.set(friend.accdetails.steamid, true)
+            allUsers.push(friend)
+        }
     })
     return allUsers
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/neosteamfriendgraphing/common/dtos"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
+	"go.uber.org/zap"
 )
 
 type Cntr struct{}
@@ -54,8 +55,12 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
 		apiKey, steamID)
 	res, err := MakeNetworkGETRequest(targetURL)
+
 	if err != nil {
-		configuration.Logger.Sugar().Infof("error from first call to GetFriendsList with key: %s steamids: %+v, retrying", steamID, apiKey)
+		logMsg := fmt.Sprintf("error from first call to GetFriendsList (%s): %+v  retrying", targetURL, err)
+		configuration.Logger.Info(logMsg,
+			zap.String("response", string(res)))
+
 		for i := 0; i < maxRetryCount; i++ {
 			// A fresh key must be used
 			apiKey := apikeymanager.GetSteamAPIKey()
@@ -64,20 +69,22 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 
 			res, err = MakeNetworkGETRequest(targetURL)
 			if err == nil {
-				configuration.Logger.Sugar().Infof("success on the %d request", i)
+				configuration.Logger.Sugar().Infof("success on the %d request to GetFriendsList  (%s)", i, targetURL)
 				successfulRequest = true
 				break
 			}
-			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 12
-			configuration.Logger.Sugar().Infof("failed to call get friends with  key: %s steamids: %+v, %d times. Sleeping for %d ms", steamID, apiKey, i, exponentialBackOffSleepTime)
-			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
+			// No sleep is needed since KEY_USAGE_TIMER limits the distribution of steam keys
+			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times: %+v", targetURL, i, err)
+			configuration.Logger.Info(logMsg,
+				zap.String("response", string(res)))
 		}
 	} else {
 		successfulRequest = true
 	}
 
 	if !successfulRequest {
-		return []string{}, err
+		newErr := fmt.Errorf("failed %d retries to GetFriendList: %+v Most recent response: %+v", maxRetryCount, err, res)
+		return []string{}, commonUtil.MakeErr(newErr)
 	}
 
 	// if valid := IsValidAPIResponseForSteamId(string(res)); !valid {

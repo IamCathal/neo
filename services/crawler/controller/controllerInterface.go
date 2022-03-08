@@ -15,6 +15,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
+	"github.com/neosteamfriendgraphing/common/util"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
@@ -57,8 +58,9 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	res, err := MakeNetworkGETRequest(targetURL)
 
 	if err != nil {
-		logMsg := fmt.Sprintf("error from first call to GetFriendsList (%s): %+v  retrying", targetURL, err)
+		logMsg := fmt.Sprintf("error from first call to GetFriendsList (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
 			zap.String("response", string(res)))
 
 		for i := 0; i < maxRetryCount; i++ {
@@ -69,13 +71,14 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 
 			res, err = MakeNetworkGETRequest(targetURL)
 			if err == nil {
-				configuration.Logger.Sugar().Infof("success on the %d request to GetFriendsList  (%s)", i, targetURL)
+				configuration.Logger.Sugar().Infof("success on the %d request to GetFriendsList (%s)", i, targetURL)
 				successfulRequest = true
 				break
 			}
 			// No sleep is needed since KEY_USAGE_TIMER limits the distribution of steam keys
-			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times: %+v", targetURL, i, err)
+			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times", targetURL, i)
 			configuration.Logger.Info(logMsg,
+				zap.String("errorMsg", err.Error()),
 				zap.String("response", string(res)))
 		}
 	} else {
@@ -117,31 +120,48 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 	targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
 		apiKey, steamIDStringList)
 	res, err := MakeNetworkGETRequest(targetURL)
+
 	if err != nil {
-		configuration.Logger.Info("error from first call to getPlayerSummaries, retrying")
+		logMsg := fmt.Sprintf("error from first call to getPlayerSummaries (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("response", string(res)))
+
 		for i := 0; i < maxRetryCount; i++ {
+			// A fresh key must be used
+			apiKey := apikeymanager.GetSteamAPIKey()
+			targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
+				apiKey, steamIDStringList)
+
 			res, err = MakeNetworkGETRequest(targetURL)
 			if err == nil {
-				configuration.Logger.Sugar().Infof("success on the %d request", i)
+				configuration.Logger.Sugar().Infof("success on the %d request to GetPlayerSummaries (%s)", i, targetURL)
 				successfulRequest = true
 				break
 			}
-			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 12
-			configuration.Logger.Sugar().Infof("failed to call get player summaries (%s) %d times. Sleeping for %d ms", steamIDStringList, i, exponentialBackOffSleepTime)
-			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
+			// No sleep is needed since KEY_USAGE_TIMER limits the distribution of steam keys
+			logMsg := fmt.Sprintf("failed to call GetPlayerSummaries (%s) %d times", targetURL, i)
+			configuration.Logger.Info(logMsg,
+				zap.String("errorMsg", err.Error()),
+				zap.String("response", string(res)))
 		}
 	} else {
 		successfulRequest = true
 	}
 
-	if successfulRequest == false {
-		return []common.Player{}, err
+	if !successfulRequest {
+		newErr := fmt.Errorf("failed %d retries to GetPlayerSummaries: %+v Most recent response: %+v", maxRetryCount, err, string(res))
+		return []common.Player{}, commonUtil.MakeErr(newErr)
 	}
 
-	json.Unmarshal(res, &allPlayerSummaries)
+	err = json.Unmarshal(res, &allPlayerSummaries)
+	if err != nil {
+		return []common.Player{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling allPlayerSummaries object: %+v", allPlayerSummaries))
+	}
 	// Check if empty
 	if len(allPlayerSummaries.Response.Players) == 0 {
-		configuration.Logger.Sugar().Panicf("empty player summary for %s: %+v", targetURL, allPlayerSummaries.Response.Players)
+		emptyPlayerSummaryErr := fmt.Errorf("empty player summary found for %s, most recent response: %+v", targetURL, string(res))
+		return []common.Player{}, commonUtil.MakeErr(emptyPlayerSummaryErr)
 	}
 	return allPlayerSummaries.Response.Players, nil
 }
@@ -151,14 +171,51 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse, error) {
 	apiResponse := common.GamesOwnedSteamResponse{}
 	apiKey := apikeymanager.GetSteamAPIKey()
+	maxRetryCount := 3
+	successfulRequest := false
 
 	targetURL := fmt.Sprintf("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json&include_appinfo=true&include_played_free_games=true",
 		apiKey, steamID)
 	res, err := MakeNetworkGETRequest(targetURL)
+
 	if err != nil {
-		return common.GamesOwnedResponse{}, err
+		logMsg := fmt.Sprintf("error from first call to GetOwnedGames (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("response", string(res)))
+
+		for i := 0; i < maxRetryCount; i++ {
+			// A fresh key must be used
+			apiKey := apikeymanager.GetSteamAPIKey()
+			targetURL := fmt.Sprintf("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json&include_appinfo=true&include_played_free_games=true",
+				apiKey, steamID)
+
+			res, err = MakeNetworkGETRequest(targetURL)
+			if err == nil {
+				configuration.Logger.Sugar().Infof("success on the %d request to GetFriendsList  (%s)", i, targetURL)
+				successfulRequest = true
+				break
+			}
+			// No sleep is needed since KEY_USAGE_TIMER limits the distribution of steam keys
+			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times", targetURL, i)
+			configuration.Logger.Info(logMsg,
+				zap.String("errorMsg", err.Error()),
+				zap.String("response", string(res)))
+		}
+	} else {
+		successfulRequest = true
 	}
-	json.Unmarshal(res, &apiResponse)
+
+	if !successfulRequest {
+		newErr := fmt.Errorf("failed %d retries to GetOwnedGames: %+v Most recent response: %+v", maxRetryCount, err, res)
+		return common.GamesOwnedResponse{}, commonUtil.MakeErr(newErr)
+	}
+
+	err = json.Unmarshal(res, &apiResponse)
+	if err != nil {
+		return common.GamesOwnedResponse{}, util.MakeErr(err, fmt.Sprintf("error unmarshalling gamesOwnedResponed object: %+v", apiResponse.Response))
+	}
+
 	return apiResponse.Response, nil
 }
 
@@ -206,45 +263,50 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
-	res := &http.Response{}
-	var callErr error
-
 	maxRetryCount := 3
 	successfulRequest := false
 
-	for i := 1; i <= maxRetryCount; i++ {
-		res, callErr = client.Do(req)
-		if callErr != nil {
+	res, err := client.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		logMsg := fmt.Sprintf("error from first call to saveuser (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("request", fmt.Sprintf("%+v", res)),
+			zap.String("response", fmt.Sprintf("%+v", req)))
+
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = client.Do(req)
+			if err == nil && res.StatusCode == http.StatusOK {
+				successfulRequest = true
+				res.Body.Close()
+				break
+			}
+
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, saveUser.User.AccDetails.SteamID, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
-		} else {
-			successfulRequest = true
-			defer res.Body.Close()
-			break
 		}
+	} else {
+		successfulRequest = true
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return false, commonUtil.MakeErr(callErr)
+		failedAllRetriesErr := fmt.Errorf("failed all retries to %s for steamID: %s", targetURL, saveUser.User.AccDetails.SteamID)
+		return false, commonUtil.MakeErr(failedAllRetriesErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, commonUtil.MakeErr(err)
+		return false, commonUtil.MakeErr(err, "failed to readAll for saveUser body")
 	}
 	APIRes := dtos.GetUserDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return false, commonUtil.MakeErr(err)
+		return false, commonUtil.MakeErr(err, fmt.Sprintf("failed to unmarshal SaveUser object: %+v", string(body)))
 	}
 
-	if res.StatusCode == 200 {
-		return true, nil
-	}
-
-	return false, commonUtil.MakeErr(fmt.Errorf("error saving user: %+v", APIRes))
+	return true, nil
 }
 
 // GetUserFromDataStore gets a user from the datastore service
@@ -260,42 +322,48 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
-	res := &http.Response{}
-	var callErr error
 	maxRetryCount := 3
 	successfulRequest := false
 
-	for i := 1; i <= maxRetryCount; i++ {
-		res, callErr = client.Do(req)
-		if callErr != nil {
+	res, err := client.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		logMsg := fmt.Sprintf("error from first call to getuser (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("request", fmt.Sprintf("%+v", res)),
+			zap.String("response", fmt.Sprintf("%+v", req)))
+
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = client.Do(req)
+			if err == nil && res.StatusCode == http.StatusOK {
+				successfulRequest = true
+				res.Body.Close()
+				break
+			}
+
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
-			configuration.Logger.Sugar().Infof("failed to call %s %d times", targetURL, i)
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, steamID, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
-		} else {
-			successfulRequest = true
-			defer res.Body.Close()
-			break
 		}
+	} else {
+		successfulRequest = true
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return common.UserDocument{}, commonUtil.MakeErr(callErr)
+		failedAllRetriesErr := fmt.Errorf("failed all retries to %s for steamID: %s", targetURL, steamID)
+		return common.UserDocument{}, commonUtil.MakeErr(failedAllRetriesErr)
 	}
 
-	// If no user exists in the DB (HTTP 404)
-	if res.StatusCode == http.StatusNotFound {
-		return common.UserDocument{}, nil
-	}
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return common.UserDocument{}, commonUtil.MakeErr(err)
+		return common.UserDocument{}, commonUtil.MakeErr(err, "failed to readall for getUser body")
 	}
 
 	userDoc := dtos.GetUserDTO{}
 	err = json.Unmarshal(body, &userDoc)
 	if err != nil {
-		return common.UserDocument{}, commonUtil.MakeErr(err)
+		return common.UserDocument{}, commonUtil.MakeErr(err, fmt.Sprintf("failed to unmarshal getUser object: %+v", string(body)))
 	}
 
 	return userDoc.User, nil
@@ -320,42 +388,50 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
-	res := &http.Response{}
-	var callErr error
-
 	maxRetryCount := 3
 	successfulRequest := false
 
-	for i := 1; i <= maxRetryCount; i++ {
-		res, callErr = client.Do(req)
-		if callErr != nil {
-			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, crawlingStatus.CrawlID, i)
+	res, err := client.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		logMsg := fmt.Sprintf("error from first call to savecrawlingstats (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("request", fmt.Sprintf("%+v", res)),
+			zap.String("response", fmt.Sprintf("%+v", req)))
+
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = client.Do(req)
+			if err == nil && res.StatusCode == http.StatusOK {
+				successfulRequest = true
+				res.Body.Close()
+				break
+			}
+
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+			configuration.Logger.Sugar().Infof("failed to call %s for %+v %d times. Sleeping for %d ms", targetURL, crawlingStatus, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
-		} else {
-			successfulRequest = true
-			defer res.Body.Close()
-			break
 		}
+	} else {
+		successfulRequest = true
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return false, commonUtil.MakeErr(callErr)
+		failedAllRetriesErr := fmt.Errorf("failed all retries to %s for crawlingStatus: %+v", targetURL, crawlingStatus)
+		return false, commonUtil.MakeErr(failedAllRetriesErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, commonUtil.MakeErr(err)
+		return false, commonUtil.MakeErr(err, "failed to readAll for savecrawlingstats body")
 	}
 	APIRes := common.BasicAPIResponse{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return false, commonUtil.MakeErr(err)
+		return false, commonUtil.MakeErr(err, fmt.Sprintf("failed to unmarshal savecrawlingstats object: %+v", string(body)))
 	}
 
-	if res.StatusCode == 200 {
-		return true, nil
-	}
-	return false, commonUtil.MakeErr(fmt.Errorf("error saving crawling stats for existing user: %+v", APIRes))
+	return true, nil
 }
 
 func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.CrawlingStatus, error) {
@@ -369,42 +445,50 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
-	res := &http.Response{}
-	var callErr error
-
 	maxRetryCount := 3
 	successfulRequest := false
 
-	for i := 1; i <= maxRetryCount; i++ {
-		res, callErr = client.Do(req)
-		if callErr != nil {
-			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, crawlID, i)
+	res, err := client.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		logMsg := fmt.Sprintf("error from first call to getcrawlingstatus (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("request", fmt.Sprintf("%+v", res)),
+			zap.String("response", fmt.Sprintf("%+v", req)))
+
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = client.Do(req)
+			if err == nil && res.StatusCode == http.StatusOK {
+				successfulRequest = true
+				res.Body.Close()
+				break
+			}
+
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, crawlID, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
-		} else {
-			successfulRequest = true
-			defer res.Body.Close()
-			break
 		}
+	} else {
+		successfulRequest = true
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return common.CrawlingStatus{}, commonUtil.MakeErr(callErr)
+		failedAllRetriesErr := fmt.Errorf("failed all retries to %s for crawlID: %s", targetURL, crawlID)
+		return common.CrawlingStatus{}, commonUtil.MakeErr(failedAllRetriesErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return common.CrawlingStatus{}, commonUtil.MakeErr(err)
+		return common.CrawlingStatus{}, commonUtil.MakeErr(err, "failed to readAll for getcrawlingstatus body")
 	}
 	APIRes := dtos.GetCrawlingStatusDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return common.CrawlingStatus{}, commonUtil.MakeErr(err)
+		return common.CrawlingStatus{}, commonUtil.MakeErr(err, fmt.Sprintf("failed to unmarshal getcrawlingstatus object: %+v", string(body)))
 	}
 
-	if res.StatusCode == 200 {
-		return APIRes.CrawlingStatus, nil
-	}
-	return common.CrawlingStatus{}, commonUtil.MakeErr(fmt.Errorf("error getting crawling status: %+v", APIRes))
+	return APIRes.CrawlingStatus, nil
 }
 
 func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraphableDataForUserDTO, error) {
@@ -417,36 +501,48 @@ func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraph
 	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
-	res := &http.Response{}
-	var callErr error
-
 	maxRetryCount := 3
 	successfulRequest := false
 
-	for i := 1; i <= maxRetryCount; i++ {
-		res, callErr = client.Do(req)
-		if callErr != nil {
-			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, steamID, i)
+	res, err := client.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		logMsg := fmt.Sprintf("error from first call to getgraphabledata (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("request", fmt.Sprintf("%+v", res)),
+			zap.String("response", fmt.Sprintf("%+v", req)))
+
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = client.Do(req)
+			if err == nil && res.StatusCode == http.StatusOK {
+				successfulRequest = true
+				res.Body.Close()
+				break
+			}
+
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, steamID, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
-		} else {
-			successfulRequest = true
-			defer res.Body.Close()
-			break
 		}
+	} else {
+		successfulRequest = true
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(callErr)
+		failedAllRetriesErr := fmt.Errorf("failed all retries to %s for steamID: %s", targetURL, steamID)
+		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(failedAllRetriesErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(err)
+		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(err, "failed to readAll for getgraphabledata body")
 	}
+
 	APIRes := dtos.GetGraphableDataForUserDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(err)
+		return dtos.GetGraphableDataForUserDTO{}, commonUtil.MakeErr(err, "failed to unmarshal getgraphabledata")
 	}
 
 	if res.StatusCode == 200 {
@@ -474,47 +570,54 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
-	res := &http.Response{}
-	var callErr error
-
 	maxRetryCount := 3
 	successfulRequest := false
+	res, err := client.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		logMsg := fmt.Sprintf("error from first call to getusernamesfromsteamids (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("request", fmt.Sprintf("%+v", res)),
+			zap.String("response", fmt.Sprintf("%+v", req)))
 
-	for i := 1; i <= maxRetryCount; i++ {
-		res, callErr = client.Do(req)
-		if callErr != nil {
-			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, steamIDs, i)
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = client.Do(req)
+			if err == nil && res.StatusCode == http.StatusOK {
+				successfulRequest = true
+				res.Body.Close()
+				break
+			}
+
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+			configuration.Logger.Sugar().Infof("failed to call %s for %+v %d times. Sleeping for %d ms", targetURL, steamIDs, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
-		} else {
-			successfulRequest = true
-			defer res.Body.Close()
-			break
 		}
+	} else {
+		successfulRequest = true
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return make(map[string]string), commonUtil.MakeErr(callErr)
+		failedAllRetriesErr := fmt.Errorf("failed all retries to %s for steamIDs: %+v", targetURL, steamIDs)
+		return make(map[string]string), commonUtil.MakeErr(failedAllRetriesErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return make(map[string]string), commonUtil.MakeErr(err)
+		return make(map[string]string), commonUtil.MakeErr(err, "failed to readAll for getusernamesfromsteamids body")
 	}
+
 	APIRes := dtos.GetUsernamesFromSteamIDsDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return make(map[string]string), commonUtil.MakeErr(err)
+		return make(map[string]string), commonUtil.MakeErr(err, fmt.Sprintf("failed to unmarshal getusernamesfromsteamids object: %+v", string(body)))
 	}
 
-	if res.StatusCode == 200 {
-		steamIDToUserMap := make(map[string]string)
-		for _, user := range APIRes.SteamIDAndUsername {
-			steamIDToUserMap[user.SteamID] = user.Username
-		}
-		return steamIDToUserMap, nil
+	steamIDToUserMap := make(map[string]string)
+	for _, user := range APIRes.SteamIDAndUsername {
+		steamIDToUserMap[user.SteamID] = user.Username
 	}
-
-	return make(map[string]string), commonUtil.MakeErr(fmt.Errorf("error getting usernames for steamIDs: %+v", APIRes))
+	return steamIDToUserMap, nil
 }
 
 func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData common.UsersGraphData) (bool, error) {
@@ -544,43 +647,51 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
-	res := &http.Response{}
-	var callErr error
-
 	maxRetryCount := 3
 	successfulRequest := false
 
-	for i := 1; i <= maxRetryCount; i++ {
-		res, callErr = client.Do(req)
-		if callErr != nil {
-			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times", targetURL, crawlID, i)
+	res, err := client.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		logMsg := fmt.Sprintf("error from first call to saveprocessedgraphdata (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("request", fmt.Sprintf("%+v", res)),
+			zap.String("response", fmt.Sprintf("%+v", req)))
+
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = client.Do(req)
+			if err == nil && res.StatusCode == http.StatusOK {
+				successfulRequest = true
+				res.Body.Close()
+				break
+			}
+
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, crawlID, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
-		} else {
-			successfulRequest = true
-			defer res.Body.Close()
-			break
 		}
+	} else {
+		successfulRequest = true
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return false, commonUtil.MakeErr(callErr)
+		failedAllRetriesErr := fmt.Errorf("failed all retries to %s for crawlID: %s", targetURL, crawlID)
+		return false, commonUtil.MakeErr(failedAllRetriesErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, commonUtil.MakeErr(err)
+		return false, commonUtil.MakeErr(err, "failed to readAll for saveprocessedgraphdata body")
 	}
+
 	APIRes := dtos.GetUsernamesFromSteamIDsDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return false, commonUtil.MakeErr(err)
+		return false, commonUtil.MakeErr(err, "failed to unmarshal saveprocessedgraphdata object")
 	}
 
-	if res.StatusCode == 200 {
-		return true, nil
-	}
-
-	return false, commonUtil.MakeErr(fmt.Errorf("error saving processed graphdata: %+v", APIRes))
+	return true, nil
 }
 
 func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo, error) {
@@ -603,43 +714,51 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 	req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
 
 	client := &http.Client{}
-	res := &http.Response{}
-	var callErr error
-
 	maxRetryCount := 3
 	successfulRequest := false
 
-	for i := 1; i <= maxRetryCount; i++ {
-		res, callErr = client.Do(req)
-		if callErr != nil {
-			configuration.Logger.Sugar().Infof("failed to call %s for %+v %d times", targetURL, gameIDs, i)
+	res, err := client.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK {
+		logMsg := fmt.Sprintf("error from first call to getdetailsforgames (%s), retrying now", targetURL)
+		configuration.Logger.Info(logMsg,
+			zap.String("errorMsg", err.Error()),
+			zap.String("request", fmt.Sprintf("%+v", res)),
+			zap.String("response", fmt.Sprintf("%+v", req)))
+
+		for i := 0; i < maxRetryCount; i++ {
+			res, err = client.Do(req)
+			if err == nil && res.StatusCode == http.StatusOK {
+				successfulRequest = true
+				res.Body.Close()
+				break
+			}
+
+			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
+			configuration.Logger.Sugar().Infof("failed to call %s for %+v %d times. Sleeping for %d ms", targetURL, gameIDs, i, exponentialBackOffSleepTime)
+			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 			res.Body.Close()
-		} else {
-			successfulRequest = true
-			defer res.Body.Close()
-			break
 		}
+	} else {
+		successfulRequest = true
 	}
 	// Failed after all retries
 	if !successfulRequest {
-		return []common.BareGameInfo{}, commonUtil.MakeErr(callErr)
+		failedAllRetriesErr := fmt.Errorf("failed all retries to %s for gameIDs: %+v", targetURL, gameIDs)
+		return []common.BareGameInfo{}, commonUtil.MakeErr(failedAllRetriesErr)
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return []common.BareGameInfo{}, commonUtil.MakeErr(err)
+		return []common.BareGameInfo{}, commonUtil.MakeErr(err, "failed to readAll for getdetailsforgames body")
 	}
+
 	APIRes := dtos.GetDetailsForGamesDTO{}
 	err = json.Unmarshal(body, &APIRes)
 	if err != nil {
-		return []common.BareGameInfo{}, commonUtil.MakeErr(err)
+		return []common.BareGameInfo{}, commonUtil.MakeErr(err, fmt.Sprintf("failed to unmarshal getdetailsforgames object: %+v", string(body)))
 	}
 
-	if res.StatusCode == 200 {
-		return APIRes.Games, nil
-	}
-
-	return []common.BareGameInfo{}, commonUtil.MakeErr(fmt.Errorf("error when retrieving details for games: %+v", APIRes))
+	return APIRes.Games, nil
 }
 
 func (control Cntr) Sleep(duration time.Duration) {

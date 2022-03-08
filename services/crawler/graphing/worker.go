@@ -1,12 +1,14 @@
 package graphing
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/iamcathal/neo/services/crawler/configuration"
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/neosteamfriendgraphing/common"
+	"go.uber.org/zap"
 )
 
 type jobStruct struct {
@@ -43,8 +45,10 @@ func graphWorker(id int, stopSignal <-chan bool, cntr controller.CntrInterface, 
 				panic("EMPTY JOB, most likely means channel was closed and read from")
 			}
 
-			configuration.Logger.Sugar().Infof("[CrawlID:%s][ID:%d][jobs:%d][res:%d] worker received job: %+v",
-				currentJob.CrawlID, id, len(jobs), len(res), currentJob)
+			logMsg := fmt.Sprintf("[Worker ID:%d][jobs length: %d][res length: %d] worker received job: %+v",
+				id, len(jobs), len(res), currentJob)
+			configuration.Logger.Info(logMsg,
+				zap.String("requestID", currentJob.CrawlID))
 
 			userGraphData, err := cntr.GetUserFromDataStore(currentJob.SteamID)
 			if err != nil {
@@ -152,9 +156,13 @@ func Control2Func(cntr controller.CntrInterface, crawlID, steamID string, worker
 	close(jobsChan)
 	close(resChan)
 
-	configuration.Logger.Info("waiting for all jobs to be done for crawlID: %s")
+	logMsg := fmt.Sprintf("waiting for all jobs to be done for crawlID: %s", crawlID)
+	configuration.Logger.Info(logMsg,
+		zap.String("requestID", crawlID))
 	wg.Wait()
-	configuration.Logger.Sugar().Infof("all %d users have been found for crawlID: %s", len(allUsersGraphData), crawlID)
+	logMsg = fmt.Sprintf("all %d users have been found for crawlID: %s", len(allUsersGraphData), crawlID)
+	configuration.Logger.Info(logMsg,
+		zap.String("requestID", crawlID))
 
 	if oneOrMoreUsersHasNoUsername {
 		configuration.Logger.Info("one or more users had no username, retrieving and correlating all usernames now")

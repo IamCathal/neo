@@ -27,12 +27,9 @@ func CalulateShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, s
 		return false, datastructures.ShortestDistanceInfo{}, nil
 	}
 
-	exists, userDetailsForShortestPath, err := getUserDetailsForShortestDistancePath(cntr, firstUserGraphData, secondUserGraphData)
+	_, userDetailsForShortestPath, err := getUserDetailsForShortestDistancePath(cntr, firstUserGraphData, secondUserGraphData)
 	if err != nil {
 		return false, datastructures.ShortestDistanceInfo{}, err
-	}
-	if !exists {
-		return false, datastructures.ShortestDistanceInfo{}, nil
 	}
 	uniqueFriends := getUniqueFriends(firstUserGraphData, secondUserGraphData)
 	shortestDistanceInfo := datastructures.ShortestDistanceInfo{

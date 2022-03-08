@@ -165,6 +165,9 @@ func GetShortestPathIDs(cntr controller.CntrInterface, userOne, userTwo common.U
 	close(resChan)
 
 	best, err := graph.Shortest(workerConfig.steamIDToGraphID[toInt64(userOne.UserDetails.User.AccDetails.SteamID)], workerConfig.steamIDToGraphID[toInt64(userTwo.UserDetails.User.AccDetails.SteamID)])
+	if err == dijkstra.ErrNoPath {
+		return false, []int64{}, nil
+	}
 	if err != nil {
 		return false, []int64{}, util.MakeErr(err)
 	}

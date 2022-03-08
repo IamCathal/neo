@@ -31,7 +31,7 @@ type CntrInterface interface {
 	InsertGame(ctx context.Context, game common.BareGameInfo) (bool, error)
 	GetDetailsForGames(ctx context.Context, IDList []int) ([]common.BareGameInfo, error)
 	SaveShortestDistance(ctx context.Context, shortestDistanceInfo datastructures.ShortestDistanceInfo) (bool, error)
-	GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (datastructures.ShortestDistanceInfo, error)
+	GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (bool, datastructures.ShortestDistanceInfo, error)
 	// Postgresql related functions
 	SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error)
 	GetProcessedGraphData(crawlID string) (common.UsersGraphData, error)
@@ -214,6 +214,7 @@ func (control Cntr) GetDetailsForGames(ctx context.Context, IDList []int) ([]com
 func (control Cntr) SaveShortestDistance(ctx context.Context, shortestDistanceInfo datastructures.ShortestDistanceInfo) (bool, error) {
 	shortestDistanceCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("SHORTEST_DISTANCE_COLLECTION"))
 	bsonObj, err := bson.Marshal(shortestDistanceInfo)
+	fmt.Printf("\n\n%+v\n\n", shortestDistanceInfo)
 	if err != nil {
 		return false, util.MakeErr(err)
 	}
@@ -224,18 +225,18 @@ func (control Cntr) SaveShortestDistance(ctx context.Context, shortestDistanceIn
 	return true, nil
 }
 
-func (control Cntr) GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (datastructures.ShortestDistanceInfo, error) {
+func (control Cntr) GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (bool, datastructures.ShortestDistanceInfo, error) {
 	userCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("SHORTEST_DISTANCE_COLLECTION"))
 	shortestDistanceInfo := datastructures.ShortestDistanceInfo{}
 
 	if err := userCollection.FindOne(ctx,
 		bson.D{{Key: "crawlids", Value: bson.D{{Key: "$all", Value: crawlIDs}}}}).Decode(&shortestDistanceInfo); err != nil {
 		if err == mongo.ErrNoDocuments {
-			return datastructures.ShortestDistanceInfo{}, nil
+			return false, datastructures.ShortestDistanceInfo{}, nil
 		}
-		return datastructures.ShortestDistanceInfo{}, util.MakeErr(err)
+		return true, datastructures.ShortestDistanceInfo{}, util.MakeErr(err)
 	}
-	return shortestDistanceInfo, nil
+	return true, shortestDistanceInfo, nil
 }
 
 func (control Cntr) SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error) {

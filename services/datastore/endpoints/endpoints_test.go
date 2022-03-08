@@ -1510,7 +1510,7 @@ func TestCalculateShortestDistanceInfoReturnsExistingDataForExistingCrawl(t *tes
 		log.Fatal(err)
 	}
 
-	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(expectedShortestDistanceInfo, nil)
+	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(true, expectedShortestDistanceInfo, nil)
 
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/calculateshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
@@ -1695,7 +1695,7 @@ func TestGetShortestDistanceInfoReturnsExistingDataForExistingCrawl(t *testing.T
 		log.Fatal(err)
 	}
 
-	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(expectedShortestDistanceInfo, nil)
+	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(true, expectedShortestDistanceInfo, nil)
 
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {
@@ -1736,7 +1736,7 @@ func TestGetShortestDistanceInfoReturnsErrorWhenNoShortestDistanceWasFound(t *te
 	}
 
 	randomError := errors.New("random err")
-	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(datastructures.ShortestDistanceInfo{}, randomError)
+	mockController.On("GetShortestDistanceInfo", mock.Anything, crawlIDsInput.CrawlIDs).Return(false, datastructures.ShortestDistanceInfo{}, randomError)
 
 	res, err := http.Post(fmt.Sprintf("http://localhost:%d/api/getshortestdistanceinfo", serverPort), "application/json", bytes.NewBuffer(requestBodyJSON))
 	if err != nil {

@@ -115,7 +115,7 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                     }
     
                     startCrawl(crawlDTO).then(crawlIDs => {
-                        window.location.href = `/crawl/${crawlIDs[0]}`
+                        window.location.href = `/crawl?firstcrawlid=${crawlIDs[0]}`
                     }, (err) => {
                         console.error(`startCrawl: ${err}`);
                     })
@@ -178,7 +178,7 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                         window.location.href = `/crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${newCrawlIDs[1]}`
                     } else {
                         crawlIDs = crawlIDs.filter(k => k)
-                        console.log(`One or more were existing, going to /crawl/${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`)
+                        console.log(`One or more were existing, going to /crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`)
                         window.location.href = `/crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`
                     }
                 }, (err) => {

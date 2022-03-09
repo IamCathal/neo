@@ -71,6 +71,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/calculateshortestdistanceinfo", endpoints.CalculateShortestDistanceInfo).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getshortestdistanceinfo", endpoints.GetShortestDistanceInfo).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getfinishedcrawlsaftertimestamp", endpoints.GetFinishedCrawlsAfterTimestamp).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/getfinishedshortestdistancecrawlsaftertimestamp", endpoints.GetFinishedShortestDistanceCrawlsAfterTimestamp).Methods("GET", "OPTIONS")
 	apiRouter.Use(endpoints.AuthMiddleware)
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
@@ -755,6 +756,30 @@ func (endpoints *Endpoints) GetFinishedCrawlsAfterTimestamp(w http.ResponseWrite
 	response := struct {
 		Status           string                  `json:"status"`
 		CrawlingStatuses []common.CrawlingStatus `json:"crawlingstatuses"`
+	}{
+		"success",
+		crawlsFinishedAfterTimeStamp,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) GetFinishedShortestDistanceCrawlsAfterTimestamp(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	timestampString := r.URL.Query().Get("timestamp")
+	timeStampint64, err := strconv.ParseInt(timestampString, 10, 64)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid timestamp", vars, http.StatusBadRequest)
+		return
+	}
+
+	crawlsFinishedAfterTimeStamp := dbmonitor.GetRecentFinishedShortestDistanceCrawlsAfterTimestamp(timeStampint64)
+
+	response := struct {
+		Status                           string                                `json:"status"`
+		ShortestDistanceCrawlingStatuses []datastructures.ShortestDistanceInfo `json:"shortestdistancecrawlingstatuses"`
 	}{
 		"success",
 		crawlsFinishedAfterTimeStamp,

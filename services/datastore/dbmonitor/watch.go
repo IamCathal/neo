@@ -28,8 +28,10 @@ var (
 	CrawlingStatsStreamWebsockets []WebsocketConn
 	CrawlingStatsStreamLock       sync.Mutex
 
-	LastTwelveFinishedCrawls []common.CrawlingStatus
-	finishedCrawlsLock       sync.Mutex
+	LastTwelveFinishedCrawls                 []common.CrawlingStatus
+	finishedCrawlsLock                       sync.Mutex
+	LastTwelveFinishedShortestDistanceCrawls []datastructures.ShortestDistanceInfo
+	finishedShortestDistanceCrawlLock        sync.Mutex
 )
 
 type WebsocketConn struct {
@@ -42,7 +44,7 @@ func Monitor(cntr controller.CntrInterface) {
 	go watchNewUsers()
 	go watchCrawlingStatusUpdates()
 	go watchRecentFinishedCrawls(cntr)
-	// go watchRecentFinishedShortestDistances()
+	go watchRecentFinishedShortestDistances(cntr)
 }
 
 func watchNewUsers() {
@@ -189,6 +191,21 @@ func watchRecentFinishedCrawls(cntr controller.CntrInterface) {
 		finishedCrawlsLock.Lock()
 		LastTwelveFinishedCrawls = lastTwelveCrawls
 		finishedCrawlsLock.Unlock()
+
+		time.Sleep(30 * time.Second)
+	}
+}
+
+func watchRecentFinishedShortestDistances(cntr controller.CntrInterface) {
+	numStatuses := int64(12)
+	for {
+		lastTwelveShortestDistanceCrawls, err := cntr.GetNMostRecentFinishedShortestDistanceCrawls(context.TODO(), numStatuses)
+		if err != nil {
+			configuration.Logger.Sugar().Panicf("failed to get %d most recent finished shortest distance crawling statuses %+v", numStatuses, err)
+		}
+		finishedShortestDistanceCrawlLock.Lock()
+		LastTwelveFinishedShortestDistanceCrawls = lastTwelveShortestDistanceCrawls
+		finishedShortestDistanceCrawlLock.Unlock()
 
 		time.Sleep(30 * time.Second)
 	}

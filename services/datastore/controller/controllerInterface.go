@@ -272,7 +272,33 @@ func (control Cntr) GetNMostRecentFinishedCrawls(ctx context.Context, amount int
 }
 
 func (contrl Cntr) GetNMostRecentFinishedShortestDistanceCrawls(ctx context.Context, amount int64) ([]datastructures.ShortestDistanceInfo, error) {
-	return []datastructures.ShortestDistanceInfo{}, nil
+	shortestDistanceCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("SHORTEST_DISTANCE_COLLECTION"))
+
+	options := options.Find()
+	options.SetSort(bson.D{{Key: "timestarted", Value: -1}})
+	options.SetLimit(amount)
+
+	cursor, err := shortestDistanceCollection.Find(ctx,
+		bson.D{}, options)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return []datastructures.ShortestDistanceInfo{}, nil
+		}
+		return []datastructures.ShortestDistanceInfo{}, util.MakeErr(err)
+	}
+	defer cursor.Close(ctx)
+
+	var allShortestDistances []datastructures.ShortestDistanceInfo
+	var singleShortestDistances datastructures.ShortestDistanceInfo
+	for cursor.Next(ctx) {
+		err = cursor.Decode(&singleShortestDistances)
+		if err != nil {
+			return []datastructures.ShortestDistanceInfo{}, util.MakeErr(err)
+		}
+		allShortestDistances = append(allShortestDistances, singleShortestDistances)
+	}
+
+	return allShortestDistances, nil
 }
 
 func (control Cntr) SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error) {

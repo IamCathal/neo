@@ -109,3 +109,16 @@ func GetRecentFinishedCrawlsAfterTimestamp(timestamp int64) []common.CrawlingSta
 	}
 	return appropriateCrawlingStatuses
 }
+
+func GetRecentFinishedShortestDistanceCrawlsAfterTimestamp(timestamp int64) []datastructures.ShortestDistanceInfo {
+	appropriateCrawlingStatuses := []datastructures.ShortestDistanceInfo{}
+
+	finishedShortestDistanceCrawlLock.Lock()
+	defer finishedShortestDistanceCrawlLock.Unlock()
+	for _, shortestDistanceCrawlingStatus := range LastTwelveFinishedShortestDistanceCrawls {
+		if shortestDistanceCrawlingStatus.TimeStarted > timestamp {
+			appropriateCrawlingStatuses = append(appropriateCrawlingStatuses, shortestDistanceCrawlingStatus)
+		}
+	}
+	return appropriateCrawlingStatuses
+}

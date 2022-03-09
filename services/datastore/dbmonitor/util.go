@@ -1,6 +1,7 @@
 package dbmonitor
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/util"
@@ -97,17 +99,44 @@ func reverseEvents(list []datastructures.AddUserEvent) []datastructures.AddUserE
 	return list
 }
 
-func GetRecentFinishedCrawlsAfterTimestamp(timestamp int64) []common.CrawlingStatus {
-	appropriateCrawlingStatuses := []common.CrawlingStatus{}
+func GetRecentFinishedCrawlsAfterTimestamp(timestamp int64) []datastructures.FinishedCrawlWithItsUser {
+	appropriateCrawlingStatuses := []datastructures.FinishedCrawlWithItsUser{}
 
 	finishedCrawlsLock.Lock()
 	defer finishedCrawlsLock.Unlock()
 	for _, crawlingStatus := range LastTwelveFinishedCrawls {
-		if crawlingStatus.TimeStarted > timestamp {
+		if crawlingStatus.CrawlingStatus.TimeStarted > timestamp {
 			appropriateCrawlingStatuses = append(appropriateCrawlingStatuses, crawlingStatus)
 		}
 	}
 	return appropriateCrawlingStatuses
+}
+
+func GetAssociatedUsersForFinishedCrawls(cntr controller.CntrInterface, allCrawls []common.CrawlingStatus) ([]datastructures.FinishedCrawlWithItsUser, error) {
+	allUsers := []common.UserDocument{}
+	allCrawlsWithAssociatedUsers := []datastructures.FinishedCrawlWithItsUser{}
+	var allUsersLock sync.Mutex
+	var waitG sync.WaitGroup
+
+	for i := 0; i < len(allCrawls); i++ {
+		waitG.Add(1)
+		newUser := common.UserDocument{}
+		asyncGetUser(cntr, allCrawls[i].OriginalCrawlTarget, &newUser, &waitG, &allUsersLock)
+		allUsersLock.Lock()
+		allUsers = append(allUsers, newUser)
+		allUsersLock.Unlock()
+	}
+
+	waitG.Wait()
+
+	for i, user := range allUsers {
+		allCrawlsWithAssociatedUsers = append(allCrawlsWithAssociatedUsers, datastructures.FinishedCrawlWithItsUser{
+			CrawlingStatus: allCrawls[i],
+			User:           user,
+		})
+	}
+
+	return allCrawlsWithAssociatedUsers, nil
 }
 
 func GetRecentFinishedShortestDistanceCrawlsAfterTimestamp(timestamp int64) []datastructures.ShortestDistanceInfo {
@@ -121,4 +150,15 @@ func GetRecentFinishedShortestDistanceCrawlsAfterTimestamp(timestamp int64) []da
 		}
 	}
 	return appropriateCrawlingStatuses
+}
+
+func asyncGetUser(cntr controller.CntrInterface, ID string, user *common.UserDocument, waitG *sync.WaitGroup, userLock *sync.Mutex) {
+	defer waitG.Done()
+	retrievedUser, err := cntr.GetUser(context.TODO(), ID)
+	if err != nil {
+		configuration.Logger.Panic(err.Error())
+	}
+	userLock.Lock()
+	*user = retrievedUser
+	userLock.Unlock()
 }

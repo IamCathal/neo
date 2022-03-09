@@ -28,7 +28,7 @@ var (
 	CrawlingStatsStreamWebsockets []WebsocketConn
 	CrawlingStatsStreamLock       sync.Mutex
 
-	LastTwelveFinishedCrawls                 []common.CrawlingStatus
+	LastTwelveFinishedCrawls                 []datastructures.FinishedCrawlWithItsUser
 	finishedCrawlsLock                       sync.Mutex
 	LastTwelveFinishedShortestDistanceCrawls []datastructures.ShortestDistanceInfo
 	finishedShortestDistanceCrawlLock        sync.Mutex
@@ -188,8 +188,12 @@ func watchRecentFinishedCrawls(cntr controller.CntrInterface) {
 		if err != nil {
 			configuration.Logger.Sugar().Panicf("failed to get %d most recent finished crawling statuses %+v", numStatuses, err)
 		}
+		lastTwelveCrawlsWithAssociatedUsers, err := GetAssociatedUsersForFinishedCrawls(cntr, lastTwelveCrawls)
+		if err != nil {
+			configuration.Logger.Sugar().Panicf("failed to associate %d most recent finished crawling statuses %+v", numStatuses, err)
+		}
 		finishedCrawlsLock.Lock()
-		LastTwelveFinishedCrawls = lastTwelveCrawls
+		LastTwelveFinishedCrawls = lastTwelveCrawlsWithAssociatedUsers
 		finishedCrawlsLock.Unlock()
 
 		time.Sleep(30 * time.Second)

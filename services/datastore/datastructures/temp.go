@@ -28,3 +28,12 @@ type ShortestDistanceInfo struct {
 type GetShortestDistanceInfoDataInputDTO struct {
 	CrawlIDs []string `json:"crawlids"`
 }
+
+type FinishedCrawlWithItsUser struct {
+	CrawlingStatus common.CrawlingStatus `json:"crawlingstatus"`
+	User           common.UserDocument   `json:"user"`
+}
+type GetFinishedCrawlsDTO struct {
+	Status                     string                     `json:"status"`
+	AllFinishedCrawlsWithUsers []FinishedCrawlWithItsUser `json:"crawls"`
+}

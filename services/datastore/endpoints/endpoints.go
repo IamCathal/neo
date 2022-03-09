@@ -753,12 +753,9 @@ func (endpoints *Endpoints) GetFinishedCrawlsAfterTimestamp(w http.ResponseWrite
 
 	crawlsFinishedAfterTimeStamp := dbmonitor.GetRecentFinishedCrawlsAfterTimestamp(timeStampint64)
 
-	response := struct {
-		Status           string                  `json:"status"`
-		CrawlingStatuses []common.CrawlingStatus `json:"crawlingstatuses"`
-	}{
-		"success",
-		crawlsFinishedAfterTimeStamp,
+	response := datastructures.GetFinishedCrawlsDTO{
+		Status:                     "success",
+		AllFinishedCrawlsWithUsers: crawlsFinishedAfterTimeStamp,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

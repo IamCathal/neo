@@ -27,7 +27,7 @@ func main() {
 	}
 
 	go statsmonitoring.CollectAndShipStats()
-	go dbmonitor.Monitor()
+	go dbmonitor.Monitor(endpoints.Cntr)
 	router := endpoints.SetupRouter()
 
 	srv := &http.Server{

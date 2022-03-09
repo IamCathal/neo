@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
@@ -38,6 +39,7 @@ func CalulateShortestDistanceInfo(cntr controller.CntrInterface, firstCrawlID, s
 		SecondUser:       secondUserGraphData.UserDetails.User,
 		ShortestDistance: userDetailsForShortestPath,
 		TotalNetworkSpan: len(uniqueFriends) + 2,
+		TimeStarted:      time.Now().Unix(),
 	}
 
 	return true, shortestDistanceInfo, nil

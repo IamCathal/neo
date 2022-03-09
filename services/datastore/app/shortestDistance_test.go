@@ -37,7 +37,11 @@ func TestGetShortestDistanceWithTwoUsersWhoAreDirectFriendsWithEachother(t *test
 		secondUserCrawlID)
 
 	assert.True(t, exists)
-	assert.Equal(t, expectedShortestPathInfo, actualShortestPathInfo)
+	assert.Equal(t, expectedShortestPathInfo.CrawlIDs, actualShortestPathInfo.CrawlIDs)
+	assert.Equal(t, expectedShortestPathInfo.FirstUser, actualShortestPathInfo.FirstUser)
+	assert.Equal(t, expectedShortestPathInfo.SecondUser, actualShortestPathInfo.SecondUser)
+	assert.Equal(t, expectedShortestPathInfo.ShortestDistance, actualShortestPathInfo.ShortestDistance)
+	assert.Equal(t, expectedShortestPathInfo.TotalNetworkSpan, actualShortestPathInfo.TotalNetworkSpan)
 	assert.Nil(t, err)
 }
 
@@ -68,7 +72,11 @@ func TestGetShortestDistanceWithTwoUsersWhoShareOneCommonFriend(t *testing.T) {
 		secondUserCrawlID)
 
 	assert.True(t, exists)
-	assert.Equal(t, expectedShortestPathInfo, actualShortestPathInfo)
+	assert.Equal(t, expectedShortestPathInfo.CrawlIDs, actualShortestPathInfo.CrawlIDs)
+	assert.Equal(t, expectedShortestPathInfo.FirstUser, actualShortestPathInfo.FirstUser)
+	assert.Equal(t, expectedShortestPathInfo.SecondUser, actualShortestPathInfo.SecondUser)
+	assert.Equal(t, expectedShortestPathInfo.ShortestDistance, actualShortestPathInfo.ShortestDistance)
+	assert.Equal(t, expectedShortestPathInfo.TotalNetworkSpan, actualShortestPathInfo.TotalNetworkSpan)
 	assert.Nil(t, err)
 }
 

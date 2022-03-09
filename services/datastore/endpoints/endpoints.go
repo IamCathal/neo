@@ -15,6 +15,7 @@ import (
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
+	"github.com/IamCathal/neo/services/datastore/dbmonitor"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
@@ -69,6 +70,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/doesprocessedgraphdataexist/{crawlid}", endpoints.DoesProcessedGraphDataExist).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/calculateshortestdistanceinfo", endpoints.CalculateShortestDistanceInfo).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getshortestdistanceinfo", endpoints.GetShortestDistanceInfo).Methods("POST", "OPTIONS")
+	apiRouter.HandleFunc("/getfinishedcrawlsaftertimestamp", endpoints.GetFinishedCrawlsAfterTimestamp).Methods("GET", "OPTIONS")
 	apiRouter.Use(endpoints.AuthMiddleware)
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
@@ -732,6 +734,30 @@ func (endpoints *Endpoints) GetShortestDistanceInfo(w http.ResponseWriter, r *ht
 	}{
 		"success",
 		shortestDistanceInfo,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) GetFinishedCrawlsAfterTimestamp(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	timestampString := r.URL.Query().Get("timestamp")
+	timeStampint64, err := strconv.ParseInt(timestampString, 10, 64)
+	if err != nil {
+		util.SendBasicInvalidResponse(w, r, "invalid timestamp", vars, http.StatusBadRequest)
+		return
+	}
+
+	crawlsFinishedAfterTimeStamp := dbmonitor.GetRecentFinishedCrawlsAfterTimestamp(timeStampint64)
+
+	response := struct {
+		Status           string                  `json:"status"`
+		CrawlingStatuses []common.CrawlingStatus `json:"crawlingstatuses"`
+	}{
+		"success",
+		crawlsFinishedAfterTimeStamp,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
+	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/util"
 	"github.com/segmentio/ksuid"
 )
@@ -94,4 +95,17 @@ func reverseEvents(list []datastructures.AddUserEvent) []datastructures.AddUserE
 		list[i], list[j] = list[j], list[i]
 	}
 	return list
+}
+
+func GetRecentFinishedCrawlsAfterTimestamp(timestamp int64) []common.CrawlingStatus {
+	appropriateCrawlingStatuses := []common.CrawlingStatus{}
+
+	finishedCrawlsLock.Lock()
+	defer finishedCrawlsLock.Unlock()
+	for _, crawlingStatus := range LastTwelveFinishedCrawls {
+		if crawlingStatus.TimeStarted > timestamp {
+			appropriateCrawlingStatuses = append(appropriateCrawlingStatuses, crawlingStatus)
+		}
+	}
+	return appropriateCrawlingStatuses
 }

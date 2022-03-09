@@ -84,6 +84,52 @@ func (_m *MockCntrInterface) GetDetailsForGames(ctx context.Context, IDList []in
 	return r0, r1
 }
 
+// GetNMostRecentFinishedCrawls provides a mock function with given fields: ctx, amount
+func (_m *MockCntrInterface) GetNMostRecentFinishedCrawls(ctx context.Context, amount int64) ([]common.CrawlingStatus, error) {
+	ret := _m.Called(ctx, amount)
+
+	var r0 []common.CrawlingStatus
+	if rf, ok := ret.Get(0).(func(context.Context, int64) []common.CrawlingStatus); ok {
+		r0 = rf(ctx, amount)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]common.CrawlingStatus)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, amount)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetNMostRecentFinishedShortestDistanceCrawls provides a mock function with given fields: ctx, amount
+func (_m *MockCntrInterface) GetNMostRecentFinishedShortestDistanceCrawls(ctx context.Context, amount int64) ([]datastructures.ShortestDistanceInfo, error) {
+	ret := _m.Called(ctx, amount)
+
+	var r0 []datastructures.ShortestDistanceInfo
+	if rf, ok := ret.Get(0).(func(context.Context, int64) []datastructures.ShortestDistanceInfo); ok {
+		r0 = rf(ctx, amount)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]datastructures.ShortestDistanceInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, amount)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetProcessedGraphData provides a mock function with given fields: crawlID
 func (_m *MockCntrInterface) GetProcessedGraphData(crawlID string) (common.UsersGraphData, error) {
 	ret := _m.Called(crawlID)

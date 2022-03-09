@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/IamCathal/neo/services/datastore/configuration"
+	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
 	"github.com/gorilla/websocket"
 	"github.com/neosteamfriendgraphing/common"
@@ -26,6 +27,9 @@ var (
 
 	CrawlingStatsStreamWebsockets []WebsocketConn
 	CrawlingStatsStreamLock       sync.Mutex
+
+	LastTwelveFinishedCrawls []common.CrawlingStatus
+	finishedCrawlsLock       sync.Mutex
 )
 
 type WebsocketConn struct {
@@ -34,9 +38,11 @@ type WebsocketConn struct {
 	MatchOn string
 }
 
-func Monitor() {
+func Monitor(cntr controller.CntrInterface) {
 	go watchNewUsers()
 	go watchCrawlingStatusUpdates()
+	go watchRecentFinishedCrawls(cntr)
+	// go watchRecentFinishedShortestDistances()
 }
 
 func watchNewUsers() {
@@ -171,4 +177,19 @@ func writeCrawlingStatsUpdateToAllWebsockets(crawlingStat common.CrawlingStatus)
 		}
 	}
 	return nil
+}
+
+func watchRecentFinishedCrawls(cntr controller.CntrInterface) {
+	numStatuses := int64(12)
+	for {
+		lastTwelveCrawls, err := cntr.GetNMostRecentFinishedCrawls(context.TODO(), numStatuses)
+		if err != nil {
+			configuration.Logger.Sugar().Panicf("failed to get %d most recent finished crawling statuses %+v", numStatuses, err)
+		}
+		finishedCrawlsLock.Lock()
+		LastTwelveFinishedCrawls = lastTwelveCrawls
+		finishedCrawlsLock.Unlock()
+
+		time.Sleep(30 * time.Second)
+	}
 }

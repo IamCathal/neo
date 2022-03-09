@@ -32,6 +32,8 @@ type CntrInterface interface {
 	GetDetailsForGames(ctx context.Context, IDList []int) ([]common.BareGameInfo, error)
 	SaveShortestDistance(ctx context.Context, shortestDistanceInfo datastructures.ShortestDistanceInfo) (bool, error)
 	GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (bool, datastructures.ShortestDistanceInfo, error)
+	GetNMostRecentFinishedCrawls(ctx context.Context, amount int64) ([]common.CrawlingStatus, error)
+	GetNMostRecentFinishedShortestDistanceCrawls(ctx context.Context, amount int64) ([]datastructures.ShortestDistanceInfo, error)
 	// Postgresql related functions
 	SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error)
 	GetProcessedGraphData(crawlID string) (common.UsersGraphData, error)
@@ -237,6 +239,40 @@ func (control Cntr) GetShortestDistanceInfo(ctx context.Context, crawlIDs []stri
 		return true, datastructures.ShortestDistanceInfo{}, util.MakeErr(err)
 	}
 	return true, shortestDistanceInfo, nil
+}
+
+func (control Cntr) GetNMostRecentFinishedCrawls(ctx context.Context, amount int64) ([]common.CrawlingStatus, error) {
+	crawlingStatsCollection := configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("CRAWLING_STATS_COLLECTION"))
+
+	options := options.Find()
+	options.SetSort(bson.D{{Key: "timestarted", Value: -1}})
+	options.SetLimit(amount)
+
+	cursor, err := crawlingStatsCollection.Find(ctx,
+		bson.D{{Key: "$where", Value: "this.totaluserstocrawl == this.userscrawled"}}, options)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return []common.CrawlingStatus{}, nil
+		}
+		return []common.CrawlingStatus{}, util.MakeErr(err)
+	}
+	defer cursor.Close(ctx)
+
+	var allCrawlingStatuses []common.CrawlingStatus
+	var singleCrawlingStatus common.CrawlingStatus
+	for cursor.Next(ctx) {
+		err = cursor.Decode(&singleCrawlingStatus)
+		if err != nil {
+			return []common.CrawlingStatus{}, util.MakeErr(err)
+		}
+		allCrawlingStatuses = append(allCrawlingStatuses, singleCrawlingStatus)
+	}
+
+	return allCrawlingStatuses, nil
+}
+
+func (contrl Cntr) GetNMostRecentFinishedShortestDistanceCrawls(ctx context.Context, amount int64) ([]datastructures.ShortestDistanceInfo, error) {
+	return []datastructures.ShortestDistanceInfo{}, nil
 }
 
 func (control Cntr) SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error) {

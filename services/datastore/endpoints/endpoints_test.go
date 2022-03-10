@@ -16,6 +16,7 @@ import (
 	"github.com/IamCathal/neo/services/datastore/configuration"
 	"github.com/IamCathal/neo/services/datastore/controller"
 	"github.com/IamCathal/neo/services/datastore/datastructures"
+	"github.com/IamCathal/neo/services/datastore/dbmonitor"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/joho/godotenv"
 	"github.com/neosteamfriendgraphing/common"
@@ -1779,4 +1780,150 @@ func TestAttemptToAccessAuthenticatedUseOnlyAPIWithoutCredentials(t *testing.T) 
 	assert.Equal(t, http.StatusForbidden, res.StatusCode)
 	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 	mockController.AssertNotCalled(t, "GetUser")
+}
+
+func TestGetFinishedCrawlsAfterTimestamp(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+	timeStamp := 40
+
+	expectedCrawlingStatusesAfterTimeStamp := []datastructures.FinishedCrawlWithItsUser{
+		{
+			CrawlingStatus: common.CrawlingStatus{
+				TimeStarted: 89,
+			},
+		},
+	}
+	finishedCrawls := []datastructures.FinishedCrawlWithItsUser{
+		{
+			CrawlingStatus: common.CrawlingStatus{
+				TimeStarted: 12,
+			},
+		},
+		expectedCrawlingStatusesAfterTimeStamp[0],
+	}
+	dbmonitor.LastTwelveFinishedCrawls = finishedCrawls
+
+	expectedResponse := datastructures.GetFinishedCrawlsDTO{
+		Status:                     "success",
+		AllFinishedCrawlsWithUsers: expectedCrawlingStatusesAfterTimeStamp,
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/api/getfinishedcrawlsaftertimestamp?timestamp=%v", serverPort, timeStamp))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestGetFinishedShortestDistanceCrawlsAfterTimestamp(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+	timeStamp := 40
+
+	expectedShortestDistanceCrawlingStatusesAfterTimeStamp := []datastructures.ShortestDistanceInfo{
+		{
+			TimeStarted: 89,
+		},
+	}
+	finishedCrawls := []datastructures.ShortestDistanceInfo{
+		{
+			TimeStarted: 12,
+		},
+		expectedShortestDistanceCrawlingStatusesAfterTimeStamp[0],
+	}
+	dbmonitor.LastTwelveFinishedShortestDistanceCrawls = finishedCrawls
+
+	expectedResponse := datastructures.GetFinishedShortestDistanceCrawlsDTO{
+		Status:         "success",
+		CrawlingStatus: expectedShortestDistanceCrawlingStatusesAfterTimeStamp,
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/api/getfinishedshortestdistancecrawlsaftertimestamp?timestamp=%v", serverPort, timeStamp))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestGetTotalUsersInDB(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+	expectedUsersInDB := int64(40)
+	dbmonitor.TotalUsersInDB = int64(expectedUsersInDB)
+
+	expectedResponse := struct {
+		Status    string `json:"status"`
+		Usersindb int64  `json:"usersindb"`
+	}{
+		"success",
+		expectedUsersInDB,
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/api/gettotalusersindb", serverPort))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
+}
+
+func TestGetTotalCrawlsCompleted(t *testing.T) {
+	_, serverPort := initServerAndDependencies()
+	expectedCrawlsCompleted := int64(20)
+	dbmonitor.TotalCrawlsCompleted = int64(expectedCrawlsCompleted)
+
+	expectedResponse := struct {
+		Status      string `json:"status"`
+		Totalcrawls int64  `json:"totalcrawls"`
+	}{
+		"success",
+		expectedCrawlsCompleted,
+	}
+	expectedJSONResponse, err := json.Marshal(expectedResponse)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := http.Get(fmt.Sprintf("http://localhost:%d/api/gettotalcrawlscompleted", serverPort))
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+	assert.Equal(t, string(expectedJSONResponse)+"\n", string(body))
 }

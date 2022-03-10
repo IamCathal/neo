@@ -37,3 +37,8 @@ type GetFinishedCrawlsDTO struct {
 	Status                     string                     `json:"status"`
 	AllFinishedCrawlsWithUsers []FinishedCrawlWithItsUser `json:"crawls"`
 }
+
+type GetFinishedShortestDistanceCrawlsDTO struct {
+	Status         string                 `json:"status"`
+	CrawlingStatus []ShortestDistanceInfo `json:"crawlingstatus"`
+}

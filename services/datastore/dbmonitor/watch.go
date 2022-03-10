@@ -207,6 +207,7 @@ func watchRecentFinishedShortestDistances(cntr controller.CntrInterface) {
 		if err != nil {
 			configuration.Logger.Sugar().Panicf("failed to get %d most recent finished shortest distance crawling statuses %+v", numStatuses, err)
 		}
+
 		finishedShortestDistanceCrawlLock.Lock()
 		LastTwelveFinishedShortestDistanceCrawls = lastTwelveShortestDistanceCrawls
 		finishedShortestDistanceCrawlLock.Unlock()

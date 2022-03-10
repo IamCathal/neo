@@ -774,12 +774,9 @@ func (endpoints *Endpoints) GetFinishedShortestDistanceCrawlsAfterTimestamp(w ht
 
 	crawlsFinishedAfterTimeStamp := dbmonitor.GetRecentFinishedShortestDistanceCrawlsAfterTimestamp(timeStampint64)
 
-	response := struct {
-		Status                           string                                `json:"status"`
-		ShortestDistanceCrawlingStatuses []datastructures.ShortestDistanceInfo `json:"shortestdistancecrawlingstatuses"`
-	}{
-		"success",
-		crawlsFinishedAfterTimeStamp,
+	response := datastructures.GetFinishedShortestDistanceCrawlsDTO{
+		Status:         "success",
+		CrawlingStatus: crawlsFinishedAfterTimeStamp,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

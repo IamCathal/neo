@@ -787,8 +787,8 @@ func (endpoints *Endpoints) GetFinishedShortestDistanceCrawlsAfterTimestamp(w ht
 
 func (endpoints *Endpoints) GetTotalUsersInDB(w http.ResponseWriter, r *http.Request) {
 	response := struct {
-		Status    string
-		UsersInDB int64
+		Status    string `json:"status"`
+		Usersindb int64  `json:"usersindb"`
 	}{
 		"success",
 		dbmonitor.GetTotalUsersInDB(),
@@ -800,8 +800,8 @@ func (endpoints *Endpoints) GetTotalUsersInDB(w http.ResponseWriter, r *http.Req
 
 func (endpoints *Endpoints) GetTotalCrawlsCompleted(w http.ResponseWriter, r *http.Request) {
 	response := struct {
-		Status    string
-		UsersInDB int64
+		Status      string `json:"status"`
+		Totalcrawls int64  `json:"totalcrawls"`
 	}{
 		"success",
 		dbmonitor.GetTotalCrawlsCompleted(),

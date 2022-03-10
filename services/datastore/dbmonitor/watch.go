@@ -35,6 +35,9 @@ var (
 
 	TotalUsersInDB     int64
 	totalUsersInDBLock sync.Mutex
+
+	TotalCrawlsCompleted     int64
+	totalCrawlsCompletedLock sync.Mutex
 )
 
 type WebsocketConn struct {
@@ -49,6 +52,7 @@ func Monitor(cntr controller.CntrInterface) {
 	go watchRecentFinishedCrawls(cntr)
 	go watchRecentFinishedShortestDistances(cntr)
 	go watchTotalUsersInDB(cntr)
+	go watchTotalCrawlsCompleted(cntr)
 }
 
 func watchNewUsers() {
@@ -219,20 +223,46 @@ func watchRecentFinishedShortestDistances(cntr controller.CntrInterface) {
 		time.Sleep(30 * time.Second)
 	}
 }
+
 func GetTotalUsersInDB() int64 {
 	totalUsersInDBLock.Lock()
 	defer totalUsersInDBLock.Unlock()
 	return TotalUsersInDB
 }
+
 func watchTotalUsersInDB(cntr controller.CntrInterface) {
 	for {
-		numUsersInDB, err := cntr.GetTotalUsersInDB(context.TODO())
+		numUsersInDB, err := cntr.GetTotalDocumentsInCollection(context.TODO(), os.Getenv("USER_COLLECTION"))
 		if err != nil {
 			configuration.Logger.Sugar().Panicf("failed to get total users in DB: %+v", err)
 		}
 		totalUsersInDBLock.Lock()
 		TotalUsersInDB = numUsersInDB
 		totalUsersInDBLock.Unlock()
+		time.Sleep(30 * time.Second)
+	}
+}
+
+func GetTotalCrawlsCompleted() int64 {
+	totalCrawlsCompletedLock.Lock()
+	defer totalCrawlsCompletedLock.Unlock()
+	return TotalCrawlsCompleted
+}
+
+func watchTotalCrawlsCompleted(cntr controller.CntrInterface) {
+	for {
+		regularCrawlsCompleted, err := cntr.GetTotalDocumentsInCollection(context.TODO(), os.Getenv("CRAWLING_STATS_COLLECTION"))
+		if err != nil {
+			configuration.Logger.Sugar().Panicf("failed to get crawls in DB: %+v", err)
+		}
+		shortestDistanceCrawlsCompleted, err := cntr.GetTotalDocumentsInCollection(context.TODO(), os.Getenv("SHORTEST_DISTANCE_COLLECTION"))
+		if err != nil {
+			configuration.Logger.Sugar().Panicf("failed to get crawls in DB: %+v", err)
+		}
+
+		totalCrawlsCompletedLock.Lock()
+		TotalCrawlsCompleted = regularCrawlsCompleted + shortestDistanceCrawlsCompleted
+		totalCrawlsCompletedLock.Unlock()
 		time.Sleep(30 * time.Second)
 	}
 }

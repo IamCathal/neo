@@ -60,6 +60,11 @@
                     neo
                 </p>
             </div>
+            <div class="col align-self-end pl-1">
+                <p style="font-size: 1.2rem; float: right" class="mt-0 mb-2 mr-5">
+                    <a href="http://51.89.231.193:3001/status" style="text-decoration:none">Status Page</a>
+                </p>
+            </div>
         </div>
     </div>
 
@@ -85,11 +90,11 @@
        
         <div style="height: 550px"></div> -->
 
-        <div class="row" class="mb-5" style="border: 1px solid white; height: 40rem">
-            <div class="col" style="border: 1px solid green">
-                <div class="row" style="border: 1px solid purple">
+        <div class="row" class="mb-2" style="height: 40rem">
+            <div class="col">
+                <div class="row">
 
-                    <div class="col-7" style="border: 2px solid yellow">
+                    <div class="col-7">
 
                         <div class="row">
                             <p id="steamLogoSVG" style="font-weight: 500; font-size: 5rem; line-height: 97%;">
@@ -98,7 +103,7 @@
                             </p> 
                         </div>
                     
-                        <div class="row" style="border: 1px solid orange">
+                        <div class="row mt-4 mb-5">
                             <div class="col">
                                 <p style="font-size: 1.3rem;">
                                     Generate an indepth analysis of your friend network on Steam to see exactly what kind of friends you have or find the shortest distance between two steam users
@@ -106,29 +111,47 @@
                             </div>
                         </div>
 
-                        <div class="row justify-content-md-center" style="border: 1px solid orange">
-                            <div class="col-4 text-center" style="border: 3px solid white; border-radius: 12px;">
+                        <div class="row mt-5 justify-content-md-center">
+                            <div class="col-4 text-center" style="border: 2px solid white; border-radius: 12px;">
                                 <p style="font-size: 1.5rem" class="pt-3">Start Now</p>
                             </div>
                         </div>
 
                     </div>
 
-                    <div class="col" style="border: 2px solid grey">
+                    <div class="col">
                         <img 
-                            style="position: absolute; border: 2px solid white; width: 280%; padding-left: 15rem"; 
-                            src="https://i.imgur.com/2lAJgOw.png"
+                            style="position: absolute; width: 280%; padding-left: 15rem"; 
+                            src="/static/images/NeoExample.jpg"
                         >
-                        <!-- <img 
-                            src="/static/images/neoLogoFinal.png"
-                            style="position: absolute; width: 90%; top: 15%"
-                        > -->
+                        <div class="col mt-5 mb-5">
+                            <br/>
+                        </div>
+                        <div class="col mt-5 box" style=" position: absolute; border-radius: 12px;">
+                            <div class="row justify-content-md-center">
+                                <p id="totalUsersCrawled" style="font-size: 4rem; font-weight: 500;" class="mb-0 pb-0">
+                                    0
+                                </p>
+                            </div>
+                            <div class="row justify-content-md-center">
+                                individual users crawled
+                            </div>
+
+                            <div class="row justify-content-md-center">
+                                <p id="totalCrawls" style="font-size: 4rem; font-weight: 500;" class="mb-0 pb-0">
+                                    0
+                                </p>
+                            </div>
+                            <div class="row justify-content-md-center">
+                                crawls generated
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-          
         </div>
 
+      
 <!-- 
         <div class="row" >
             <div class="col mt-2 mb-2">
@@ -432,6 +455,7 @@
     <script src="/static/javascript/newUserFeedAndGlobe.js"></script>
     <script src="/static/javascript/crawlInterface.js"></script>
     <script src="/static/javascript/recentRegularAndShortestDistanceCrawls.js" type="module"></script>
+    <script src="/static/javascript/systemStats.js" type="module"></script>
 
 </body>
 </html>

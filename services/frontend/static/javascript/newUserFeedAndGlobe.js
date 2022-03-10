@@ -17,9 +17,9 @@ const center = [width/2, height/2];
 
 let frameCount = 1;
 
-drawGlobe();    
-drawGlobeConstructionLines();
-enableGlobeRotation();    
+// drawGlobe();    
+// drawGlobeConstructionLines();
+// enableGlobeRotation();    
 
 
 initAndMonitorWebsocket()
@@ -36,7 +36,7 @@ function initAndMonitorWebsocket() {
     })
 
     wsConn.addEventListener("message", (evt) => {
-        if (currentUserEvents.events.length == 8) {
+        if (currentUserEvents.events.length == 7) {
             let event = currentUserEvents.dequeue()
             newUserLocations.shift()
         }
@@ -184,7 +184,7 @@ function enableGlobeRotation() {
     d3.timer(function (elapsed) {
         // config.horizTilt += 0.02
         // config.vertTilt += 0.07
-        projection.rotate([config.speed * elapsed, config.vertTilt, config.horizTilt]);
+        // projection.rotate([config.speed * elapsed, config.vertTilt, config.horizTilt]);
         svg.selectAll("path").attr("d", path);
         drawNewUserLocations();
     });

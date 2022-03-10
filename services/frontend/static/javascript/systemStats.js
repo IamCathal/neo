@@ -2,11 +2,35 @@ import { countUpElement } from '/static/javascript/countUpScript.js';
 
 
 getTotalUsersInDB().then(totalUsers => {
-    countUpElement("totalUsersCrawled", totalUsers)
+    let totalUsersCached = totalUsers
+    countUpElement("totalUsersCrawled", totalUsersCached)
+    setInterval(() => {
+        getTotalUsersInDB().then((newTotalUsers) => {
+            if (newTotalUsers != totalUsersCached) {
+                totalUsersCached = newTotalUsers
+                const currentVal = parseInt(document.getElementById("totalUsersCrawled").textContent.replace(",",""))
+                countUpElement("totalUsersCrawled", totalUsersCached, {'startVal': currentVal})
+            }
+        }, err => {
+            console.error(err)
+        })
+    }, 30000)
 })
 
 getTotalCrawls().then(totalCrawls => {
-    countUpElement("totalCrawls", totalCrawls)
+    let totalCrawlsCached = totalCrawls
+    countUpElement("totalCrawls", totalCrawlsCached)
+    setInterval(() => {
+        getTotalCrawls().then((newTotalCrawls) => {
+            if (newTotalCrawls != totalCrawlsCached) {
+                totalCrawlsCached = newTotalCrawls
+                const currentVal = parseInt(document.getElementById("totalCrawls").textContent.replace(",",""))
+                countUpElement("totalCrawls", totalCrawlsCached, {'startVal': currentVal})
+            }
+        }, err => {
+            console.error(err)
+        })
+    }, 30000)
 }, err => {
     console.error(err)
 })

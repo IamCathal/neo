@@ -32,6 +32,9 @@ var (
 	finishedCrawlsLock                       sync.Mutex
 	LastTwelveFinishedShortestDistanceCrawls []datastructures.ShortestDistanceInfo
 	finishedShortestDistanceCrawlLock        sync.Mutex
+
+	TotalUsersInDB     int64
+	totalUsersInDBLock sync.Mutex
 )
 
 type WebsocketConn struct {
@@ -45,6 +48,7 @@ func Monitor(cntr controller.CntrInterface) {
 	go watchCrawlingStatusUpdates()
 	go watchRecentFinishedCrawls(cntr)
 	go watchRecentFinishedShortestDistances(cntr)
+	go watchTotalUsersInDB(cntr)
 }
 
 func watchNewUsers() {
@@ -212,6 +216,23 @@ func watchRecentFinishedShortestDistances(cntr controller.CntrInterface) {
 		LastTwelveFinishedShortestDistanceCrawls = lastTwelveShortestDistanceCrawls
 		finishedShortestDistanceCrawlLock.Unlock()
 
+		time.Sleep(30 * time.Second)
+	}
+}
+func GetTotalUsersInDB() int64 {
+	totalUsersInDBLock.Lock()
+	defer totalUsersInDBLock.Unlock()
+	return TotalUsersInDB
+}
+func watchTotalUsersInDB(cntr controller.CntrInterface) {
+	for {
+		numUsersInDB, err := cntr.GetTotalUsersInDB(context.TODO())
+		if err != nil {
+			configuration.Logger.Sugar().Panicf("failed to get total users in DB: %+v", err)
+		}
+		totalUsersInDBLock.Lock()
+		TotalUsersInDB = numUsersInDB
+		totalUsersInDBLock.Unlock()
 		time.Sleep(30 * time.Second)
 	}
 }

@@ -72,6 +72,7 @@ func (endpoints *Endpoints) SetupRouter() *mux.Router {
 	apiRouter.HandleFunc("/getshortestdistanceinfo", endpoints.GetShortestDistanceInfo).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/getfinishedcrawlsaftertimestamp", endpoints.GetFinishedCrawlsAfterTimestamp).Methods("GET", "OPTIONS")
 	apiRouter.HandleFunc("/getfinishedshortestdistancecrawlsaftertimestamp", endpoints.GetFinishedShortestDistanceCrawlsAfterTimestamp).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/gettotalusersindb", endpoints.GetTotalUsersInDB).Methods("GET", "OPTIONS")
 	apiRouter.Use(endpoints.AuthMiddleware)
 	apiRouter.Use(endpoints.LoggingMiddleware)
 
@@ -777,6 +778,19 @@ func (endpoints *Endpoints) GetFinishedShortestDistanceCrawlsAfterTimestamp(w ht
 	response := datastructures.GetFinishedShortestDistanceCrawlsDTO{
 		Status:         "success",
 		CrawlingStatus: crawlsFinishedAfterTimeStamp,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (endpoints *Endpoints) GetTotalUsersInDB(w http.ResponseWriter, r *http.Request) {
+	response := struct {
+		Status    string
+		UsersInDB int64
+	}{
+		"success",
+		dbmonitor.GetTotalUsersInDB(),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -34,6 +34,7 @@ type CntrInterface interface {
 	GetShortestDistanceInfo(ctx context.Context, crawlIDs []string) (bool, datastructures.ShortestDistanceInfo, error)
 	GetNMostRecentFinishedCrawls(ctx context.Context, amount int64) ([]common.CrawlingStatus, error)
 	GetNMostRecentFinishedShortestDistanceCrawls(ctx context.Context, amount int64) ([]datastructures.ShortestDistanceInfo, error)
+	GetTotalUsersInDB(ctx context.Context) (int64, error)
 	// Postgresql related functions
 	SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error)
 	GetProcessedGraphData(crawlID string) (common.UsersGraphData, error)
@@ -299,6 +300,10 @@ func (contrl Cntr) GetNMostRecentFinishedShortestDistanceCrawls(ctx context.Cont
 	}
 
 	return allShortestDistances, nil
+}
+
+func (control Cntr) GetTotalUsersInDB(ctx context.Context) (int64, error) {
+	return configuration.DBClient.Database(os.Getenv("DB_NAME")).Collection(os.Getenv("USER_COLLECTION")).CountDocuments(ctx, bson.D{})
 }
 
 func (control Cntr) SaveProcessedGraphData(crawlID string, graphData common.UsersGraphData) (bool, error) {

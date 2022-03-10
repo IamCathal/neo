@@ -14,7 +14,7 @@ getAnyNewFinishedCrawlStatuses().then((newCrawls) => {
         }, err => {
             console.error(err)
         })
-    }, 5000)
+    }, 30000)
 }, err => {
     console.error(err)
 })
@@ -34,7 +34,7 @@ getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
         }, err => {
             console.error(err)
         })
-    }, 5000)
+    }, 30000)
 }, err => {
     console.error(err)
 })

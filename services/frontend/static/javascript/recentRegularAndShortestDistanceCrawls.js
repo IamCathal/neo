@@ -2,12 +2,8 @@ import { timezSince } from '/static/javascript/userCard.js';
 
 getAnyNewFinishedCrawlStatuses().then((newCrawls) => {
     let mostRecentCrawls = []
-    console.log(`new crawls ${newCrawls} ${newCrawls.length}`)
-
     mostRecentCrawls = newCrawls.concat(mostRecentCrawls)
     mostRecentCrawls.length = mostRecentCrawls.length >= 12 ? 12 : mostRecentCrawls.length;
-    console.log(`most recent crawls: ${mostRecentCrawls} ${mostRecentCrawls.length}`)
-    console.log(mostRecentCrawls)
 
     renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls)
     // setInterval(() => {
@@ -21,6 +17,47 @@ getAnyNewFinishedCrawlStatuses().then((newCrawls) => {
     console.error(err)
 })
 
+getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
+    let mostRecentShortestDistanceCrawls = []
+    console.log(`new shortest distance crawls ${newCrawls} ${newCrawls.length}`)
+
+    mostRecentShortestDistanceCrawls = newCrawls.concat(mostRecentShortestDistanceCrawls)
+    mostRecentShortestDistanceCrawls.length = mostRecentShortestDistanceCrawls.length >= 12 ? 12 : mostRecentShortestDistanceCrawls.length;
+    console.log(`most shortest distance  crawls: ${mostRecentShortestDistanceCrawls} ${mostRecentShortestDistanceCrawls.length}`)
+    console.log(mostRecentShortestDistanceCrawls)
+
+    renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentShortestDistanceCrawls)
+    // setInterval(() => {
+    //     getAnyNewFinishedCrawlStatuses().then((res) => {
+    //         renderTopTwelveMostRecentFinishedCrawlStatuses(res)
+    //     }, err => {
+    //         console.error(err)
+    //     })
+    // }, 5000)
+}, err => {
+    console.error(err)
+})
+
+getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
+    let mostRecentCrawls = []
+    console.log(`new shortest distance crawls ${newCrawls} ${newCrawls.length}`)
+
+    mostRecentCrawls = newCrawls.concat(mostRecentCrawls)
+    mostRecentCrawls.length = mostRecentCrawls.length >= 12 ? 12 : mostRecentCrawls.length;
+    console.log(`most shortest distance recent crawls: ${mostRecentCrawls} ${mostRecentCrawls.length}`)
+    console.log(mostRecentCrawls)
+
+    renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentCrawls)
+    // setInterval(() => {
+    //     getAnyNewFinishedShortestDistanceCrawlStatuses().then((res) => {
+    //         renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(res)
+    //     }, err => {
+    //         console.error(err)
+    //     })
+    // }, 5000)
+}, err => {
+    console.error(err)
+})
 
 function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
     const backgroundColors = ['#292929', '#414141']
@@ -28,7 +65,6 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
     mostRecentCrawls.forEach(crawl => {
         const usersFlagEmoji = getFlagEmoji(crawl.user.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.user.accdetails.loccountrycode)
         const creationDate = new Date(crawl.crawlingstatus.timestarted*1000);
-        const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
         const timeSinceString = `${timezSince(creationDate)}`
 
         document.getElementById("finishedCrawlsDiv").innerHTML += `
@@ -57,6 +93,57 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
     })
 }
 
+function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentCrawls) {
+    let i = 0;
+    mostRecentCrawls.forEach(crawl => {
+        const firstUsersFlagEmoji = getFlagEmoji(crawl.firstuser.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.firstuser.accdetails.loccountrycode)
+        const secondUsersFlagEmoji = getFlagEmoji(crawl.seconduser.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.seconduser.accdetails.loccountrycode)
+        const firstUserMediumQualityProfiler = crawl.firstuser.accdetails.avatar.split(".jpg").join("") + "_medium.jpg";
+        const secondUserMediumQualityProfiler = crawl.seconduser.accdetails.avatar.split(".jpg").join("") + "_medium.jpg";
+
+        const crawlStartTime = new Date(crawl.timestarted*1000);
+        const timeSinceString = `${timezSince(crawlStartTime)}`
+
+        document.getElementById("finishedCrawlsDiv").innerHTML += `
+        <div class="col-5" style="border: 2px solid white; border-radius: 8px;">
+                            <div class="row pt-2">
+                                <div class="col text-center">
+                                    <img 
+                                        src="${firstUserMediumQualityProfiler}"
+                                    >
+                                </div>
+                                <div class="col text-center">
+                                    <img 
+                                        src="${secondUserMediumQualityProfiler}"
+                                    >
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col text-center">
+                                    ${firstUsersFlagEmoji}  ${crawl.firstuser.accdetails.personaname} 
+                                </div>
+                                <div class="col text-center">
+                                    ${secondUsersFlagEmoji}  ${crawl.seconduser.accdetails.personaname} 
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col text-center">
+                                    <p style="font-size: 1.3rem;">${crawl.totalnetworkspan} users</p>
+                                </div>
+                                <div class="col text-center">
+                                    <p style="font-size: 1.3rem;">${timeSinceString} ago</p>
+                                </div>
+                            </div>
+                            <div class="row justify-content-md-center mb-2">
+                               <div class="col-3 text-center ml-2 mr-2 mt-1 mb-1" style="background-color: aqua; border-radius: 6px;">
+                                    View
+                               </div>
+                            </div>
+                        </div>
+        `
+    })
+}
+
 
 function getAnyNewFinishedCrawlStatuses() {
     return new Promise((resolve, reject) => {
@@ -68,6 +155,22 @@ function getAnyNewFinishedCrawlStatuses() {
         .then(data => {
             console.log(data.crawls)
             resolve(data.crawls)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}
+
+function getAnyNewFinishedShortestDistanceCrawlStatuses() {
+    return new Promise((resolve, reject) => {
+        fetch(`http://localhost:2590/api/getfinishedshortestdistancecrawlsaftertimestamp?timestamp=${-5}`, {
+            headers: {
+                "Content-Type": "application/json"
+            },
+        }).then((res => res.json()))
+        .then(data => {
+            console.log(data.crawlingstatus)
+            resolve(data.crawlingstatus)
         }).catch(err => {
             reject(err)
         })

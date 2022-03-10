@@ -6,46 +6,44 @@ getAnyNewFinishedCrawlStatuses().then((newCrawls) => {
     mostRecentCrawls.length = mostRecentCrawls.length >= 12 ? 12 : mostRecentCrawls.length;
 
     renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls)
-    // setInterval(() => {
-    //     getAnyNewFinishedCrawlStatuses().then((res) => {
-    //         renderTopTwelveMostRecentFinishedCrawlStatuses(res)
-    //     }, err => {
-    //         console.error(err)
-    //     })
-    // }, 5000)
+    setInterval(() => {
+        getAnyNewFinishedCrawlStatuses().then((res) => {
+            mostRecentCrawls = res.concat(mostRecentCrawls)
+            mostRecentCrawls.length = mostRecentCrawls.length >= 12 ? 12 : mostRecentCrawls.length;
+            renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls)
+        }, err => {
+            console.error(err)
+        })
+    }, 5000)
 }, err => {
     console.error(err)
 })
 
 getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
     let mostRecentShortestDistanceCrawls = []
-    console.log(`new shortest distance crawls ${newCrawls} ${newCrawls.length}`)
 
     mostRecentShortestDistanceCrawls = newCrawls.concat(mostRecentShortestDistanceCrawls)
     mostRecentShortestDistanceCrawls.length = mostRecentShortestDistanceCrawls.length >= 12 ? 12 : mostRecentShortestDistanceCrawls.length;
-    console.log(`most shortest distance  crawls: ${mostRecentShortestDistanceCrawls} ${mostRecentShortestDistanceCrawls.length}`)
-    console.log(mostRecentShortestDistanceCrawls)
 
     renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentShortestDistanceCrawls)
-    // setInterval(() => {
-    //     getAnyNewFinishedCrawlStatuses().then((res) => {
-    //         renderTopTwelveMostRecentFinishedCrawlStatuses(res)
-    //     }, err => {
-    //         console.error(err)
-    //     })
-    // }, 5000)
+    setInterval(() => {
+        getAnyNewFinishedCrawlStatuses().then((res) => {
+            mostRecentShortestDistanceCrawls = res.concat(mostRecentShortestDistanceCrawls)
+            mostRecentShortestDistanceCrawls.length = mostRecentShortestDistanceCrawls.length >= 12 ? 12 : mostRecentShortestDistanceCrawls.length;
+            renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentShortestDistanceCrawls)
+        }, err => {
+            console.error(err)
+        })
+    }, 5000)
 }, err => {
     console.error(err)
 })
 
 getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
     let mostRecentCrawls = []
-    console.log(`new shortest distance crawls ${newCrawls} ${newCrawls.length}`)
 
     mostRecentCrawls = newCrawls.concat(mostRecentCrawls)
     mostRecentCrawls.length = mostRecentCrawls.length >= 12 ? 12 : mostRecentCrawls.length;
-    console.log(`most shortest distance recent crawls: ${mostRecentCrawls} ${mostRecentCrawls.length}`)
-    console.log(mostRecentCrawls)
 
     renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentCrawls)
     // setInterval(() => {
@@ -60,6 +58,7 @@ getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
 })
 
 function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
+    document.getElementById("finishedCrawlsDiv").innerHTML = '';
     const backgroundColors = ['#292929', '#414141']
     let i = 0;
     mostRecentCrawls.forEach(crawl => {
@@ -94,7 +93,7 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
 }
 
 function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentCrawls) {
-    let i = 0;
+    document.getElementById("finishedShortestDistanceCrawlsDiv").innerHTML = '';
     mostRecentCrawls.forEach(crawl => {
         const firstUsersFlagEmoji = getFlagEmoji(crawl.firstuser.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.firstuser.accdetails.loccountrycode)
         const secondUsersFlagEmoji = getFlagEmoji(crawl.seconduser.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.seconduser.accdetails.loccountrycode)
@@ -104,7 +103,7 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
         const crawlStartTime = new Date(crawl.timestarted*1000);
         const timeSinceString = `${timezSince(crawlStartTime)}`
 
-        document.getElementById("finishedCrawlsDiv").innerHTML += `
+        document.getElementById("finishedShortestDistanceCrawlsDiv").innerHTML += `
         <div class="col-5" style="border: 2px solid white; border-radius: 8px;">
                             <div class="row pt-2">
                                 <div class="col text-center">
@@ -153,7 +152,6 @@ function getAnyNewFinishedCrawlStatuses() {
             },
         }).then((res => res.json()))
         .then(data => {
-            console.log(data.crawls)
             resolve(data.crawls)
         }).catch(err => {
             reject(err)
@@ -169,7 +167,6 @@ function getAnyNewFinishedShortestDistanceCrawlStatuses() {
             },
         }).then((res => res.json()))
         .then(data => {
-            console.log(data.crawlingstatus)
             resolve(data.crawlingstatus)
         }).catch(err => {
             reject(err)

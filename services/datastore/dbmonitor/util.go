@@ -16,7 +16,7 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
-func emitRandomNewUsers() {
+func emitRandomNewUsersForTesting() {
 	profilers := []string{"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fb/fb9c36c36e54b8ca5f2e1cbd89c06574d1348af0.jpg",
 		"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f3/f3d05db4d8557efbcdbfb337f4176abe9fcb5c1b.jpg",
 		"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/7d/7d6dd0cae5a80ae9ce7ec27c9173f20b5e5948f5.jpg",

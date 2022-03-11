@@ -78,7 +78,7 @@ func watchNewUsers() {
 
 	configuration.Logger.Info("watching users collection")
 
-	go emitRandomNewUsers()
+	// go emitRandomNewUsersForTesting()
 
 	for usersCollectionStream.Next(context.TODO()) {
 		var user common.UserDocument

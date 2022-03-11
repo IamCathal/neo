@@ -142,7 +142,7 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
             </div>
             <div class="row justify-content-md-center mb-2">
                 <div class="col-3 text-center ml-2 mr-2 mt-1 mb-1" style="background-color: aqua; border-radius: 6px;">
-                    View
+                    <a href="/shortestdistance?firstcrawlid=${crawl.crawlids[0]}&secondcrawlid=${crawl.crawlids[1]}" style="text-decoration: none"> View </a>
                 </div>
             </div>
         </div>

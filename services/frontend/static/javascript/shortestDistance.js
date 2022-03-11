@@ -4,13 +4,14 @@ const crawlIDs = getCrawlIDsFromShortestDistanceURL()
 
 getShortestDistance(crawlIDs).then(shortestDistanceInfo => {
     console.log(shortestDistanceInfo)
+    console.log(shortestDistanceInfo.shortestdistance.length)
     if (shortestDistanceInfo.shortestdistance.length == 0) {
         document.getElementById("shortestPathExists").style.visibility = 'hidden';
+        document.getElementById("shortestPathDoesntExist").style.visibility = 'visible';
         fillInIndivCrawlDataBoxes(shortestDistanceInfo)
         fillInNoPathInfoText(shortestDistanceInfo)
         return
     }
- 
     fillInStatBoxes(shortestDistanceInfo)
     fillInShortestPathMenu(shortestDistanceInfo)
     initEchartsGraph(shortestDistanceInfo)
@@ -304,7 +305,7 @@ function fillInIndivCrawlDataBoxes(shortestDistanceInfo) {
 
 function fillInNoPathInfoText(shortestDistanceInfo) {
     document.getElementById("noPathInfoText").textContent = `After crawling ${shortestDistanceInfo.totalnetworkspan} users no path between ${shortestDistanceInfo.firstuser.accdetails.personaname}
-         and ${shortestDistanceInfo.seconduser.accdetails.personaname} could be found`
+         and ${shortestDistanceInfo.seconduser.accdetails.personaname} could be found at this level`
 }
 
 function getDistanceBetweenCoordsInKM(firstCoord, secondCoord) {

@@ -68,25 +68,32 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
 
         document.getElementById("finishedCrawlsDiv").innerHTML += `
         <div class="row pt-1 pb-1 mt-1" style="border-radius: 8px; background-color:${backgroundColors[i%backgroundColors.length]};">
-                        <div class="col-sm- ml-2">
-                            <img src="${crawl.user.accdetails.avatar}">
-                        </div>
-                        <div class="col-sm- ml-2">
-                            ${usersFlagEmoji}
-                        </div>
-                        <div class="col-5">
-                            ${crawl.user.accdetails.personaname}
-                        </div>
-                        <div class="col-2">
-                            ${crawl.crawlingstatus.userscrawled} users
-                        </div>
-                        <div class="col-2">
-                            ${timeSinceString}
-                        </div>
-                        <div class="col-sm- ml-3">
-                            <a href="/graph/${crawl.crawlingstatus.crawlid}">View now
-                        </div>
-                    </div>
+            <div class="col-sm- ml-2">
+                <img src="${crawl.user.accdetails.avatar}">
+            </div>
+            <div class="col-sm- ml-2">
+                ${usersFlagEmoji}
+            </div>
+            <div class="col-5">
+                ${crawl.user.accdetails.personaname}
+            </div>
+            <div class="col-2">
+                ${crawl.crawlingstatus.userscrawled} users
+            </div>
+            <div class="col-sm- mr-2">
+                ${crawl.crawlingstatus.maxlevel}
+            </div>
+            <div class="col-2 pl-5">
+                ${timeSinceString}
+            </div>
+            <div class="col-sm- ml-5 align-self-end">
+                <div class="col-3 pr-5" style="border: 2px solid white; border-radius: 6px;">
+                    <a href="/graph/${crawl.crawlingstatus.crawlid}" style="text-decoration: none">
+                        View
+                    </a>
+                </div>
+            </div>
+        </div>
         `
         i++;
     })
@@ -104,41 +111,41 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
         const timeSinceString = `${timezSince(crawlStartTime)}`
 
         document.getElementById("finishedShortestDistanceCrawlsDiv").innerHTML += `
-        <div class="col-5" style="border: 2px solid white; border-radius: 8px;">
-                            <div class="row pt-2">
-                                <div class="col text-center">
-                                    <img 
-                                        src="${firstUserMediumQualityProfiler}"
-                                    >
-                                </div>
-                                <div class="col text-center">
-                                    <img 
-                                        src="${secondUserMediumQualityProfiler}"
-                                    >
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col text-center">
-                                    ${firstUsersFlagEmoji}  ${crawl.firstuser.accdetails.personaname} 
-                                </div>
-                                <div class="col text-center">
-                                    ${secondUsersFlagEmoji}  ${crawl.seconduser.accdetails.personaname} 
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col text-center">
-                                    <p style="font-size: 1.3rem;">${crawl.totalnetworkspan} users</p>
-                                </div>
-                                <div class="col text-center">
-                                    <p style="font-size: 1.3rem;">${timeSinceString} ago</p>
-                                </div>
-                            </div>
-                            <div class="row justify-content-md-center mb-2">
-                               <div class="col-3 text-center ml-2 mr-2 mt-1 mb-1" style="background-color: aqua; border-radius: 6px;">
-                                    View
-                               </div>
-                            </div>
-                        </div>
+        <div class="col-5 m-3 box" style="border: 2px solid white; border-radius: 8px;">
+            <div class="row pt-2">
+                <div class="col text-center">
+                    <img 
+                        src="${firstUserMediumQualityProfiler}"
+                    >
+                </div>
+                <div class="col text-center">
+                    <img 
+                        src="${secondUserMediumQualityProfiler}"
+                    >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col text-center">
+                    ${firstUsersFlagEmoji}  ${crawl.firstuser.accdetails.personaname} 
+                </div>
+                <div class="col text-center">
+                    ${secondUsersFlagEmoji}  ${crawl.seconduser.accdetails.personaname} 
+                </div>
+            </div>
+            <div class="row">
+                <div class="col text-center">
+                    <p style="font-size: 1.3rem;">${crawl.totalnetworkspan} users</p>
+                </div>
+                <div class="col text-center">
+                    <p style="font-size: 1.3rem;">${timeSinceString}</p>
+                </div>
+            </div>
+            <div class="row justify-content-md-center mb-2">
+                <div class="col-3 text-center ml-2 mr-2 mt-1 mb-1" style="background-color: aqua; border-radius: 6px;">
+                    View
+                </div>
+            </div>
+        </div>
         `
     })
 }

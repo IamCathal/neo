@@ -271,6 +271,14 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
 		for i := 0; i < maxRetryCount; i++ {
+			req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+			if err != nil {
+				return false, err
+			}
+			req.Close = true
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
@@ -394,6 +402,14 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
 		for i := 0; i < maxRetryCount; i++ {
+			req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+			if err != nil {
+				return false, err
+			}
+			req.Close = true
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
@@ -572,6 +588,14 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
 		for i := 0; i < maxRetryCount; i++ {
+			req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+			if err != nil {
+				return make(map[string]string), err
+			}
+			req.Close = true
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
@@ -649,15 +673,30 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
 		for i := 0; i < maxRetryCount; i++ {
+			req, err := http.NewRequest("POST", targetURL, &gzippedData)
+			if err != nil {
+				return false, err
+			}
+			req.Close = true
+			req.Header.Set("Content-Encoding", "gzip")
+			req.Header.Set("Content-Type", "application/javascript")
+			req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
 			res, err = client.Do(req)
+			if err == nil {
+				res.Body.Close()
+			}
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
-				res.Body.Close()
 				break
 			}
 
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
-			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %f ms", targetURL, crawlID, i, exponentialBackOffSleepTime)
+			logMsg := fmt.Sprintf("failed to call %s for %+v %d times. Sleeping for %f ms", targetURL, crawlID, i, exponentialBackOffSleepTime)
+			configuration.Logger.Info(logMsg,
+				zap.String("errorMsg", fmt.Sprint(err)),
+				zap.String("request", fmt.Sprintf("%+v", res)),
+				zap.String("response", fmt.Sprintf("%+v", req)))
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
 		}
 	} else {
@@ -715,10 +754,17 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
 		for i := 0; i < maxRetryCount; i++ {
+			req, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(jsonObj))
+			if err != nil {
+				return []common.BareGameInfo{}, err
+			}
+			req.Close = true
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authentication", os.Getenv("AUTH_KEY"))
+
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
-				res.Body.Close()
 				break
 			}
 

@@ -6,6 +6,9 @@ const config = {
 const width = 958;
 const height = 585;
 
+const minNewUserFeedUpdateTimer = 400
+let lastTimeNewUserFeedUpdated = 0
+
 let newUserLocations = [];
 const svg = d3.select('svg')
     .attr('width', width).attr('height', height);
@@ -36,43 +39,47 @@ function initAndMonitorWebsocket() {
     })
 
     wsConn.addEventListener("message", (evt) => {
-        if (currentUserEvents.events.length == 7) {
-            let event = currentUserEvents.dequeue()
-            newUserLocations.shift()
-        }
-
-        newUser = JSON.parse(evt.data);
-        newUser.avatar = newUser.avatar.split(".jpg").join("") + "_full.jpg"
-        currentUserEvents.enqueue(newUser)
-
-        if (newUser.countrycode != "") {
-            // Some users have no specified country code
-            newUserLocations.push(getCoordsFromCountryCode(newUser.countrycode))
-        }
-
-
-        let allEventsContent = [];
-        let i = 0
-        currentUserEvents.getAll().forEach(event => {
-            if (i == 0) {
-                allEventsContent.unshift(marshalIntoHTML(event, animationOutroClasses))
-            } else if (i == currentUserEvents.getAll().length - 1) {
-                allEventsContent.unshift(marshalIntoHTML(event, animationIntroClasses))
-            } else {
-                allEventsContent.unshift(marshalIntoHTML(event, animationNormalClasses))
+        if (new Date().getTime() - lastTimeNewUserFeedUpdated >= minNewUserFeedUpdateTimer) {
+            lastTimeNewUserFeedUpdated = new Date().getTime()
+            
+            if (currentUserEvents.events.length == 7) {
+                let event = currentUserEvents.dequeue()
+                newUserLocations.shift()
             }
-            i++
-        })
-        let allEventsHTML = allEventsContent.join("")
-
-        document.getElementById("newUserDiv").innerHTML = "";
-        document.getElementById("newUserDiv").innerHTML += allEventsHTML;
-
-        setInterval(() => {
-            currentUserEvents.getAll().forEach(foundUser => {
-                document.getElementById(foundUser.steamid).textContent = timeSince(new Date(foundUser.crawltime * 1000))
-            });
-        }, 1000);
+    
+            newUser = JSON.parse(evt.data);
+            newUser.avatar = newUser.avatar.split(".jpg").join("") + "_full.jpg"
+            currentUserEvents.enqueue(newUser)
+    
+            if (newUser.countrycode != "") {
+                // Some users have no specified country code
+                newUserLocations.push(getCoordsFromCountryCode(newUser.countrycode))
+            }
+    
+    
+            let allEventsContent = [];
+            let i = 0
+            currentUserEvents.getAll().forEach(event => {
+                if (i == 0) {
+                    allEventsContent.unshift(marshalIntoHTML(event, animationOutroClasses))
+                } else if (i == currentUserEvents.getAll().length - 1) {
+                    allEventsContent.unshift(marshalIntoHTML(event, animationIntroClasses))
+                } else {
+                    allEventsContent.unshift(marshalIntoHTML(event, animationNormalClasses))
+                }
+                i++
+            })
+            let allEventsHTML = allEventsContent.join("")
+    
+            document.getElementById("newUserDiv").innerHTML = "";
+            document.getElementById("newUserDiv").innerHTML += allEventsHTML;
+    
+            setInterval(() => {
+                currentUserEvents.getAll().forEach(foundUser => {
+                    document.getElementById(foundUser.steamid).textContent = timeSince(new Date(foundUser.crawltime * 1000))
+                });
+            }, 1000);
+        }
     })
 }
 

@@ -7,6 +7,7 @@ const width = 958;
 const height = 585;
 
 const queueLength = 7;
+let userEventsProcessed = 0;
 const minNewUserFeedUpdateTimer = 400
 let lastTimeNewUserFeedUpdated = 0
 
@@ -40,7 +41,7 @@ function initAndMonitorWebsocket() {
     })
 
     wsConn.addEventListener("message", (evt) => {
-        if (new Date().getTime() - lastTimeNewUserFeedUpdated >= minNewUserFeedUpdateTimer || currentUserEvents.length != queueLength) {
+        if (new Date().getTime() - lastTimeNewUserFeedUpdated >= minNewUserFeedUpdateTimer || userEventsProcessed <= queueLength) {
             lastTimeNewUserFeedUpdated = new Date().getTime()
             
             if (currentUserEvents.events.length == queueLength) {
@@ -80,6 +81,7 @@ function initAndMonitorWebsocket() {
                     document.getElementById(foundUser.steamid).textContent = timeSince(new Date(foundUser.crawltime * 1000))
                 });
             }, 1000);
+            userEventsProcessed++
         }
     })
 }

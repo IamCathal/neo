@@ -281,7 +281,6 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, saveUser.User.AccDetails.SteamID, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-			res.Body.Close()
 		}
 	} else {
 		successfulRequest = true
@@ -340,7 +339,6 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, steamID, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-			res.Body.Close()
 		}
 	} else {
 		successfulRequest = true
@@ -406,7 +404,6 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s for %+v %d times. Sleeping for %d ms", targetURL, crawlingStatus, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-			res.Body.Close()
 		}
 	} else {
 		successfulRequest = true
@@ -463,7 +460,6 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, crawlID, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-			res.Body.Close()
 		}
 	} else {
 		successfulRequest = true
@@ -519,7 +515,6 @@ func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraph
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, steamID, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-			res.Body.Close()
 		}
 	} else {
 		successfulRequest = true
@@ -587,7 +582,6 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s for %+v %d times. Sleeping for %d ms", targetURL, steamIDs, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-			res.Body.Close()
 		}
 	} else {
 		successfulRequest = true
@@ -663,9 +657,8 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 			}
 
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
-			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %d ms", targetURL, crawlID, i, exponentialBackOffSleepTime)
+			configuration.Logger.Sugar().Infof("failed to call %s for %s %d times. Sleeping for %f ms", targetURL, crawlID, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-			res.Body.Close()
 		}
 	} else {
 		successfulRequest = true
@@ -732,7 +725,6 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 			exponentialBackOffSleepTime := math.Pow(2, float64(i)) * 16
 			configuration.Logger.Sugar().Infof("failed to call %s for %+v %d times. Sleeping for %d ms", targetURL, gameIDs, i, exponentialBackOffSleepTime)
 			time.Sleep(time.Duration(exponentialBackOffSleepTime) * time.Millisecond)
-			res.Body.Close()
 		}
 	} else {
 		successfulRequest = true

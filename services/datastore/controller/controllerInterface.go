@@ -260,8 +260,8 @@ func (control Cntr) GetNMostRecentFinishedCrawls(ctx context.Context, amount int
 	defer cursor.Close(ctx)
 
 	var allCrawlingStatuses []common.CrawlingStatus
-	var singleCrawlingStatus common.CrawlingStatus
 	for cursor.Next(ctx) {
+		singleCrawlingStatus := common.CrawlingStatus{}
 		err = cursor.Decode(&singleCrawlingStatus)
 		if err != nil {
 			return []common.CrawlingStatus{}, util.MakeErr(err)
@@ -290,13 +290,14 @@ func (contrl Cntr) GetNMostRecentFinishedShortestDistanceCrawls(ctx context.Cont
 	defer cursor.Close(ctx)
 
 	var allShortestDistances []datastructures.ShortestDistanceInfo
-	var singleShortestDistances datastructures.ShortestDistanceInfo
 	for cursor.Next(ctx) {
-		err = cursor.Decode(&singleShortestDistances)
+		singleShortestDistance := datastructures.ShortestDistanceInfo{}
+		err = cursor.Decode(&singleShortestDistance)
 		if err != nil {
 			return []datastructures.ShortestDistanceInfo{}, util.MakeErr(err)
 		}
-		allShortestDistances = append(allShortestDistances, singleShortestDistances)
+
+		allShortestDistances = append(allShortestDistances, singleShortestDistance)
 	}
 
 	return allShortestDistances, nil

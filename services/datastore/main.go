@@ -33,8 +33,8 @@ func main() {
 	srv := &http.Server{
 		Handler:      router,
 		Addr:         fmt.Sprintf(":%s", os.Getenv("API_PORT")),
-		WriteTimeout: 30 * time.Second,
-		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 20 * time.Second,
+		ReadTimeout:  30 * time.Second,
 	}
 	configuration.Logger.Info(fmt.Sprintf("datastore start up and serving requests on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())

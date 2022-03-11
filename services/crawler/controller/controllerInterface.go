@@ -158,11 +158,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 	if err != nil {
 		return []common.Player{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling allPlayerSummaries object: %+v", allPlayerSummaries))
 	}
-	// Check if empty
-	if len(allPlayerSummaries.Response.Players) == 0 {
-		emptyPlayerSummaryErr := fmt.Errorf("empty player summary found for %s, most recent response: %+v", targetURL, string(res))
-		return []common.Player{}, commonUtil.MakeErr(emptyPlayerSummaryErr)
-	}
+
 	return allPlayerSummaries.Response.Players, nil
 }
 

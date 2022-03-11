@@ -60,7 +60,7 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	if err != nil {
 		logMsg := fmt.Sprintf("error from first call to GetFriendsList (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("response", string(res)))
 
 		for i := 0; i < maxRetryCount; i++ {
@@ -78,7 +78,7 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 			// No sleep is needed since KEY_USAGE_TIMER limits the distribution of steam keys
 			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times", targetURL, i)
 			configuration.Logger.Info(logMsg,
-				zap.String("errorMsg", err.Error()),
+				zap.String("errorMsg", fmt.Sprint(err)),
 				zap.String("response", string(res)))
 		}
 	} else {
@@ -124,7 +124,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 	if err != nil {
 		logMsg := fmt.Sprintf("error from first call to getPlayerSummaries (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("response", string(res)))
 
 		for i := 0; i < maxRetryCount; i++ {
@@ -142,7 +142,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 			// No sleep is needed since KEY_USAGE_TIMER limits the distribution of steam keys
 			logMsg := fmt.Sprintf("failed to call GetPlayerSummaries (%s) %d times", targetURL, i)
 			configuration.Logger.Info(logMsg,
-				zap.String("errorMsg", err.Error()),
+				zap.String("errorMsg", fmt.Sprint(err)),
 				zap.String("response", string(res)))
 		}
 	} else {
@@ -177,7 +177,7 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 	if err != nil {
 		logMsg := fmt.Sprintf("error from first call to GetOwnedGames (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("response", string(res)))
 
 		for i := 0; i < maxRetryCount; i++ {
@@ -195,7 +195,7 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 			// No sleep is needed since KEY_USAGE_TIMER limits the distribution of steam keys
 			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times", targetURL, i)
 			configuration.Logger.Info(logMsg,
-				zap.String("errorMsg", err.Error()),
+				zap.String("errorMsg", fmt.Sprint(err)),
 				zap.String("response", string(res)))
 		}
 	} else {
@@ -266,7 +266,7 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 	if err != nil || res.StatusCode != http.StatusOK {
 		logMsg := fmt.Sprintf("error from first call to saveuser (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("request", fmt.Sprintf("%+v", res)),
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
@@ -325,7 +325,7 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 	if err != nil || res.StatusCode != http.StatusOK {
 		logMsg := fmt.Sprintf("error from first call to getuser (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("request", fmt.Sprintf("%+v", res)),
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
@@ -391,7 +391,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 	if err != nil || res.StatusCode != http.StatusOK {
 		logMsg := fmt.Sprintf("error from first call to savecrawlingstats (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("request", fmt.Sprintf("%+v", res)),
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
@@ -448,7 +448,7 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 	if err != nil || res.StatusCode != http.StatusOK {
 		logMsg := fmt.Sprintf("error from first call to getcrawlingstatus (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("request", fmt.Sprintf("%+v", res)),
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
@@ -504,7 +504,7 @@ func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraph
 	if err != nil || res.StatusCode != http.StatusOK {
 		logMsg := fmt.Sprintf("error from first call to getgraphabledata (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("request", fmt.Sprintf("%+v", res)),
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
@@ -572,7 +572,7 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 	if err != nil || res.StatusCode != http.StatusOK {
 		logMsg := fmt.Sprintf("error from first call to getusernamesfromsteamids (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("request", fmt.Sprintf("%+v", res)),
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
@@ -650,7 +650,7 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 	if err != nil || res.StatusCode != http.StatusOK {
 		logMsg := fmt.Sprintf("error from first call to saveprocessedgraphdata (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("request", fmt.Sprintf("%+v", res)),
 			zap.String("response", fmt.Sprintf("%+v", req)))
 
@@ -717,7 +717,7 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 	if err != nil || res.StatusCode != http.StatusOK {
 		logMsg := fmt.Sprintf("error from first call to getdetailsforgames (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
-			zap.String("errorMsg", err.Error()),
+			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("request", fmt.Sprintf("%+v", res)),
 			zap.String("response", fmt.Sprintf("%+v", req)))
 

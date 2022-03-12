@@ -208,6 +208,65 @@ export function startCalculateGetShortestDistance(crawlIDs) {
     })
 }
 
+export function startCrawl(crawlDTO) {
+    return new Promise((resolve, reject) => {
+        console.log(`sending ${JSON.stringify(crawlDTO)}`)
+        fetch(`http://localhost:2570/crawl`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(crawlDTO),
+        }).then(res => res.json())
+        .then(data => {
+            resolve(data.crawlids)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}
+
+export function hasBeenCrawled(steamID, level) {
+    return new Promise((resolve, reject) => {
+        const reqBody = {
+            "level": parseInt(level),
+            "steamid": steamID
+        }
+        fetch(`http://localhost:2590/api/hasbeencrawledbefore`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(reqBody),
+        }).then(res => res.json())
+        .then(data => {
+            resolve(data.message)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+} 
+
+export function isPublicProfile(steamID) {
+    return new Promise((resolve, reject) => {
+        fetch(`http://localhost:2570/isprivateprofile/${steamID}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then(res => res.json())
+    .then(data => {
+        if (data.message === "public") {
+            resolve(true)
+        }
+        resolve(false)
+    }).catch(err => {
+        console.error(err)
+        reject(err)
+        })
+    })
+}
+
 function usersCrawledIsMoreThanZero(idPrefix) {
     if (parseInt(document.getElementById(`${idPrefix}UsersCrawled`).textContent) >= 1) {
         return true

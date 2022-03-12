@@ -27,6 +27,8 @@ if (crawlIDs.length == 2) {
                 })
     
                 Promise.all([initAndMonitorCrawlOne, initAndMonitorCrawlTwo]).then(vals => {
+                    document.getElementById(`firstCrawlCrawlStatus`).textContent = 'Processing graph';
+                    document.getElementById(`secondCrawlCrawlStatus`).textContent = 'Processing graph';
                     let firstUserStartCreateGraph = utilRequest.startCreateGraph(crawlIDs[0])
                     let secondUserStartCreateGraph = utilRequest.startCreateGraph(crawlIDs[1])
     
@@ -73,6 +75,7 @@ if (crawlIDs.length == 1) {
             renderCrawlStatusBoxes(1)
             // subscribe to crawling status updates
             initAndMonitorCrawlingStatusWebsocket(crawlIDs[0], "firstCrawl").then(res => {
+                document.getElementById(`firstCrawlCrawlStatus`).textContent = 'Processing graph';
                 utilRequest.startCreateGraph(crawlIDs[0]).then(res => {
               
                 // Check every 500ms is the graph is done processing yet

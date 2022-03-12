@@ -1,6 +1,6 @@
+import * as utilRequest from '/static/javascript/utilRequests.js';
+
 let singleUserMode = true;
-let firstSteamIDInput = document.getElementById("firstSteamID").value = "";
-let secondSteamIDInput = document.getElementById("secondSteamID").value = "";
 
 document.getElementById("oneUserButton").addEventListener("click", function() {
     const oneUserButton = document.getElementById("oneUserButton");
@@ -93,14 +93,14 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
     console.log(singleUserMode)
     if (singleUserMode == true) {
         console.log("single user mode")
-        isPublicProfile(firstSteamID).then((isPublic) => {
+        utilRequest.isPublicProfile(firstSteamID).then((isPublic) => {
             if (!isPublic) {
                 hideCrawlLoadingElements()
                 displayErrorForInvalidSteamID(true, "Profile is private");
                 return
             }
             document.getElementById("isPrivateCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
-            hasBeenCrawled(firstSteamID, level).then((crawlID) => {
+            utilRequest.hasBeenCrawled(firstSteamID, level).then((crawlID) => {
                 if (crawlID === "") {
                     document.getElementById("isCrawledBeforeCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
                     
@@ -114,7 +114,7 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                         crawlDTO["steamids"] = [firstSteamID]
                     }
     
-                    startCrawl(crawlDTO).then(crawlIDs => {
+                    utilRequest.startCrawl(crawlDTO).then(crawlIDs => {
                         window.location.href = `/crawl?firstcrawlid=${crawlIDs[0]}`
                     }, (err) => {
                         console.error(`startCrawl: ${err}`);
@@ -132,8 +132,8 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
         })
     } else {
         console.log("double userrrr")
-        let firstProfileIsPublic = isPublicProfile(firstSteamID);
-        let secondProfileIsPublic = isPublicProfile(secondSteamID)
+        let firstProfileIsPublic = utilRequest.isPublicProfile(firstSteamID);
+        let secondProfileIsPublic = utilRequest.isPublicProfile(secondSteamID)
 
         Promise.all([firstProfileIsPublic, secondProfileIsPublic]).then(isPublicArr => {
             console.log(isPublicArr)
@@ -144,8 +144,8 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
             }
 
             document.getElementById("isPrivateCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
-            let firstUserHasBeenCrawled = hasBeenCrawled(firstSteamID, level);
-            let secondUserHasBeenCrawled = hasBeenCrawled(secondSteamID, level)
+            let firstUserHasBeenCrawled = utilRequest.hasBeenCrawled(firstSteamID, level);
+            let secondUserHasBeenCrawled = utilRequest.hasBeenCrawled(secondSteamID, level)
 
             Promise.all([firstUserHasBeenCrawled, secondUserHasBeenCrawled]).then(crawlIDs => {
                 if (crawlIDs[0] != "" && crawlIDs[1] != "") {
@@ -170,7 +170,7 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                 }
                 console.log(`crawlDTO is ${JSON.stringify(crawlDTO)}`)
                 
-                startCrawl(crawlDTO).then(newCrawlIDs => {
+                utilRequest.startCrawl(crawlDTO).then(newCrawlIDs => {
                     if (newCrawlIDs.length == 2) {
                         // Two new crawls are starting
                         console.log("both new")
@@ -184,52 +184,12 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                 }, (err) => {
                     console.error(`startCrawl: ${err}`);
                 })
-
             }, errs => {
                 console.error(errs)
             })
-        
-        
         }, errs => {
             console.error(errs)
         })
-        // isPublicProfile(firstSteamID).then((isPublic) => {
-        //     if (!isPublic) {
-        //         hideCrawlLoadingElements()
-        //         displayErrorForInvalidSteamID(true, "Profile is private");
-        //         return
-        //     }
-        //     document.getElementById("isPrivateCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
-        //     hasBeenCrawled(firstSteamID, level).then((crawlID) => {
-        //         if (crawlID === "") {
-        //             document.getElementById("isCrawledBeforeCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
-                    
-        //             // New crawl
-        //             let crawlDTO = {
-        //                 level: parseInt(level)
-        //             }
-        //             if (secondSteamID) {
-        //                 crawlDTO["steamids"] = [firstSteamID, secondSteamID]
-        //             } else {
-        //                 crawlDTO["steamids"] = [firstSteamID]
-        //             }
-    
-        //             startCrawl(crawlDTO).then(crawlIDs => {
-        //                 window.location.href = `/crawl/${crawlIDs[0]}`
-        //             }, (err) => {
-        //                 console.error(`startCrawl: ${err}`);
-        //             })
-        //         } else {
-        //             // Crawl already exists, reroute to that page
-        //             window.location.href = `/graph/${crawlID}`;
-        //         }
-        //         hideCrawlLoadingElements()
-        //     }, (err) => {
-        //         console.log(`err from hasBeenCrawl: ${err}`)
-        //     })
-        // }, (err) => {
-        //     console.log(`err from isPublic: ${err}`)
-        // })
     }
 });
 
@@ -275,63 +235,4 @@ function hideSteamIDInputErrors() {
 function hideCrawlLoadingElements() {
     document.getElementById("crawlConfigLoadingElement").style.visibility = "hidden";
     document.getElementById("crawlConfigInnerBox").style.webkitFilter = "blur(0px)";
-}
-
-function isPublicProfile(steamID) {
-    return new Promise((resolve, reject) => {
-        fetch(`http://localhost:2570/isprivateprofile/${steamID}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        }
-    }).then(res => res.json())
-    .then(data => {
-        if (data.message === "public") {
-            resolve(true)
-        }
-        resolve(false)
-    }).catch(err => {
-        console.error(err)
-        reject(err)
-        })
-    })
-}
-
-function hasBeenCrawled(steamID, level) {
-    return new Promise((resolve, reject) => {
-        reqBody = {
-            "level": parseInt(level),
-            "steamid": steamID
-        }
-        fetch(`http://localhost:2590/api/hasbeencrawledbefore`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(reqBody),
-        }).then(res => res.json())
-        .then(data => {
-            resolve(data.message)
-        }).catch(err => {
-            reject(err)
-        })
-    })
-} 
-
-function startCrawl(crawlDTO) {
-    return new Promise((resolve, reject) => {
-        console.log(`sending ${JSON.stringify(crawlDTO)}`)
-        fetch(`http://localhost:2570/crawl`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(crawlDTO),
-        }).then(res => res.json())
-        .then(data => {
-            resolve(data.crawlids)
-        }).catch(err => {
-            reject(err)
-        })
-    })
 }

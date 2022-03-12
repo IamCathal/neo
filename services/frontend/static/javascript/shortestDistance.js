@@ -55,7 +55,7 @@ function fillInShortestPathMenu(shortestDistanceInfo) {
     let fullResProfiler = user.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
     const creationDate = new Date(user.accdetails.timecreated*1000);
     const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    const timeSinceString = `(${timezSince(creationDate)} ago)`
+    const timeSinceString = `(${timezSince(creationDate)})`
 
     document.getElementById("shortestPathDiv").innerHTML += `
     <div class="row pl-3 pr-3 mt-4">

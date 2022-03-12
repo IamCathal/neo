@@ -9,7 +9,7 @@ export function setUserCardDetails(user) {
     
     const creationDate = new Date(user.accdetails.timecreated*1000);
     const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    const timeSinceString = `(${util.timezSince(creationDate)} ago)`
+    const timeSinceString = `(${util.timezSince(creationDate)})`
     document.getElementById("userCreationDate").textContent = `${dateString} ${timeSinceString}`;
     
     document.getElementById("userProfile").innerHTML = `<a href="${user.accdetails.profileurl}">Profile Link</a>`;
@@ -26,12 +26,12 @@ export function setUserCardDetails(user) {
 export function setCrawlPageUserCardDetails(user, idPrefix) {
   console.log(user)
   document.getElementById(`${idPrefix}UserUsername`).textContent = user.accdetails.personaname;
-  document.getElementById(`${idPrefix}UserCountry`).textContent = util.countryCodeToName(user.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(user.accdetails.loccountrycode);
+  document.getElementById(`${idPrefix}UserCountry`).textContent = util.countryCodeToName(user.accdetails.loccountrycode) === "" ? 'unknown' : util.countryCodeToName(user.accdetails.loccountrycode);
   document.getElementById(`${idPrefix}UserFriendCount`).textContent = user.friendids.length;
   
   const creationDate = new Date(user.accdetails.timecreated*1000);
   const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-  const timeSinceString = `(${util.timezSince(creationDate)} ago)`
+  const timeSinceString = `(${util.timezSince(creationDate)})`
   document.getElementById(`${idPrefix}UserCreationDate`).textContent = `${dateString} ${timeSinceString}`;
   
   document.getElementById(`${idPrefix}UserProfile`).innerHTML = `<a href="${user.accdetails.profileurl}">Profile Link</a>`;

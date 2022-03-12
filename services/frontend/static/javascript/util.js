@@ -1,5 +1,19 @@
 "use strict";
 
+export function getCrawlIDs() {
+    const queryParams = new URLSearchParams(window.location.search);
+    const firstCrawlID = queryParams.get("firstcrawlid")
+    const secondCrawlID = queryParams.get("secondcrawlid")
+
+    if (secondCrawlID != undefined) {
+        console.log(`return crawlids: ${[firstCrawlID, secondCrawlID]}`)
+        return [firstCrawlID, secondCrawlID]
+    } else {
+        console.log(`return crawlid: ${[firstCrawlID]}`)
+        return [firstCrawlID]
+    }
+}
+
 export function timezSince(targetDate) {
     let seconds = Math.floor((new Date()-targetDate)/1000)
     let interval = seconds / 31536000 

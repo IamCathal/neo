@@ -1,7 +1,21 @@
+import * as utilRequest from '/static/javascript/utilRequests.js';
+
 export function initAndMonitorCrawlingStatusWebsocket(crawlID, idPrefix, isAlreadyDone) {
   return new Promise((resolve, reject) => {
     if (isAlreadyDone) {
-      resolve()
+      utilRequest.getCrawlingStatus(crawlID).then(crawlingStatus => {
+
+        document.getElementById(`${idPrefix}CrawlStatus`).textContent = 'Completed'
+        document.getElementById(`${idPrefix}UsersCrawled`).textContent = crawlingStatus.userscrawled;
+        document.getElementById(`${idPrefix}TotalUsersToCrawl`).textContent = crawlingStatus.totaluserstocrawl;
+        document.getElementById(`${idPrefix}PercentageDone`).textContent = `${Math.floor((crawlingStatus.userscrawled/crawlingStatus.totaluserstocrawl)*100)}%`;
+        document.getElementById(`${idPrefix}CrawlTime`).textContent = timeSince(new Date(crawlingStatus.timestarted*1000));
+        document.getElementById(`${idPrefix}ProgressBarID`).style.width = `${Math.floor((crawlingStatus.userscrawled/crawlingStatus.totaluserstocrawl)*100)}%`;
+        
+        resolve()
+      }, err => {
+        reject(err)
+      })
     }
 
     let wsConn = new WebSocket(`ws://localhost:2590/ws/crawlingstatstream/${crawlID}`);
@@ -11,7 +25,7 @@ export function initAndMonitorCrawlingStatusWebsocket(crawlID, idPrefix, isAlrea
     
     wsConn.addEventListener("message", (evt) => {
         let crawlingStatUpdate = JSON.parse(evt.data);
-        if (crawlingStatUpdate.userscrawled === crawlingStatUpdate.totaluserstocrawl) {
+        if (crawlingStatUpdate.userscrawled == crawlingStatUpdate.totaluserstocrawl) {
             document.getElementById(`${idPrefix}CrawlStatus`).textContent = "Processing graph"
             wsConn.close()
             resolve()

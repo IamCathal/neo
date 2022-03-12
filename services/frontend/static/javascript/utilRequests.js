@@ -123,6 +123,21 @@ export function isCrawlingFinished(crawlID) {
     })
 }
 
+export function getCrawlingStatus(crawlID) {
+    return new Promise((resolve, reject) => {
+        fetch(`http://localhost:2590/api/getcrawlingstatus/${crawlID}`, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then((res => res.json()))
+        .then(data => {
+            resolve(data.crawlingstatus)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}
+
 
 export function startCreateGraph(crawlID) {
     return new Promise((resolve, reject) => {

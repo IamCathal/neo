@@ -24,11 +24,12 @@ export function initAndMonitorCrawlingStatusWebsocket(crawlID, idPrefix, isAlrea
     })
     
     wsConn.addEventListener("message", (evt) => {
-        let crawlingStatUpdate = JSON.parse(evt.data);
+        const crawlingStatUpdate = JSON.parse(evt.data);
         if (crawlingStatUpdate.userscrawled == crawlingStatUpdate.totaluserstocrawl) {
-            document.getElementById(`${idPrefix}CrawlStatus`).textContent = "Processing graph"
-            wsConn.close()
-            resolve()
+            setCrawlingStatusToProcessing(idPrefix).then((res) => {
+              wsConn.close()
+              resolve()
+            })
         }
 
         document.getElementById(`${idPrefix}CrawlStatus`).textContent = 'Crawling'
@@ -60,4 +61,11 @@ function timeSince(targetDate) {
       return Math.floor(interval) + "m ago";
     }
     return Math.floor(seconds) + "s";
+}
+
+function setCrawlingStatusToProcessing(idPrefix) {
+  return new Promise((resolve, reject) =>{
+    document.getElementById(`${idPrefix}CrawlStatus`).textContent = 'Processing graph';
+    resolve(true);
+  });
 }

@@ -1,13 +1,14 @@
-import { timezSince } from '/static/javascript/userCard.js';
+import * as util from '/static/javascript/util.js';
+import * as utilRequest from '/static/javascript/utilRequests.js';
 
-getAnyNewFinishedCrawlStatuses().then((newCrawls) => {
+utilRequest.getAnyNewFinishedCrawlStatuses().then((newCrawls) => {
     let mostRecentCrawls = []
     mostRecentCrawls = newCrawls.concat(mostRecentCrawls)
     mostRecentCrawls.length = mostRecentCrawls.length >= 12 ? 12 : mostRecentCrawls.length;
 
     renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls)
     setInterval(() => {
-        getAnyNewFinishedCrawlStatuses().then((res) => {
+        utilRequest.getAnyNewFinishedCrawlStatuses().then((res) => {
             mostRecentCrawls = res.concat(mostRecentCrawls)
             mostRecentCrawls.length = mostRecentCrawls.length >= 12 ? 12 : mostRecentCrawls.length;
             renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls)
@@ -19,7 +20,7 @@ getAnyNewFinishedCrawlStatuses().then((newCrawls) => {
     console.error(err)
 })
 
-getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
+utilRequest.getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
     let mostRecentShortestDistanceCrawls = []
 
     mostRecentShortestDistanceCrawls = newCrawls.concat(mostRecentShortestDistanceCrawls)
@@ -27,7 +28,7 @@ getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
 
     renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentShortestDistanceCrawls)
     setInterval(() => {
-        getAnyNewFinishedCrawlStatuses().then((res) => {
+        utilRequest.getAnyNewFinishedCrawlStatuses().then((res) => {
             mostRecentShortestDistanceCrawls = res.concat(mostRecentShortestDistanceCrawls)
             mostRecentShortestDistanceCrawls.length = mostRecentShortestDistanceCrawls.length >= 12 ? 12 : mostRecentShortestDistanceCrawls.length;
             renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentShortestDistanceCrawls)
@@ -39,7 +40,7 @@ getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
     console.error(err)
 })
 
-getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
+utilRequest.getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
     let mostRecentCrawls = []
 
     mostRecentCrawls = newCrawls.concat(mostRecentCrawls)
@@ -47,7 +48,7 @@ getAnyNewFinishedShortestDistanceCrawlStatuses().then((newCrawls) => {
 
     renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentCrawls)
     // setInterval(() => {
-    //     getAnyNewFinishedShortestDistanceCrawlStatuses().then((res) => {
+    //     utilRequest.getAnyNewFinishedShortestDistanceCrawlStatuses().then((res) => {
     //         renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(res)
     //     }, err => {
     //         console.error(err)
@@ -62,9 +63,9 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
     const backgroundColors = ['#292929', '#414141']
     let i = 0;
     mostRecentCrawls.forEach(crawl => {
-        const usersFlagEmoji = getFlagEmoji(crawl.user.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.user.accdetails.loccountrycode)
+        const usersFlagEmoji = util.getFlagEmoji(crawl.user.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.user.accdetails.loccountrycode)
         const creationDate = new Date(crawl.crawlingstatus.timestarted*1000);
-        const timeSinceString = `${timezSince(creationDate)}`
+        const timeSinceString = `${util.timezSince(creationDate)}`
 
         document.getElementById("finishedCrawlsDiv").innerHTML += `
         <div class="row pt-1 pb-1 mt-1" style="border-radius: 8px; background-color:${backgroundColors[i%backgroundColors.length]};">
@@ -108,7 +109,7 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
         const secondUserMediumQualityProfiler = crawl.seconduser.accdetails.avatar.split(".jpg").join("") + "_medium.jpg";
 
         const crawlStartTime = new Date(crawl.timestarted*1000);
-        const timeSinceString = `${timezSince(crawlStartTime)}`
+        const timeSinceString = `${util.timezSince(crawlStartTime)}`
 
         document.getElementById("finishedShortestDistanceCrawlsDiv").innerHTML += `
         <div class="col-5 m-3 box" style="border: 2px solid white; border-radius: 8px;">
@@ -148,45 +149,4 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
         </div>
         `
     })
-}
-
-
-function getAnyNewFinishedCrawlStatuses() {
-    return new Promise((resolve, reject) => {
-        fetch(`http://localhost:2590/api/getfinishedcrawlsaftertimestamp?timestamp=${5}`, {
-            headers: {
-                "Content-Type": "application/json"
-            },
-        }).then((res => res.json()))
-        .then(data => {
-            resolve(data.crawls)
-        }).catch(err => {
-            reject(err)
-        })
-    })
-}
-
-function getAnyNewFinishedShortestDistanceCrawlStatuses() {
-    return new Promise((resolve, reject) => {
-        fetch(`http://localhost:2590/api/getfinishedshortestdistancecrawlsaftertimestamp?timestamp=${-5}`, {
-            headers: {
-                "Content-Type": "application/json"
-            },
-        }).then((res => res.json()))
-        .then(data => {
-            resolve(data.crawlingstatus)
-        }).catch(err => {
-            reject(err)
-        })
-    })
-}
-
-// COMMON
-// https://dev.to/jorik/country-code-to-flag-emoji-a21
-function getFlagEmoji(countryCode) {
-    const codePoints = countryCode
-      .toUpperCase()
-      .split('')
-      .map(char =>  127397 + char.charCodeAt());
-    return String.fromCodePoint(...codePoints);
 }

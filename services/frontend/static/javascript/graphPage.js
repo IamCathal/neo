@@ -1,16 +1,18 @@
 import { countUpElement } from '/static/javascript/countUpScript.js';
-import { setUserCardDetails, timezSince } from '/static/javascript/userCard.js';
+import { setUserCardDetails } from '/static/javascript/userCard.js';
 import { getHeatmapData, getMaxMonthFrequency } from './heatMapCalendarHelper.js';
+import * as util from '/static/javascript/util.js';
+import * as utilRequest from '/static/javascript/utilRequests.js';
 
 const URLarr = window.location.href.split("/");
 const crawlID = URLarr[URLarr.length-1];
 let crawlData = {}
 
-doesProcessedGraphDataExistz(crawlID).then(doesExist => {
+utilRequest.doesProcessedGraphDataExist(crawlID).then(doesExist => {
     if (doesExist === false) {
         window.location.href = "/"
     }
-    getProcessedGraphData(crawlID).then(crawlDataObj => {
+    utilRequest.getProcessedGraphData(crawlID).then(crawlDataObj => {
         crawlData = crawlDataObj
         console.log(crawlData.usergraphdata.userdetails.User)
         setUserCardDetails(crawlData.usergraphdata.userdetails.User);
@@ -128,23 +130,6 @@ doesProcessedGraphDataExistz(crawlID).then(doesExist => {
     console.error(`error calling does processed graphdata exist: ${err}`)
 })
 
-
-function getProcessedGraphData(crawlID) {
-    return new Promise((resolve, reject) => {
-        fetch(`http://localhost:2590/api/getprocessedgraphdata/${crawlID}`, {
-            method: "POST",
-            headers: {
-                'Accept-Encoding': 'gzip'
-            }
-        }).then(res => res.json())
-        .then(data => {
-            resolve(data)
-        }).catch(err => {
-            reject(err)
-        })
-    });
-}
-
 function getDataInGraphFormat(gData, countryFrequencies) {
     const topTenCountryNames = getTopTenCountries(countryFrequencies);
     // TODO change to top 10 frequency countries instead
@@ -156,7 +141,7 @@ function getDataInGraphFormat(gData, countryFrequencies) {
     let nodes = []
     let links = []
 
-    let usersCountryName = countryCodeToName(gData.userdetails.User.accdetails.loccountrycode.toUpperCase())
+    let usersCountryName = util.countryCodeToName(gData.userdetails.User.accdetails.loccountrycode.toUpperCase())
     let usersCountryCategory = topTenCountryNames.includes(usersCountryName) ? usersCountryName : 'Other';
     nodes.push({
         "id": gData.userdetails.User.accdetails.steamid,
@@ -167,7 +152,7 @@ function getDataInGraphFormat(gData, countryFrequencies) {
     })
 
     gData.frienddetails.forEach((friend) => {
-        let usersCountryName = countryCodeToName(friend.User.accdetails.loccountrycode.toUpperCase())
+        let usersCountryName = util.countryCodeToName(friend.User.accdetails.loccountrycode.toUpperCase())
         let usersCountryCategory = topTenCountryNames.includes(usersCountryName) ? usersCountryName : 'Other';
         nodes.push({
             "id": friend.User.accdetails.steamid,
@@ -321,7 +306,7 @@ function fillInGamesStatBoxes(graphData) {
     countUpElement("statBoxFriendsWithLessHoursPlayed", percentageOfFriendsWithLessHoursPlayed, {suffix: "%"})
     countUpElement("statBoxMinWageEarned", minWageEarnedForGaming, {prefix: "€"})
 
-    removeSkeletonClasses(["statBoxHoursAcrossLibrary", "statBoxEntireDaysOfPlaytime",
+    util.removeSkeletonClasses(["statBoxHoursAcrossLibrary", "statBoxEntireDaysOfPlaytime",
             "statBoxMinWageEarned", "statBoxFriendsWithLessHoursPlayed"])
 }
 
@@ -362,7 +347,7 @@ function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
             }
             document.getElementById('statBoxUsersFavoriteGamesCostPerHour').textContent = `€${costPerHour}`
 
-            removeSkeletonClasses(["userFavoriteGameName", "statBoxUsersFavoriteGameHoursPlayed", 
+            util.removeSkeletonClasses(["userFavoriteGameName", "statBoxUsersFavoriteGameHoursPlayed", 
                 "statBoxUsersFavoriteGamesCostPerHour", "userFavoriteGameXFriendsAlsoPlay",
                 "userFavoriteGameImage"])
         })
@@ -398,7 +383,7 @@ function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
             }
             document.getElementById('statBoxNetworksFavoriteGameCostPerHourAverage').textContent = `€${costPerHour}`
 
-            removeSkeletonClasses(["networkFavoriteGameName", "statBoxNetworksFavoriteGameHoursPlayed", 
+            util.removeSkeletonClasses(["networkFavoriteGameName", "statBoxNetworksFavoriteGameHoursPlayed", 
                 "statBoxNetworksFavoriteGameCostPerHourAverage", "networkFavoriteGameXFriendsAlsoPlay",
                 "networkFavoriteGameImage"])
         })
@@ -419,7 +404,7 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
             maxFriends = friends
         }
         const accAge = user.User.accdetails.timecreated;
-        let monthsSinceCreation = monthsSince(accAge)
+        let monthsSinceCreation = util.monthsSince(accAge)
         if (monthsSinceCreation > maxAccountAge) {
             maxAccountAge = monthsSinceCreation
         }
@@ -429,16 +414,16 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     })
     highestFriendCountUser = highestFriendCountUser.User;
     document.getElementById("highestFriendCountUserUsername").textContent = highestFriendCountUser.accdetails.personaname;
-    document.getElementById("highestFriendCountUserCountry").textContent = countryCodeToName(highestFriendCountUser.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(highestFriendCountUser.accdetails.loccountrycode);
+    document.getElementById("highestFriendCountUserCountry").textContent = util.countryCodeToName(highestFriendCountUser.accdetails.loccountrycode) === "" ? 'unknown' : util.countryCodeToName(highestFriendCountUser.accdetails.loccountrycode);
     document.getElementById("highestFriendCountUserFriendCount").textContent = highestFriendCountUser.friendids.length;
     let creationDate = new Date(highestFriendCountUser.accdetails.timecreated*1000);
     let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    let timeSinceString = `(${timezSince(creationDate)} ago)`
+    let timeSinceString = `(${util.timezSince(creationDate)} ago)`
     document.getElementById("highestFriendCountUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
     document.getElementById("highestFriendCountUserProfile").innerHTML = `<a href="${highestFriendCountUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("highestFriendCountUserAvatar").src = highestFriendCountUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
    
-    removeSkeletonClasses(["highestFriendCountUserUsername", "highestFriendCountUserCountry", 
+    util.removeSkeletonClasses(["highestFriendCountUserUsername", "highestFriendCountUserCountry", 
         "highestFriendCountUserFriendCount", "highestFriendCountUserCreationDate", 
         "highestFriendCountUserCountry", "highestFriendCountUserAvatar", "highestFriendCountUserProfile"])
 
@@ -512,16 +497,6 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
 
 function initLinkForInteractiveGraphPage() {
     document.getElementById("interactiveGraphLink").href = `/graph/interactive?firstcrawlid=${crawlID}`
-}
-
-function monthsSince(timestamp) {
-    const timeObj = new Date(timestamp * 1000)
-    let monthDiff;
-    const currTime = new Date();
-    monthDiff = (currTime.getFullYear() - timeObj.getFullYear()) * 12
-    monthDiff += currTime.getMonth()
-    monthDiff -= timeObj.getMonth()
-    return monthDiff <= 0 ? 0 : monthDiff
 }
 
 function initAndRenderGamesBarChart(barChartData) {
@@ -793,52 +768,6 @@ function initThreeJSGraph(crawlData) {
     });
 }
 
-// COMMON
-function timezSince2(targetDate) {
-    let seconds = Math.floor((new Date()-targetDate)/1000)
-    let interval = seconds / 31536000 
-    if (interval > 1) {
-        return Math.floor(interval) + " years";
-    }
-    interval = seconds / 2592000; // months
-    if (interval > 1) {
-        return Math.floor(interval) + " months";
-      }
-    interval = seconds / 86400; // days
-    if (interval > 1) {
-      return Math.floor(interval) + "d ago";
-    }
-    interval = seconds / 3600;
-    if (interval > 1) {
-      return Math.floor(interval) + "h ago";
-    }
-    interval = seconds / 60;
-    if (interval > 1) {
-      return Math.floor(interval) + "m ago";
-    }
-    return Math.floor(seconds) + "s";
-}
-
-// COMMON
-function doesProcessedGraphDataExistz(crawlID) {
-    return new Promise((resolve, reject) => {
-        fetch(`http://localhost:2590/api/doesprocessedgraphdataexist/${crawlID}`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json"
-            },
-        }).then((res => res.json()))
-        .then(data => {
-            if (data.exists == "yes") {
-                resolve(true)
-            } 
-            resolve(false)
-        }).catch(err => {
-            reject(err)
-        })
-    });
-}
-
 function initWorldMap(countriesData) {
     Highcharts.mapChart('firstChart', {
         chart: {
@@ -881,10 +810,10 @@ function fillInFlagsDiv(friends) {
         if (i == 48) {
             return
         }
-        const usersFromCountryFormatted = `Friends from ${countryCodeToName(countryCode)}:\n${getUsernamesFromCountry(friends, countryCode).join("\n")}`
+        const usersFromCountryFormatted = `Friends from ${util.countryCodeToName(countryCode)}:\n${getUsernamesFromCountry(friends, countryCode).join("\n")}`
         document.getElementById("allFlagsDiv").innerHTML += `
         <div class="col-1">
-            <p style="font-size: 1.7rem" title="${usersFromCountryFormatted}">${getFlagEmoji(countryCode)}</p>
+            <p style="font-size: 1.7rem" title="${usersFromCountryFormatted}">${util.getFlagEmoji(countryCode)}</p>
         </div>
         `;
         i++;
@@ -902,8 +831,6 @@ function getUsernamesFromCountry(friends, countryCode) {
 }
 
 function generateOverallGamerScore(graphData) {
-    let score = 0;
-
     const totalHoursPlayed  = getHoursPlayedForUser(graphData.userdetails.User);
     const totalFriends = graphData.userdetails.User.friendids.length;
 
@@ -1107,7 +1034,7 @@ function fillInTopStatBoxes(graphData, countryFreqs) {
     countUpElement('statBoxGlobalCoverage', Math.floor((uniqueCountryCodes.length/UNCountries)*100), {suffix: "%"})
     countUpElement('statBoxDictatorships', ruledByDictatorCountries(uniqueCountryCodes))
 
-    removeSkeletonClasses(["statBoxFriendCount", "statBoxUniqueCountries", 
+    util.removeSkeletonClasses(["statBoxFriendCount", "statBoxUniqueCountries", 
             "statBoxGlobalCoverage", "statBoxDictatorships"])
 }
 
@@ -1116,17 +1043,17 @@ function fillInFromYourCountryStatBox(graphDataObj, countryFreq) {
     const usersCountry = graphDataObj.usergraphdata.userdetails.User.accdetails.loccountrycode;
     if (usersCountry === undefined) {
         document.getElementById("statBoxAlsoFromYourCountry").textContent = alsoFromCountry;
-        removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
+        util.removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
         return
     }
     const otherFriendsInUsersCountry = countryFreq[usersCountry.toLowerCase()];
     if (!isNaN(otherFriendsInUsersCountry)) {
         document.getElementById("statBoxAlsoFromYourCountry").textContent = otherFriendsInUsersCountry;
-        removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
+        util.removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
         return
     }
     document.getElementById("statBoxAlsoFromYourCountry").textContent = alsoFromCountry;
-    removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
+    util.removeSkeletonClasses(["statBoxAlsoFromYourCountry"])
 }
 
 function fillInTop10Countries(countriesFreq) {
@@ -1266,16 +1193,12 @@ function userCreatedMonthChart(graphData) {
     option && myChart.setOption(option);
 }
 
-function getContinentCoverage(countryFreqs) {
-    const allCountryCodes = Object.keys(countryFreqs)
-    return getContinentsCovered(allCountryCodes);
-}
 function fillInContinentCoverage(countryFreqs) {
     const allCountryCodes = Object.keys(countryFreqs)
     const continentCoverage = getContinentsCovered(allCountryCodes)
 
     document.getElementById("statBoxContinentCoverage").textContent = Math.floor(continentCoverage*100)+"%";
-    removeSkeletonClasses(["statBoxContinentCoverage"])
+    util.removeSkeletonClasses(["statBoxContinentCoverage"])
     return
 }
 
@@ -1373,12 +1296,6 @@ function initGamerScore(mainUser) {
     option && myChart.setOption(option);
 }
 
-function removeSkeletonClasses(elementIDs) {
-    elementIDs.forEach(ID => {
-        document.getElementById(ID).classList.remove("skeleton");
-        document.getElementById(ID).classList.remove("skeleton-text");
-    })
-}
 function extractUniqueCountryCodesFromFriends(friends) {
     let allCountryCodes = []
     friends.forEach(friend => {
@@ -1389,15 +1306,6 @@ function extractUniqueCountryCodesFromFriends(friends) {
     // Get rid of duplicates
     allCountryCodes = [...new Set(allCountryCodes)]
     return allCountryCodes;
-}
-
-// https://dev.to/jorik/country-code-to-flag-emoji-a21
-function getFlagEmoji(countryCode) {
-    const codePoints = countryCode
-      .toUpperCase()
-      .split('')
-      .map(char =>  127397 + char.charCodeAt());
-    return String.fromCodePoint(...codePoints);
 }
 
 function getContinentsCovered(countryCodes) {
@@ -1412,37 +1320,37 @@ function getContinentsCovered(countryCodes) {
 
     countryCodes.forEach(countryCode => {
         if (!asiaMatch) {
-            if (continents["asia"].includes(countryCode.toUpperCase())) {
+            if (util.continents["asia"].includes(countryCode.toUpperCase())) {
                 continentCoverage++
                 asiaMatch = true
             }
         }
         if (!africaMatch) {
-            if (continents["africa"].includes(countryCode.toUpperCase())) {
+            if (util.continents["africa"].includes(countryCode.toUpperCase())) {
                 continentCoverage++
                 africaMatch = true
             }
         }
         if (!australiaMatch) {
-            if (continents["australia"].includes(countryCode.toUpperCase())) {
+            if (util.continents["australia"].includes(countryCode.toUpperCase())) {
                 continentCoverage++
                 australiaMatch = true
             }
         }
         if (!europeMatch) {
-            if (continents["europe"].includes(countryCode.toUpperCase())) {
+            if (util.continents["europe"].includes(countryCode.toUpperCase())) {
                 continentCoverage++
                 europeMatch = true
             }
         }
         if (!northAmericaMatch) {
-            if (continents["north america"].includes(countryCode.toUpperCase())) {
+            if (util.continents["north america"].includes(countryCode.toUpperCase())) {
                 continentCoverage++
                 northAmericaMatch = true
             }
         }
         if (!southAmericaMatch) {
-            if (continents["south america"].includes(countryCode.toUpperCase())) {
+            if (util.continents["south america"].includes(countryCode.toUpperCase())) {
                 continentCoverage++
                 southAmericaMatch = true
             }
@@ -1458,10 +1366,10 @@ function fillInMonthStatBoxes(creationDates) {
     })
     const sortedMonthFrequencies = Object.entries(userCreationMonthFrequencies).sort((a, b) => { return a[1] < b[1]})
 
-    document.getElementById("statBoxMostPopularMonth").textContent = intToMonth(Object.values(sortedMonthFrequencies)[0][0])
-    document.getElementById("statBoxLeastPopularMonth").textContent = intToMonth(Object.values(sortedMonthFrequencies)[sortedMonthFrequencies.length-1][0])
+    document.getElementById("statBoxMostPopularMonth").textContent = util.intToMonth(Object.values(sortedMonthFrequencies)[0][0])
+    document.getElementById("statBoxLeastPopularMonth").textContent = util.intToMonth(Object.values(sortedMonthFrequencies)[sortedMonthFrequencies.length-1][0])
 
-    removeSkeletonClasses(["statBoxMostPopularMonth", "statBoxLeastPopularMonth"])
+    util.removeSkeletonClasses(["statBoxMostPopularMonth", "statBoxLeastPopularMonth"])
 }
 
 // https://worldpopulationreview.com/country-rankings/dictatorship-countries  
@@ -1483,52 +1391,6 @@ function ruledByDictatorCountries(countries) {
     return dictatorRuledCountryCount;
 }
 
-function intToMonth(month) {
-    let monthName = ""
-    switch (parseInt(month)) {
-        case 0:
-            monthName = "January"
-            break
-        case 1:
-            monthName = "Febuary"
-            break
-        case 2:
-            monthName = "March"
-            break
-        case 3:
-            monthName = "April"
-            break
-        case 4:
-            monthName = "May"
-            break
-        case 5:
-            monthName = "June"
-            break
-        case 6:
-            monthName = "July"
-            break
-        case 7:
-            monthName = "August"
-            break
-        case 8:
-            monthName = "September"
-            break
-        case 9:
-            monthName = "October"
-            break
-        case 10:
-            monthName = "November"
-            break
-        case 11:
-            monthName = "December"
-            break
-        default:
-            console.error("failed to find most popular user creation month")
-            monthName = "na"
-    }
-    return monthName
-}
-
 function fillInOldestAndNewestUserCards(graphData) {
     let allFriends = graphData.frienddetails;
     allFriends.sort((f1,f2) => { 
@@ -1539,26 +1401,26 @@ function fillInOldestAndNewestUserCards(graphData) {
     const newestUser = allFriends[allFriends.length-1].User
 
     document.getElementById("oldestUserUsername").textContent = oldestUser.accdetails.personaname;
-    document.getElementById("oldestUserCountry").textContent = countryCodeToName(oldestUser.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(oldestUser.accdetails.loccountrycode);
+    document.getElementById("oldestUserCountry").textContent = util.countryCodeToName(oldestUser.accdetails.loccountrycode) === "" ? 'unknown' : util.countryCodeToName(oldestUser.accdetails.loccountrycode);
     document.getElementById("oldestUserFriendCount").textContent = oldestUser.friendids.length;
     let creationDate = new Date(oldestUser.accdetails.timecreated*1000);
     let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    let timeSinceString = `(${timezSince(creationDate)} ago)`
+    let timeSinceString = `(${util.timezSince(creationDate)} ago)`
     document.getElementById("oldestUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
     document.getElementById("oldestUserProfile").innerHTML = `<a href="${oldestUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("oldestUserAvatar").src = oldestUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
 
     document.getElementById("newestUserUsername").textContent = newestUser.accdetails.personaname;
-    document.getElementById("newestUserCountry").textContent = countryCodeToName(newestUser.accdetails.loccountrycode) === "" ? 'unknown' : countryCodeToName(newestUser.accdetails.loccountrycode);
+    document.getElementById("newestUserCountry").textContent = util.countryCodeToName(newestUser.accdetails.loccountrycode) === "" ? 'unknown' : util.countryCodeToName(newestUser.accdetails.loccountrycode);
     document.getElementById("newestUserFriendCount").textContent = newestUser.friendids.length;
     creationDate = new Date(newestUser.accdetails.timecreated*1000);
     dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    timeSinceString = `(${timezSince(creationDate)} ago)`
+    timeSinceString = `(${util.timezSince(creationDate)} ago)`
     document.getElementById("newestUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
     document.getElementById("newestUserProfile").innerHTML = `<a href="${newestUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("newestUserAvatar").src = newestUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
 
-    removeSkeletonClasses(["oldestUserUsername", "oldestUserCountry", 
+    util.removeSkeletonClasses(["oldestUserUsername", "oldestUserCountry", 
     "oldestUserFriendCount", "oldestUserCreationDate", "oldestUserProfile", "oldestUserAvatar",
     "newestUserUsername", "newestUserCountry", "newestUserFriendCount", "newestUserCreationDate",
     "newestUserProfile", "newestUserAvatar"])
@@ -1568,306 +1430,10 @@ function getTopTenCountries(countriesFreq) {
     let countryNames = []
     const sortedCountriesFreq = Object.entries(countriesFreq).sort((a,b) => b[1]-a[1])
     for (let i = 0; i < sortedCountriesFreq.length; i++) {
-        countryNames.push(countryCodeToName(sortedCountriesFreq[i][0].toUpperCase()))
+        countryNames.push(util.countryCodeToName(sortedCountriesFreq[i][0].toUpperCase()))
     }
     if (countryNames.length >= 10) {
         return countryNames.slice(0, 10)
     }
     return countryNames;
-}
-
-function countryCodeToName(code) {
-    if (countryCodeToNameObj[code] == undefined) {
-        return code;
-    }
-    return countryCodeToNameObj[code]
-}
-// https://gist.github.com/maephisto/9228207
-const countryCodeToNameObj = {
-    'AF' : 'Afghanistan',
-    'AX' : 'Aland Islands',
-    'AL' : 'Albania',
-    'DZ' : 'Algeria',
-    'AS' : 'American Samoa',
-    'AD' : 'Andorra',
-    'AO' : 'Angola',
-    'AI' : 'Anguilla',
-    'AQ' : 'Antarctica',
-    'AG' : 'Antigua And Barbuda',
-    'AR' : 'Argentina',
-    'AM' : 'Armenia',
-    'AW' : 'Aruba',
-    'AU' : 'Australia',
-    'AT' : 'Austria',
-    'AZ' : 'Azerbaijan',
-    'BS' : 'Bahamas',
-    'BH' : 'Bahrain',
-    'BD' : 'Bangladesh',
-    'BB' : 'Barbados',
-    'BY' : 'Belarus',
-    'BE' : 'Belgium',
-    'BZ' : 'Belize',
-    'BJ' : 'Benin',
-    'BM' : 'Bermuda',
-    'BT' : 'Bhutan',
-    'BO' : 'Bolivia',
-    'BA' : 'Bosnia And Herzegovina',
-    'BW' : 'Botswana',
-    'BV' : 'Bouvet Island',
-    'BR' : 'Brazil',
-    'IO' : 'British Indian Ocean Territory',
-    'BN' : 'Brunei Darussalam',
-    'BG' : 'Bulgaria',
-    'BF' : 'Burkina Faso',
-    'BI' : 'Burundi',
-    'KH' : 'Cambodia',
-    'CM' : 'Cameroon',
-    'CA' : 'Canada',
-    'CV' : 'Cape Verde',
-    'KY' : 'Cayman Islands',
-    'CF' : 'Central African Republic',
-    'TD' : 'Chad',
-    'CL' : 'Chile',
-    'CN' : 'China',
-    'CX' : 'Christmas Island',
-    'CC' : 'Cocos (Keeling) Islands',
-    'CO' : 'Colombia',
-    'KM' : 'Comoros',
-    'CG' : 'Congo',
-    'CD' : 'Congo, Democratic Republic',
-    'CK' : 'Cook Islands',
-    'CR' : 'Costa Rica',
-    'CI' : 'Cote D\'Ivoire',
-    'HR' : 'Croatia',
-    'CU' : 'Cuba',
-    'CY' : 'Cyprus',
-    'CZ' : 'Czech Republic',
-    'DK' : 'Denmark',
-    'DJ' : 'Djibouti',
-    'DM' : 'Dominica',
-    'DO' : 'Dominican Republic',
-    'EC' : 'Ecuador',
-    'EG' : 'Egypt',
-    'SV' : 'El Salvador',
-    'GQ' : 'Equatorial Guinea',
-    'ER' : 'Eritrea',
-    'EE' : 'Estonia',
-    'ET' : 'Ethiopia',
-    'FK' : 'Falkland Islands (Malvinas)',
-    'FO' : 'Faroe Islands',
-    'FJ' : 'Fiji',
-    'FI' : 'Finland',
-    'FR' : 'France',
-    'GF' : 'French Guiana',
-    'PF' : 'French Polynesia',
-    'TF' : 'French Southern Territories',
-    'GA' : 'Gabon',
-    'GM' : 'Gambia',
-    'GE' : 'Georgia',
-    'DE' : 'Germany',
-    'GH' : 'Ghana',
-    'GI' : 'Gibraltar',
-    'GR' : 'Greece',
-    'GL' : 'Greenland',
-    'GD' : 'Grenada',
-    'GP' : 'Guadeloupe',
-    'GU' : 'Guam',
-    'GT' : 'Guatemala',
-    'GG' : 'Guernsey',
-    'GN' : 'Guinea',
-    'GW' : 'Guinea-Bissau',
-    'GY' : 'Guyana',
-    'HT' : 'Haiti',
-    'HM' : 'Heard Island & Mcdonald Islands',
-    'VA' : 'Holy See (Vatican City State)',
-    'HN' : 'Honduras',
-    'HK' : 'Hong Kong',
-    'HU' : 'Hungary',
-    'IS' : 'Iceland',
-    'IN' : 'India',
-    'ID' : 'Indonesia',
-    'IR' : 'Iran, Islamic Republic Of',
-    'IQ' : 'Iraq',
-    'IE' : 'Ireland',
-    'IM' : 'Isle Of Man',
-    'IL' : 'Israel',
-    'IT' : 'Italy',
-    'JM' : 'Jamaica',
-    'JP' : 'Japan',
-    'JE' : 'Jersey',
-    'JO' : 'Jordan',
-    'KZ' : 'Kazakhstan',
-    'KE' : 'Kenya',
-    'KI' : 'Kiribati',
-    'KR' : 'Korea',
-    'KW' : 'Kuwait',
-    'KG' : 'Kyrgyzstan',
-    'LA' : 'Lao People\'s Democratic Republic',
-    'LV' : 'Latvia',
-    'LB' : 'Lebanon',
-    'LS' : 'Lesotho',
-    'LR' : 'Liberia',
-    'LY' : 'Libyan Arab Jamahiriya',
-    'LI' : 'Liechtenstein',
-    'LT' : 'Lithuania',
-    'LU' : 'Luxembourg',
-    'MO' : 'Macao',
-    'MK' : 'Macedonia',
-    'MG' : 'Madagascar',
-    'MW' : 'Malawi',
-    'MY' : 'Malaysia',
-    'MV' : 'Maldives',
-    'ML' : 'Mali',
-    'MT' : 'Malta',
-    'MH' : 'Marshall Islands',
-    'MQ' : 'Martinique',
-    'MR' : 'Mauritania',
-    'MU' : 'Mauritius',
-    'YT' : 'Mayotte',
-    'MX' : 'Mexico',
-    'FM' : 'Micronesia, Federated States Of',
-    'MD' : 'Moldova',
-    'MC' : 'Monaco',
-    'MN' : 'Mongolia',
-    'ME' : 'Montenegro',
-    'MS' : 'Montserrat',
-    'MA' : 'Morocco',
-    'MZ' : 'Mozambique',
-    'MM' : 'Myanmar',
-    'NA' : 'Namibia',
-    'NR' : 'Nauru',
-    'NP' : 'Nepal',
-    'NL' : 'Netherlands',
-    'AN' : 'Netherlands Antilles',
-    'NC' : 'New Caledonia',
-    'NZ' : 'New Zealand',
-    'NI' : 'Nicaragua',
-    'NE' : 'Niger',
-    'NG' : 'Nigeria',
-    'NU' : 'Niue',
-    'NF' : 'Norfolk Island',
-    'MP' : 'Northern Mariana Islands',
-    'NO' : 'Norway',
-    'OM' : 'Oman',
-    'PK' : 'Pakistan',
-    'PW' : 'Palau',
-    'PS' : 'Palestinian Territory, Occupied',
-    'PA' : 'Panama',
-    'PG' : 'Papua New Guinea',
-    'PY' : 'Paraguay',
-    'PE' : 'Peru',
-    'PH' : 'Philippines',
-    'PN' : 'Pitcairn',
-    'PL' : 'Poland',
-    'PT' : 'Portugal',
-    'PR' : 'Puerto Rico',
-    'QA' : 'Qatar',
-    'RE' : 'Reunion',
-    'RO' : 'Romania',
-    'RU' : 'Russian Federation',
-    'RW' : 'Rwanda',
-    'BL' : 'Saint Barthelemy',
-    'SH' : 'Saint Helena',
-    'KN' : 'Saint Kitts And Nevis',
-    'LC' : 'Saint Lucia',
-    'MF' : 'Saint Martin',
-    'PM' : 'Saint Pierre And Miquelon',
-    'VC' : 'Saint Vincent And Grenadines',
-    'WS' : 'Samoa',
-    'SM' : 'San Marino',
-    'ST' : 'Sao Tome And Principe',
-    'SA' : 'Saudi Arabia',
-    'SN' : 'Senegal',
-    'RS' : 'Serbia',
-    'SC' : 'Seychelles',
-    'SL' : 'Sierra Leone',
-    'SG' : 'Singapore',
-    'SK' : 'Slovakia',
-    'SI' : 'Slovenia',
-    'SB' : 'Solomon Islands',
-    'SO' : 'Somalia',
-    'ZA' : 'South Africa',
-    'GS' : 'South Georgia And Sandwich Isl.',
-    'ES' : 'Spain',
-    'LK' : 'Sri Lanka',
-    'SD' : 'Sudan',
-    'SR' : 'Suriname',
-    'SJ' : 'Svalbard And Jan Mayen',
-    'SZ' : 'Swaziland',
-    'SE' : 'Sweden',
-    'CH' : 'Switzerland',
-    'SY' : 'Syrian Arab Republic',
-    'TW' : 'Taiwan',
-    'TJ' : 'Tajikistan',
-    'TZ' : 'Tanzania',
-    'TH' : 'Thailand',
-    'TL' : 'Timor-Leste',
-    'TG' : 'Togo',
-    'TK' : 'Tokelau',
-    'TO' : 'Tonga',
-    'TT' : 'Trinidad And Tobago',
-    'TN' : 'Tunisia',
-    'TR' : 'Turkey',
-    'TM' : 'Turkmenistan',
-    'TC' : 'Turks And Caicos Islands',
-    'TV' : 'Tuvalu',
-    'UG' : 'Uganda',
-    'UA' : 'Ukraine',
-    'AE' : 'United Arab Emirates',
-    'GB' : 'United Kingdom',
-    'US' : 'United States',
-    'UM' : 'United States Outlying Islands',
-    'UY' : 'Uruguay',
-    'UZ' : 'Uzbekistan',
-    'VU' : 'Vanuatu',
-    'VE' : 'Venezuela',
-    'VN' : 'Viet Nam',
-    'VG' : 'Virgin Islands, British',
-    'VI' : 'Virgin Islands, U.S.',
-    'WF' : 'Wallis And Futuna',
-    'EH' : 'Western Sahara',
-    'YE' : 'Yemen',
-    'ZM' : 'Zambia',
-    'ZW' : 'Zimbabwe'
-};
-
-const continents = {
-    "asia": [
-        "CN", "IN", "ID", "PK", "BD", "JP", "PH", "VN", "TR", "IR", "TH",
-        "IR", "MM", "KR", "IQ", "AF", "SA", "UZ", "MY", "YE", "NP", "TW",
-        "LK", "KZ", "SY", "KH", "JO", "AZ", "AE", "TJ", "IL", "HK", "LA",
-        "LB", "KG", "TM", "SG", "OM", "PS", "KW", "GE", "MN", "AM", "QA",
-        "BH", "TL", "CY", "BT", "MO", "MV", "BN"
-    ],
-    "africa": [
-        "NG", "ET", "EG", "CD", "CG", "TZ", "SA", "KE", "UG", "DZ", "SD",
-        "MA", "AO", "MZ", "GH", "MG", "CM", "CI", "NE", "BF", "ML", "MW",
-        "ZM", "SN", "TD", "SO", "ZW", "GN", "RW", "BJ", "BI", "TN", "TG",
-        "SL", "LY", "CG", "LR", "CF", "MR", "ER", "NA", "GM", "BW", "GA",
-        "LS", "GW", "GQ", "MU", "DJ", "RE", "KM", "EH", "YT", "ST", "SC",
-        "SH"
-    ],
-    "europe": [
-        "RU", "DE", "GB", "FR", "IT", "ES", "UA", "PL", "RO", "NL", "BE", "CZ",
-        "GR", "PT", "SE", "HU", "BY", "AT", "RS", "CH", "BG", "DK", "FI", "SK",
-        "NO", "HR", "IE", "MD", "BA", "AL", "LT", "MK", "SI", "LV", "EE", "ME",
-        "LU", "MT", "IS", "AD", "FO", "MC", "LI", "SM", "GI", "VA"
-    ],
-    "north america": [
-        "US", "MX", "CA", "GT", "HT", "CU", "DO", "HN", "NI", "SV", "CR", "PA",
-        "JM", "PR", "TT", "GP", "BZ", "BS", "MQ", "BB", "LC", "GD", "VC", "AW",
-        "VI", "AG", "DM", "KY", "BM", "GL", "KN", "MF", "VG", "AN", "AI", "BL",
-        "PM", "MS"
-    ],
-    "south america": [
-        "BR", "CO", "AR", "PE", "VE", "CL", "EC", "BO", "PY", "UY", "SR", "GF",
-        "FK"
-    ],
-    "australia": [
-        "AU", "PG", "NZ", "FJ", "SB", "FM", "VU", "NC", "PF", "WS", "GU", "KI",
-        "TO", "MH", "MP", "AS", "PW", "CK", "TB", "WF", "NR", "NU", "TK"
-    ],
-    "antarctica": [
-
-    ],
 }

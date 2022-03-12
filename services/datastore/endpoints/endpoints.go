@@ -720,14 +720,10 @@ func (endpoints *Endpoints) GetShortestDistanceInfo(w http.ResponseWriter, r *ht
 		return
 	}
 
-	exists, shortestDistanceInfo, err := endpoints.Cntr.GetShortestDistanceInfo(context.TODO(), crawlIDsInput.CrawlIDs)
+	_, shortestDistanceInfo, err := endpoints.Cntr.GetShortestDistanceInfo(context.TODO(), crawlIDsInput.CrawlIDs)
 	if err != nil {
 		util.SendBasicInvalidResponse(w, r, "could not get shortest distance", vars, http.StatusBadRequest)
 		configuration.Logger.Sugar().Errorf("could not get shortest distance: %s", err.Error())
-		return
-	}
-	if !exists {
-		util.SendBasicInvalidResponse(w, r, "Shortest distance has not been calculated for these crawlids", vars, http.StatusNotFound)
 		return
 	}
 

@@ -100,6 +100,7 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                 return
             }
             document.getElementById("isPrivateCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
+            document.getElementById("crawlingInterfaceStatusText").textContent = "Checking for existing crawls"
             utilRequest.hasBeenCrawled(firstSteamID, level).then((crawlID) => {
                 if (crawlID === "") {
                     document.getElementById("isCrawledBeforeCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"

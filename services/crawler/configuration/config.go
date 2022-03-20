@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/datastructures"
+	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/joho/godotenv"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
@@ -19,7 +20,8 @@ var (
 	Logger                 *zap.Logger
 	ApplicationStartUpTime time.Time
 
-	WorkerConfig datastructures.WorkerConfig
+	WorkerConfig   datastructures.WorkerConfig
+	InfluxDBClient influxdb2.Client
 
 	Queue           amqp.Queue
 	ConsumeChannel  amqp.Channel
@@ -45,10 +47,11 @@ func InitConfig() error {
 	logger := commonUtil.InitLogger(logConfig)
 	Logger = logger
 
-	waitG.Add(3)
+	waitG.Add(4)
 	go InitAndSetWorkerConfig(&waitG)
 	go setupMainAMQPConnection(&waitG)
 	go InitExtraAMQPChannels(&waitG)
+	go InitAndSetInfluxClient(&waitG)
 
 	waitG.Wait()
 	return nil
@@ -129,4 +132,14 @@ func initAndAddAMQPChannel(waitG *sync.WaitGroup) {
 	amqlChannelLock.Lock()
 	AmqpChannels = append(AmqpChannels, newChannel)
 	amqlChannelLock.Unlock()
+}
+
+func InitAndSetInfluxClient(waitG *sync.WaitGroup) {
+	defer waitG.Done()
+	client := influxdb2.NewClientWithOptions(
+		os.Getenv("INFLUXDB_URL"),
+		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"),
+		influxdb2.DefaultOptions().SetBatchSize(10))
+	InfluxDBClient = client
+	Logger.Info("InfluxDB client initialied successfully")
 }

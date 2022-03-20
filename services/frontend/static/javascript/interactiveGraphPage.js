@@ -173,7 +173,10 @@ function initThreeJSGraph(crawlData) {
     const linkForce = g
     .d3Force("link")
     .distance(link => {
-        return 80 + (link.source.neighbourNodes.length * 8);
+        if (link.source.id == crawlData.userdetails.User.accdetails.steamid) {
+            return 300
+        }
+        return link.source.neighbourNodes.length * 5;
     });
 }
 
@@ -234,6 +237,29 @@ function initThreeJSGraphForTwoUsersCombined(crawlData) {
         })
     })
 
+    links.forEach(link => {
+        const src = nodes.filter(node => node.id === link.source)[0];
+        const dst = nodes.filter(node => node.id === link.target)[0];
+
+        if (src.neighbourNodes === undefined) {
+            src.neighbourNodes = []
+        }
+        if (dst.neighbourNodes === undefined) {
+            dst.neighbourNodes = []
+        }
+        if (src.neighbourLinks === undefined) {
+            src.neighbourLinks = []
+        }
+        if (dst.neighbourLinks === undefined) {
+            dst.neighbourLinks = []
+        }
+        src.neighbourNodes.push(dst)
+        dst.neighbourNodes.push(src)
+        src.neighbourLinks.push(link)
+        dst.neighbourLinks.push(link)
+    });
+
+
     const threeJSGraphData = {
         nodes: nodes,
         links: links
@@ -272,9 +298,14 @@ function initThreeJSGraphForTwoUsersCombined(crawlData) {
             }
         });
 
-    const linkForce = g
-    .d3Force("link")
-    .distance(160);
+        const linkForce = g
+        .d3Force("link")
+        .distance(link => {
+            if (link.source.id == crawlData.firstuser.accdetails.steamid || link.source.id == crawlData.seconduser.accdetails.steamid) {
+                return 120
+            }
+            return link.source.neighbourNodes.length * 11;
+        });
 }
 
 function combineNetworks(firstUser, secondUser) {

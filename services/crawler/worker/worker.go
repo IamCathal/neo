@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/iamcathal/neo/services/crawler/controller"
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	"github.com/iamcathal/neo/services/crawler/util"
+	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/neosteamfriendgraphing/common"
 	"github.com/neosteamfriendgraphing/common/dtos"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
@@ -20,6 +22,8 @@ import (
 // Worker crawls the steam API to get data from steam for a given user
 // e.g account details and details of a user's friend
 func Worker(cntr controller.CntrInterface, job datastructures.Job) {
+	startTime := time.Now().UnixNano() / int64(time.Millisecond)
+
 	userWasFoundInDB, friendsList, err := GetFriends(cntr, job.CurrentTargetSteamID)
 	if err != nil {
 		configuration.Logger.Sugar().Panicf("error getting friends initially in worker: %+v", err)
@@ -49,6 +53,14 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 				configuration.Logger.Sugar().Panicf("error publishing friends from steamID: %s to queue: %+v", job.CurrentTargetSteamID, err)
 			}
 		}
+		writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), "crawlerMetrics")
+		point := influxdb2.NewPointWithMeasurement("crawlerMetrics").
+			AddTag("service", "crawler").
+			AddTag("fromdatastore", "yes").
+			AddField("totalTime", commonUtil.GetCurrentTimeInMs()-startTime).
+			AddField("totalfriends", len(friendsList)).
+			SetTime(time.Now())
+		writeAPI.WritePoint(point)
 		return
 	}
 	playerSummaryForCurrentUser := common.Player{}
@@ -56,11 +68,15 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	friendPlayerSummaries := []common.Player{}
 	var waitG sync.WaitGroup
 
+	durationForGetSummaryForMainUser := int64(0)
+	durationForGetFiftyOrFewerGamesOwned := int64(0)
+	durationForGetSummariesForFriends := int64(0)
 	waitG.Add(1)
 	go getSummaryForMainUserFunc(
 		cntr,
 		job.CurrentTargetSteamID,
 		&playerSummaryForCurrentUser,
+		&durationForGetSummaryForMainUser,
 		&waitG)
 
 	waitG.Add(1)
@@ -68,6 +84,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		cntr,
 		job.CurrentTargetSteamID,
 		&fiftyOrFewerGamesOwnedForCurrentUser,
+		&durationForGetFiftyOrFewerGamesOwned,
 		&waitG)
 
 	waitG.Add(1)
@@ -75,6 +92,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		cntr,
 		friendsList,
 		&friendPlayerSummaries,
+		&durationForGetSummariesForFriends,
 		&waitG)
 
 	waitG.Wait()
@@ -92,9 +110,10 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	// PUT FRIENDS INTO QUEUE
 	friendPlayerSummarySteamIDs := getSteamIDsFromPlayers(friendPlayerSummaries)
 	friendsShoudlBeCrawled := util.JobIsNotLevelOneAndNotMax(job)
+	publishFriendsToQueueDuration := int64(0)
 	if friendsShoudlBeCrawled {
 		waitG.Add(1)
-		go publishFriendsToQueueFunc(cntr, job, friendPlayerSummarySteamIDs, &waitG)
+		go publishFriendsToQueueFunc(cntr, job, friendPlayerSummarySteamIDs, &publishFriendsToQueueDuration, &waitG)
 	}
 
 	// // Save user to DB
@@ -118,9 +137,24 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 	}
 
 	waitG.Add(1)
-	go saveUserFunc(cntr, saveUser, &waitG)
+	saveUserDuration := int64(0)
+	go saveUserFunc(cntr, saveUser, &saveUserDuration, &waitG)
 
 	waitG.Wait()
+
+	writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), "crawlerMetrics")
+	point := influxdb2.NewPointWithMeasurement("crawlerMetrics").
+		AddTag("fromdatastore", "no").
+		AddField("totalfriends", publicFriendCount).
+		AddField("totalTime", commonUtil.GetCurrentTimeInMs()-startTime).
+		AddField("getplayersummaryduration", durationForGetSummaryForMainUser).
+		AddField("getgamesownedduration", durationForGetFiftyOrFewerGamesOwned).
+		AddField("getfriendsplayersummariesduration", durationForGetSummariesForFriends).
+		AddField("publishfriendstoqueueduration", publishFriendsToQueueDuration).
+		AddField("saveuserduration", saveUserDuration).
+		AddField("gamesowned", len(fiftyOrFewerGamesOwnedForCurrentUser)).
+		SetTime(time.Now())
+	writeAPI.WritePoint(point)
 }
 
 // GetFriends gets the friendslist for a given user through either datastore
@@ -210,8 +244,9 @@ func CrawlUser(cntr controller.CntrInterface, steamID, crawlID string, level int
 	return err
 }
 
-func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, mainUser *common.Player, waitG *sync.WaitGroup) {
+func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, mainUser *common.Player, durationForGetPlayerSummary *int64, waitG *sync.WaitGroup) {
 	defer waitG.Done()
+	startTime := time.Now().UnixNano() / int64(time.Millisecond)
 	playerSummaries, err := cntr.CallGetPlayerSummaries(steamID)
 	if err != nil {
 		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
@@ -229,22 +264,28 @@ func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, ma
 		}
 	}
 	*mainUser = playerSummaries[0]
+	*durationForGetPlayerSummary = commonUtil.GetCurrentTimeInMs() - startTime
 }
 
-func getFiftyOrFewerGamesOwnedFunc(cntr controller.CntrInterface, steamID string, gamesOwned *[]common.GameOwnedDocument, waitG *sync.WaitGroup) {
+func getFiftyOrFewerGamesOwnedFunc(cntr controller.CntrInterface, steamID string, gamesOwned *[]common.GameOwnedDocument, durationForGetFiftyOrFewerGamesOwned *int64, waitG *sync.WaitGroup) {
 	defer waitG.Done()
+	startTime := time.Now().UnixNano() / int64(time.Millisecond)
 	allGamesOwnedForCurrentUser, err := getGamesOwned(cntr, steamID)
 	if err != nil {
 		configuration.Logger.Sugar().Panicf("failed to get player summaries for friends: %+v", err)
 	}
 	topFiftyOrFewerTopPlayedGames := getTopFiftyOrFewerGames(allGamesOwnedForCurrentUser)
 	topFiftyOrFewerGamesOwnedSlimmedDown := GetSlimmedDownOwnedGames(topFiftyOrFewerTopPlayedGames)
+
 	*gamesOwned = topFiftyOrFewerGamesOwnedSlimmedDown
+	*durationForGetFiftyOrFewerGamesOwned = commonUtil.GetCurrentTimeInMs() - startTime
 }
 
-func getSummariesForFriendsFunc(cntr controller.CntrInterface, friendIDs []string, friends *[]common.Player, waitG *sync.WaitGroup) {
+func getSummariesForFriendsFunc(cntr controller.CntrInterface, friendIDs []string, friends *[]common.Player, durationForGetSummariesForFriends *int64, waitG *sync.WaitGroup) {
 	defer waitG.Done()
+	startTime := time.Now().UnixNano() / int64(time.Millisecond)
 	if len(friendIDs) == 0 {
+		*durationForGetSummariesForFriends = commonUtil.GetCurrentTimeInMs() - startTime
 		return
 	}
 
@@ -253,19 +294,24 @@ func getSummariesForFriendsFunc(cntr controller.CntrInterface, friendIDs []strin
 		configuration.Logger.Sugar().Panicf("failed to get player summaries for friends: %+v", err)
 		log.Fatal(err)
 	}
+
 	*friends = friendPlayerSummaries
+	*durationForGetSummariesForFriends = commonUtil.GetCurrentTimeInMs() - startTime
 }
 
-func publishFriendsToQueueFunc(cntr controller.CntrInterface, job datastructures.Job, friendIDs []string, waitG *sync.WaitGroup) {
+func publishFriendsToQueueFunc(cntr controller.CntrInterface, job datastructures.Job, friendIDs []string, publishFriendsToQueueDuration *int64, waitG *sync.WaitGroup) {
 	defer waitG.Done()
+	startTime := time.Now().UnixNano() / int64(time.Millisecond)
 	err := putFriendsIntoQueue(cntr, job, friendIDs)
 	if err != nil {
 		configuration.Logger.Sugar().Panicf("failed publish friends from steamID: %s to queue: %+v", job.CurrentTargetSteamID, err)
 	}
+	*publishFriendsToQueueDuration = commonUtil.GetCurrentTimeInMs() - startTime
 }
 
-func saveUserFunc(cntr controller.CntrInterface, saveUser dtos.SaveUserDTO, waitG *sync.WaitGroup) {
+func saveUserFunc(cntr controller.CntrInterface, saveUser dtos.SaveUserDTO, saveUserDuration *int64, waitG *sync.WaitGroup) {
 	defer waitG.Done()
+	startTime := time.Now().UnixNano() / int64(time.Millisecond)
 	success, err := cntr.SaveUserToDataStore(saveUser)
 	if err != nil {
 		configuration.Logger.Sugar().Panicf("error when saving user user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err)
@@ -273,4 +319,5 @@ func saveUserFunc(cntr controller.CntrInterface, saveUser dtos.SaveUserDTO, wait
 	if !success {
 		configuration.Logger.Sugar().Panicf("failed to save user %s to DB: %+v", saveUser.User.AccDetails.SteamID, err)
 	}
+	*saveUserDuration = commonUtil.GetCurrentTimeInMs() - startTime
 }

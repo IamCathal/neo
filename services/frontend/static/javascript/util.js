@@ -18,11 +18,11 @@ export function timezSince(targetDate) {
     let seconds = Math.floor((new Date()-targetDate)/1000)
     let interval = seconds / 31536000 
     if (interval > 1) {
-        return Math.floor(interval) + " y ago";
+        return Math.floor(interval) + "y ago";
     }
     interval = seconds / 2592000; // months
     if (interval > 1) {
-        return Math.floor(interval) + " m ago";
+        return Math.floor(interval) + "m ago";
       }
     interval = seconds / 86400; // days
     if (interval > 1) {

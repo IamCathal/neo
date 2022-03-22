@@ -5,17 +5,17 @@ const crawlIDs = getCrawlIDsFromShortestDistanceURL()
 getShortestDistance(crawlIDs).then(shortestDistanceInfo => {
     console.log(shortestDistanceInfo)
     console.log(shortestDistanceInfo.shortestdistance.length)
-    if (shortestDistanceInfo.shortestdistance.length == 0) {
+    if (shortestDistanceInfo.shortestdistance.length == 0 || shortestDistanceInfo.shortestdistance.length === undefined) {
         document.getElementById("shortestPathExists").style.visibility = 'hidden';
         document.getElementById("shortestPathDoesntExist").style.visibility = 'visible';
-        fillInIndivCrawlDataBoxes(shortestDistanceInfo)
+        fillInIndivCrawlDataBoxes(shortestDistanceInfo, "indivCrawlDataNotExist")
         fillInNoPathInfoText(shortestDistanceInfo)
         return
     }
     fillInStatBoxes(shortestDistanceInfo)
     fillInShortestPathMenu(shortestDistanceInfo)
     initEchartsGraph(shortestDistanceInfo)
-    fillInIndivCrawlDataBoxes(shortestDistanceInfo)
+    fillInIndivCrawlDataBoxes(shortestDistanceInfo, "indivCrawlData")
 
     initLinkForInteractiveGraphPage()
 
@@ -271,8 +271,8 @@ function getFlagEmoji(countryCode) {
     return String.fromCodePoint(...codePoints);
 }
 
-function fillInIndivCrawlDataBoxes(shortestDistanceInfo) {
-    document.getElementById("indivCrawlData").innerHTML += `
+function fillInIndivCrawlDataBoxes(shortestDistanceInfo, id) {
+    document.getElementById(id).innerHTML += `
     <div class="col-5">
         <a href="/graph/${shortestDistanceInfo.crawlids[0]}">
             <div class="row pt-2 pb-2" style="border-radius: 5px">
@@ -287,7 +287,7 @@ function fillInIndivCrawlDataBoxes(shortestDistanceInfo) {
     </div>
     `
 
-    document.getElementById("indivCrawlData").innerHTML += `
+    document.getElementById(id).innerHTML += `
     <div class="col-5 ml-4">
         <a href="/graph/${shortestDistanceInfo.crawlids[1]}">
             <div class="row pt-2 pb-2" style="border-radius: 5px">

@@ -418,7 +418,7 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     document.getElementById("highestFriendCountUserFriendCount").textContent = highestFriendCountUser.friendids.length;
     let creationDate = new Date(highestFriendCountUser.accdetails.timecreated*1000);
     let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    let timeSinceString = `(${util.timezSince(creationDate)} ago)`
+    let timeSinceString = `(${util.timezSince(creationDate)})`
     document.getElementById("highestFriendCountUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
     document.getElementById("highestFriendCountUserProfile").innerHTML = `<a href="${highestFriendCountUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("highestFriendCountUserAvatar").src = highestFriendCountUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";

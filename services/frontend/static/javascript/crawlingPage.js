@@ -65,6 +65,38 @@ if (crawlIDs.length == 2) {
 }
 
 if (crawlIDs.length == 1) {
+    // Pre emptively check for finished crawls every 500ms is the graph is done processing yet
+    let interval = setInterval(function() {
+        console.log("checking pre emptively")
+        utilRequest.isCrawlingFinished(crawlIDs[0]).then((isFinished) => {
+            if (isFinished) {
+                utilRequest.startCreateGraph(crawlIDs[0]).then(res => {
+                    document.getElementById("firstCrawlCrawlStatus").textContent = "Processing graph"
+                    // Check every 500ms is the graph is done processing yet
+                    let interval = setInterval(function() {
+                        utilRequest.doesProcessedGraphDataExist(crawlIDs[0]).then(doesExist => {
+                            if (doesExist === true) {
+                                clearInterval(interval);
+                                window.location.href = `/graph/${crawlIDs[0]}`;
+                            } else {
+                                console.log("graph not done processing")
+                            }
+                        }, err => {
+                            clearInterval(interval);
+                            console.error(`error checking if graph data is procced: ${err}`);
+                        })
+                    }, 500);
+    
+                    }, err => {
+                    console.error(`err from createGraph ${err}`)
+                    });
+            }
+        }, err => {
+            console.error(`error in continour isFinished check: ${err}`)
+        })
+        
+    }, 500);
+
     utilRequest.doesProcessedGraphDataExist(crawlIDs[0]).then(doesExist => {
         if (doesExist) {
             console.log("did exist")

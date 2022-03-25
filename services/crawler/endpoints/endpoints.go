@@ -111,7 +111,7 @@ func (endpoints *Endpoints) CrawlUsers(w http.ResponseWriter, r *http.Request) {
 		commonUtil.SendBasicInvalidResponse(w, r, "Invalid input", vars, http.StatusBadRequest)
 		return
 	}
-	if userInput.Level < 1 || userInput.Level > 3 {
+	if userInput.Level < 2 || userInput.Level > 3 {
 		commonUtil.SendBasicInvalidResponse(w, r, "Invalid level given", vars, http.StatusBadRequest)
 		return
 	}

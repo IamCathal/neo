@@ -47,19 +47,17 @@ document.getElementById("levelChoice").addEventListener("input", function(event)
     document.getElementById("chosenLevel").textContent = this.value;
 
     const levelHelpTextMessages = [
-        "Crawl just the given user(s)",
         "Crawl the given user(s) and all of their immediate friends",
         "Crawl the given user(s), all of their immediate friends and all friends of these friends"
     ]
     const levelExampleImages = [
-        "https://i.imgur.com/eoSRDK6.png",
         "https://i.imgur.com/6LbbJoV.png",
         "https://i.imgur.com/blTUZPU.png"
     ]
 
     document.getElementById("levelChoiceInfoBox").style.display = "block";
-    document.getElementById("levelHelpText").textContent = levelHelpTextMessages[this.value-1];
-    document.getElementById("levelHelpImage").src = levelExampleImages[this.value-1];
+    document.getElementById("levelHelpText").textContent = levelHelpTextMessages[this.value-2];
+    document.getElementById("levelHelpImage").src = levelExampleImages[this.value-2];
 });
 
 document.getElementById("crawlButton").addEventListener("click", function(event) {

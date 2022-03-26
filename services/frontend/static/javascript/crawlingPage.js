@@ -70,6 +70,7 @@ if (crawlIDs.length == 1) {
         console.log("checking pre emptively")
         utilRequest.isCrawlingFinished(crawlIDs[0]).then((isFinished) => {
             if (isFinished) {
+                clearInterval(interval)
                 utilRequest.startCreateGraph(crawlIDs[0]).then(res => {
                     document.getElementById("firstCrawlCrawlStatus").textContent = "Processing graph"
                     // Check every 500ms is the graph is done processing yet

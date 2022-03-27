@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
@@ -65,7 +66,7 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 
 		for i := 0; i < maxRetryCount; i++ {
 			// A fresh key must be used
-			apiKey := apikeymanager.GetSteamAPIKey()
+			apiKey = apikeymanager.GetSteamAPIKey()
 			targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
 				apiKey, steamID)
 
@@ -90,14 +91,14 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 		return []string{}, commonUtil.MakeErr(newErr)
 	}
 
-	// if valid := IsValidAPIResponseForSteamId(string(res)); !valid {
-	// 	return friendsListObj, MakeErr(fmt.Errorf("invalid steamID %s given", steamID))
-	// }
+	if valid := IsValidAPIResponse(string(res)); !valid {
+		return []string{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s caused response: %+v", apiKey, string(res)))
+	}
 
-	// if valid := IsValidResponseForAPIKey(string(res)); !valid {
-	// 	return friendsListObj, MakeErr(fmt.Errorf("invalid api key: %s", apiKey))
-	// }
-	json.Unmarshal(res, &friendsListObj)
+	err = json.Unmarshal(res, &friendsListObj)
+	if err != nil {
+		return []string{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling friendsListObj object: %+v, got: %+v", friendsListObj, res))
+	}
 
 	friendIDs := []string{}
 	for _, friend := range friendsListObj.Friends.Friends {
@@ -129,7 +130,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 
 		for i := 0; i < maxRetryCount; i++ {
 			// A fresh key must be used
-			apiKey := apikeymanager.GetSteamAPIKey()
+			apiKey = apikeymanager.GetSteamAPIKey()
 			targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
 				apiKey, steamIDStringList)
 
@@ -154,9 +155,13 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 		return []common.Player{}, commonUtil.MakeErr(newErr)
 	}
 
+	if valid := IsValidAPIResponse(string(res)); !valid {
+		return []common.Player{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s caused response: %+v", apiKey, string(res)))
+	}
+
 	err = json.Unmarshal(res, &allPlayerSummaries)
 	if err != nil {
-		return []common.Player{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling allPlayerSummaries object: %+v", allPlayerSummaries))
+		return []common.Player{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling allPlayerSummaries object: %+v, got: %+v", allPlayerSummaries, res))
 	}
 
 	return allPlayerSummaries.Response.Players, nil
@@ -182,7 +187,7 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 
 		for i := 0; i < maxRetryCount; i++ {
 			// A fresh key must be used
-			apiKey := apikeymanager.GetSteamAPIKey()
+			apiKey = apikeymanager.GetSteamAPIKey()
 			targetURL := fmt.Sprintf("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json&include_appinfo=true&include_played_free_games=true",
 				apiKey, steamID)
 
@@ -207,9 +212,13 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 		return common.GamesOwnedResponse{}, commonUtil.MakeErr(newErr)
 	}
 
+	if valid := IsValidAPIResponse(string(res)); !valid {
+		return common.GamesOwnedResponse{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s caused response: %+v", apiKey, string(res)))
+	}
+
 	err = json.Unmarshal(res, &apiResponse)
 	if err != nil {
-		return common.GamesOwnedResponse{}, util.MakeErr(err, fmt.Sprintf("error unmarshalling gamesOwnedResponed object: %+v", apiResponse.Response))
+		return common.GamesOwnedResponse{}, util.MakeErr(err, fmt.Sprintf("error unmarshalling gamesOwnedResponed object: %+v. got response: %+v", apiResponse.Response, res))
 	}
 
 	return apiResponse.Response, nil
@@ -797,4 +806,8 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 
 func (control Cntr) Sleep(duration time.Duration) {
 	time.Sleep(duration)
+}
+
+func IsValidAPIResponse(response string) bool {
+	return !strings.Contains("<html>", response)
 }

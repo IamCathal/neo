@@ -67,6 +67,7 @@ func CollectAndShipStats() {
 	defer client.Close()
 
 	writeAPI := client.WriteAPI(os.Getenv("ORG"), os.Getenv("SYSTEM_STATS_BUCKET"))
+	defer writeAPI.Close()
 	time.Sleep(5 * time.Second)
 
 	for {

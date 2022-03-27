@@ -63,6 +63,10 @@ func createMockInfluxDBClient() {
 	configuration.InfluxDBClient = influxdb2.NewClient(
 		os.Getenv("INFLUXDB_URL"),
 		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"))
+	configuration.EndpointWriteAPI = configuration.InfluxDBClient.WriteAPI(
+		os.Getenv("ORG"),
+		os.Getenv("ENDPOINT_LATENCIES_BUCKET"),
+	)
 }
 
 func initServerAndDependencies() (*controller.MockCntrInterface, int) {

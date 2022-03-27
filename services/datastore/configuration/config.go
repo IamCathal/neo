@@ -9,6 +9,7 @@ import (
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go"
+	"github.com/influxdata/influxdb-client-go/api"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/neosteamfriendgraphing/common"
@@ -24,6 +25,7 @@ var (
 	ApplicationStartUpTime time.Time
 	DBClient               *mongo.Client
 	InfluxDBClient         influxdb2.Client
+	EndpointWriteAPI       api.WriteAPI
 	SQLClient              *sql.DB
 
 	OVERWRITE_USERS_BEYOND int64
@@ -130,6 +132,10 @@ func InitAndSetInfluxClient(waitG *sync.WaitGroup) {
 		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"),
 		influxdb2.DefaultOptions().SetBatchSize(10))
 	InfluxDBClient = client
+
+	writeAPI := InfluxDBClient.WriteAPI(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
+	EndpointWriteAPI = writeAPI
+
 	Logger.Info("InfluxDB client initialied successfully")
 }
 

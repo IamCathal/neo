@@ -164,14 +164,12 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 			zap.String("shortPath", util.GetBaseURLPath(r)),
 		)
 
-		writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
-		defer writeAPI.Close()
 		point := influxdb2.NewPointWithMeasurement("endpointLatencies").
 			AddTag("path", util.GetBaseURLPath(r)).
 			AddTag("service", "datastore").
 			AddField("latency", util.GetCurrentTimeInMs()-requestStartTime).
 			SetTime(time.Now())
-		writeAPI.WritePoint(point)
+		configuration.EndpointWriteAPI.WritePoint(point)
 	})
 }
 

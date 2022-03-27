@@ -291,7 +291,7 @@ func (control Cntr) SaveUserToDataStore(saveUser dtos.SaveUserDTO) (bool, error)
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
-				res.Body.Close()
+				defer res.Body.Close()
 				break
 			}
 
@@ -349,7 +349,7 @@ func (control Cntr) GetUserFromDataStore(steamID string) (common.UserDocument, e
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
-				res.Body.Close()
+				defer res.Body.Close()
 				break
 			}
 
@@ -422,7 +422,7 @@ func (control Cntr) SaveCrawlingStatsToDataStore(currentLevel int, crawlingStatu
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
-				res.Body.Close()
+				defer res.Body.Close()
 				break
 			}
 
@@ -478,7 +478,7 @@ func (control Cntr) GetCrawlingStatsFromDataStore(crawlID string) (common.Crawli
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
-				res.Body.Close()
+				defer res.Body.Close()
 				break
 			}
 
@@ -533,7 +533,7 @@ func (control Cntr) GetGraphableDataFromDataStore(steamID string) (dtos.GetGraph
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
-				res.Body.Close()
+				defer res.Body.Close()
 				break
 			}
 
@@ -608,7 +608,7 @@ func (control Cntr) GetUsernamesForSteamIDs(steamIDs []string) (map[string]strin
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
-				res.Body.Close()
+				defer res.Body.Close()
 				break
 			}
 
@@ -693,7 +693,7 @@ func (control Cntr) SaveProcessedGraphDataToDataStore(crawlID string, graphData 
 
 			res, err = client.Do(req)
 			if err == nil {
-				res.Body.Close()
+				defer res.Body.Close()
 			}
 			if err == nil && res.StatusCode == http.StatusOK {
 				successfulRequest = true
@@ -773,6 +773,7 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 
 			res, err = client.Do(req)
 			if err == nil && res.StatusCode == http.StatusOK {
+				defer res.Body.Close()
 				successfulRequest = true
 				break
 			}

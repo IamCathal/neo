@@ -336,6 +336,7 @@ func (control Cntr) GetProcessedGraphData(crawlID string) (common.UsersGraphData
 	if err != nil {
 		return common.UsersGraphData{}, util.MakeErr(err)
 	}
+	defer res.Close()
 	graphDataJSON := ""
 	for res.Next() {
 		crawlID := ""
@@ -359,6 +360,7 @@ func (control Cntr) DoesProcessedGraphDataExist(crawlID string) (bool, error) {
 	if err != nil {
 		return false, util.MakeErr(err)
 	}
+	defer res.Close()
 	crawlIDFromRow := ""
 	for res.Next() {
 		if err := res.Scan(&crawlIDFromRow); err != nil {

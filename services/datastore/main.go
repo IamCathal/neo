@@ -36,9 +36,6 @@ func main() {
 		WriteTimeout: 20 * time.Second,
 		ReadTimeout:  30 * time.Second,
 	}
-	go func() {
-		fmt.Println(http.ListenAndServe(":6060", nil))
-	}()
 
 	configuration.Logger.Info(fmt.Sprintf("datastore start up and serving requests on %s:%s", util.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())

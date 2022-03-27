@@ -169,7 +169,7 @@ export function waitUntilGraphDataExists(crawlID) {
                 clearInterval(interval);
                 reject(err)
             })
-        }, 500);
+        }, 1000);
     })
 }
 

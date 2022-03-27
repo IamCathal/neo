@@ -70,7 +70,6 @@ if (crawlIDs.length == 1) {
     console.log("checking pre emptively")
     utilRequest.isCrawlingFinished(crawlIDs[0]).then((isFinished) => {
         if (isFinished) {
-            clearInterval(interval)
             utilRequest.startCreateGraph(crawlIDs[0]).then(res => {
                 document.getElementById("firstCrawlCrawlStatus").textContent = "Processing graph"
                 // Check every 500ms is the graph is done processing yet
@@ -86,7 +85,7 @@ if (crawlIDs.length == 1) {
                         clearInterval(interval);
                         console.error(`error checking if graph data is procced: ${err}`);
                     })
-                }, 500);
+                }, 1000);
 
                 }, err => {
                 console.error(`err from createGraph ${err}`)
@@ -124,7 +123,7 @@ if (crawlIDs.length == 1) {
                         clearInterval(interval);
                         console.error(`error checking if graph data is procced: ${err}`);
                     })
-                }, 500);
+                }, 1000);
 
                 }, err => {
                 console.error(`err from createGraph ${err}`)

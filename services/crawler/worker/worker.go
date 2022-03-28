@@ -53,14 +53,14 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 				configuration.Logger.Sugar().Panicf("error publishing friends from steamID: %s to queue: %+v", job.CurrentTargetSteamID, err)
 			}
 		}
-		writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), "crawlerMetrics")
+
 		point := influxdb2.NewPointWithMeasurement("crawlerMetrics").
 			AddTag("service", "crawler").
 			AddTag("fromdatastore", "yes").
 			AddField("totalTime", commonUtil.GetCurrentTimeInMs()-startTime).
 			AddField("totalfriends", len(friendsList)).
 			SetTime(time.Now())
-		writeAPI.WritePoint(point)
+		configuration.EndpointWriteAPI.WritePoint(point)
 		return
 	}
 	playerSummaryForCurrentUser := common.Player{}

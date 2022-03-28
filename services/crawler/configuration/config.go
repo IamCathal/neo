@@ -10,6 +10,7 @@ import (
 
 	"github.com/iamcathal/neo/services/crawler/datastructures"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
+	"github.com/influxdata/influxdb-client-go/api"
 	"github.com/joho/godotenv"
 	commonUtil "github.com/neosteamfriendgraphing/common/util"
 	"github.com/streadway/amqp"
@@ -20,8 +21,9 @@ var (
 	Logger                 *zap.Logger
 	ApplicationStartUpTime time.Time
 
-	WorkerConfig   datastructures.WorkerConfig
-	InfluxDBClient influxdb2.Client
+	WorkerConfig     datastructures.WorkerConfig
+	InfluxDBClient   influxdb2.Client
+	EndpointWriteAPI api.WriteAPI
 
 	Queue           amqp.Queue
 	ConsumeChannel  amqp.Channel
@@ -141,5 +143,9 @@ func InitAndSetInfluxClient(waitG *sync.WaitGroup) {
 		os.Getenv("SYSTEM_STATS_BUCKET_TOKEN"),
 		influxdb2.DefaultOptions().SetBatchSize(10))
 	InfluxDBClient = client
+
+	writeAPI := InfluxDBClient.WriteAPI(os.Getenv("ORG"), os.Getenv("ENDPOINT_LATENCIES_BUCKET"))
+	EndpointWriteAPI = writeAPI
+
 	Logger.Info("InfluxDB client initialied successfully")
 }

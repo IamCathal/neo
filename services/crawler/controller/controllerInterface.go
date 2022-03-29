@@ -97,7 +97,7 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 
 	err = json.Unmarshal(res, &friendsListObj)
 	if err != nil {
-		return []string{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling friendsListObj object: %+v, got: %+v", friendsListObj, res))
+		return []string{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling friendsListObj object: %+v, got: %+v", friendsListObj, string(res)))
 	}
 
 	friendIDs := []string{}
@@ -161,7 +161,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 
 	err = json.Unmarshal(res, &allPlayerSummaries)
 	if err != nil {
-		return []common.Player{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling allPlayerSummaries object: %+v, got: %+v", allPlayerSummaries, res))
+		return []common.Player{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling allPlayerSummaries object: %+v, got: %+v", allPlayerSummaries, string(res)))
 	}
 
 	return allPlayerSummaries.Response.Players, nil

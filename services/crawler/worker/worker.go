@@ -254,7 +254,7 @@ func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, ma
 	startTime := time.Now().UnixNano() / int64(time.Millisecond)
 	playerSummaries, err := cntr.CallGetPlayerSummaries(steamID)
 	if err != nil {
-		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user: %v", err.Error()))
+		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user %s: %v", steamID, err.Error()))
 		log.Fatal(err)
 	}
 

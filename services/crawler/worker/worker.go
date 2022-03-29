@@ -96,6 +96,11 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		&waitG)
 
 	waitG.Wait()
+	emptyPlayer := common.Player{}
+	if playerSummaryForCurrentUser == emptyPlayer {
+		configuration.Logger.Sugar().Infof("caught ultra secure private user, ignoring this job: %+v", job)
+		return
+	}
 
 	// ASYNC BLOCK TWO
 
@@ -260,7 +265,12 @@ func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, ma
 			configuration.Logger.Sugar().Panicf(fmt.Sprintf("failed AGAIN to get player summary for target user: %+v", err))
 		}
 		if len(playerSummaries) == 0 {
-			configuration.Logger.Sugar().Panicf("failed to get a non empty player summary for target user for a second time: %+v", err)
+			// This is a very odd occurance and I do not know how a user can
+			// have their privacy settings this strict. It occurs very rarely
+			// like for 76561198043146238
+			playerSummaries = append(playerSummaries, common.Player{})
+			configuration.Logger.Sugar().Infof(
+				"target user %s has ultra secure privacy settings: %+v", steamID, err)
 		}
 	}
 	*mainUser = playerSummaries[0]

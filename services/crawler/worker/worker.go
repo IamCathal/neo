@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -267,8 +268,17 @@ func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, ma
 		if len(playerSummaries) == 0 {
 			// This is a very odd occurance and I do not know how a user can
 			// have their privacy settings this strict. It occurs very rarely
-			// like for 76561198043146238
-			playerSummaries = append(playerSummaries, common.Player{})
+			// like for 76561198043146238. Instead this filler user will
+			// be returned
+			randomFourDigitNumber := rand.Intn(9000) + 999
+			playerSummaries = append(playerSummaries, common.Player{
+				Steamid:        fmt.Sprintf("7656119804695%d", randomFourDigitNumber),
+				Personaname:    "unknown",
+				Profileurl:     "https://steamcommunity.com/id/gabelogannewell",
+				Avatar:         "https://avatars.cloudflare.steamstatic.com/c5d56249ee5d28a07db4ac9f7f60af961fab5426.jpg",
+				Timecreated:    1648665076,
+				Loccountrycode: "US",
+			})
 			configuration.Logger.Sugar().Infof(
 				"target user %s has ultra secure privacy settings: %+v", steamID, err)
 		}

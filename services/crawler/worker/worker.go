@@ -27,7 +27,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 
 	userWasFoundInDB, friendsList, err := GetFriends(cntr, job.CurrentTargetSteamID)
 	if err != nil {
-		configuration.Logger.Sugar().Panicf("error getting friends initially in worker: %+v", err)
+		configuration.Logger.Sugar().Panicf("error getting friends initially in worker for %s: %+v", job.CurrentTargetSteamID, err)
 	}
 	if userWasFoundInDB {
 		crawlingStatus := common.CrawlingStatus{
@@ -39,7 +39,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 
 		success, err := cntr.SaveCrawlingStatsToDataStore(job.CurrentLevel, crawlingStatus)
 		if err != nil {
-			configuration.Logger.Sugar().Panicf("error saving crawling stats in worker: %+v", err)
+			configuration.Logger.Sugar().Panicf("error saving crawling stats in worker : %+v", err)
 		}
 		if !success {
 			configuration.Logger.Sugar().Panicf("failed to save crawling stats in worker: %+v", err)
@@ -148,7 +148,6 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 
 	waitG.Wait()
 
-	writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), "crawlerMetrics")
 	point := influxdb2.NewPointWithMeasurement("crawlerMetrics").
 		AddTag("fromdatastore", "no").
 		AddField("totalfriends", publicFriendCount).
@@ -160,7 +159,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		AddField("saveuserduration", saveUserDuration).
 		AddField("gamesowned", len(fiftyOrFewerGamesOwnedForCurrentUser)).
 		SetTime(time.Now())
-	writeAPI.WritePoint(point)
+	configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), "crawlerMetrics").WritePoint(point)
 }
 
 // GetFriends gets the friendslist for a given user through either datastore
@@ -280,7 +279,7 @@ func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, ma
 				Loccountrycode: "US",
 			})
 			configuration.Logger.Sugar().Infof(
-				"target user %s has ultra secure privacy settings: %+v", steamID, err)
+				"target user %s has ultra secure privacy settings: %+v,", steamID, err)
 		}
 	}
 	*mainUser = playerSummaries[0]

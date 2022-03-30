@@ -71,11 +71,20 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 				apiKey, steamID)
 
 			res, err = MakeNetworkGETRequest(targetURL)
+			if valid := IsValidAPIResponse(string(res)); !valid {
+				return []string{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s request to %s caused response: %+v", apiKey, targetURL, string(res)))
+			}
+
+			if isError := IsErrorResponse(string(res)); !isError {
+				configuration.Logger.Sugar().Warnf("got internal server error response: %s when requesting: %s", string(res), targetURL)
+			}
+
 			if err == nil {
 				configuration.Logger.Sugar().Infof("success on the %d request to GetFriendsList (%s)", i, targetURL)
 				successfulRequest = true
 				break
 			}
+
 			// No sleep is needed since KEY_USAGE_TIMER limits the distribution of steam keys
 			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times", targetURL, i)
 			configuration.Logger.Info(logMsg,
@@ -89,6 +98,10 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	if !successfulRequest {
 		newErr := fmt.Errorf("failed %d retries to GetFriendList: %+v Most recent response: %+v", maxRetryCount, err, res)
 		return []string{}, commonUtil.MakeErr(newErr)
+	}
+
+	if isError := IsErrorResponse(string(res)); !isError {
+		return []string{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s caused response: %+v", apiKey, string(res)))
 	}
 
 	if valid := IsValidAPIResponse(string(res)); !valid {
@@ -135,6 +148,14 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 				apiKey, steamIDStringList)
 
 			res, err = MakeNetworkGETRequest(targetURL)
+			if valid := IsValidAPIResponse(string(res)); !valid {
+				return []common.Player{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s request to %s caused response: %+v", apiKey, targetURL, string(res)))
+			}
+
+			if isError := IsErrorResponse(string(res)); !isError {
+				configuration.Logger.Sugar().Warnf("got internal server error response: %s when requesting: %s", string(res), targetURL)
+			}
+
 			if err == nil {
 				configuration.Logger.Sugar().Infof("success on the %d request to GetPlayerSummaries (%s)", i, targetURL)
 				successfulRequest = true
@@ -192,6 +213,14 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 				apiKey, steamID)
 
 			res, err = MakeNetworkGETRequest(targetURL)
+			if valid := IsValidAPIResponse(string(res)); !valid {
+				return common.GamesOwnedResponse{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s request to %s caused response: %+v", apiKey, targetURL, string(res)))
+			}
+
+			if isError := IsErrorResponse(string(res)); !isError {
+				configuration.Logger.Sugar().Warnf("got internal server error response: %s when requesting: %s", string(res), targetURL)
+			}
+
 			if err == nil {
 				configuration.Logger.Sugar().Infof("success on the %d request to GetFriendsList  (%s)", i, targetURL)
 				successfulRequest = true
@@ -807,6 +836,10 @@ func (control Cntr) GetGameDetailsFromIDs(gameIDs []int) ([]common.BareGameInfo,
 
 func (control Cntr) Sleep(duration time.Duration) {
 	time.Sleep(duration)
+}
+
+func IsErrorResponse(response string) bool {
+	return !strings.Contains("Internal Server Error", response)
 }
 
 func IsValidAPIResponse(response string) bool {

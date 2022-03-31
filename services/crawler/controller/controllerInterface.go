@@ -857,5 +857,5 @@ func IsErrorResponse(response string) bool {
 }
 
 func IsInvalidKeyResponse(response string) bool {
-	return strings.Contains(response, "<html>")
+	return strings.Contains(response, "Access is denied")
 }

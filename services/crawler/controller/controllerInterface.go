@@ -67,6 +67,7 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 			zap.String("response", string(res)))
 
 		for i := 0; i < maxRetryCount; i++ {
+			noErrors := true
 			// A fresh key must be used
 			apiKey = apikeymanager.GetSteamAPIKey()
 			targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=%s&steamid=%s",
@@ -74,14 +75,16 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 
 			res, err = MakeNetworkGETRequest(targetURL)
 			if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
-				return []string{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s request to %s on retry %d caused response: %+v", apiKey, targetURL, i, string(res)))
+				noErrors = false
+				configuration.Logger.Sugar().Warnf("invalid key %s request to %s on retry %d caused response: %+v", apiKey, targetURL, i, string(res))
 			}
 
 			if isError := IsErrorResponse(string(res)); isError {
+				noErrors = false
 				configuration.Logger.Sugar().Warnf("got internal server error response: %s on retry %d  when requesting: %s", string(res), i, targetURL)
 			}
 
-			if err == nil {
+			if err == nil && noErrors {
 				configuration.Logger.Sugar().Infof("success on the %d request to GetFriendsList (%s)", i, targetURL)
 				successfulRequest = true
 				break
@@ -146,6 +149,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 			zap.String("response", string(res)))
 
 		for i := 0; i < maxRetryCount; i++ {
+			noErrors := true
 			// A fresh key must be used
 			apiKey = apikeymanager.GetSteamAPIKey()
 			targetURL := fmt.Sprintf("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",
@@ -153,14 +157,16 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 
 			res, err = MakeNetworkGETRequest(targetURL)
 			if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
-				return []common.Player{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s request to %s on retry %d caused response: %+v", apiKey, targetURL, i, string(res)))
+				noErrors = false
+				configuration.Logger.Sugar().Warnf("invalid key %s request to %s on retry %d caused response: %+v", apiKey, targetURL, i, string(res))
 			}
 
 			if isError := IsErrorResponse(string(res)); isError {
+				noErrors = false
 				configuration.Logger.Sugar().Warnf("got internal server error response: %s on retry %d when requesting: %s", string(res), i, targetURL)
 			}
 
-			if err == nil {
+			if err == nil && noErrors {
 				configuration.Logger.Sugar().Infof("success on the %d request to GetPlayerSummaries (%s)", i, targetURL)
 				successfulRequest = true
 				break
@@ -217,6 +223,7 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 			zap.String("response", string(res)))
 
 		for i := 0; i < maxRetryCount; i++ {
+			noErrors := true
 			// A fresh key must be used
 			apiKey = apikeymanager.GetSteamAPIKey()
 			targetURL := fmt.Sprintf("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json&include_appinfo=true&include_played_free_games=true",
@@ -224,14 +231,16 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 
 			res, err = MakeNetworkGETRequest(targetURL)
 			if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
-				return common.GamesOwnedResponse{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s request to %s  on retry %d caused response: %+v", apiKey, targetURL, i, string(res)))
+				noErrors = false
+				configuration.Logger.Sugar().Warnf("invalid key %s request to %s on retry %d caused response: %+v", apiKey, targetURL, i, string(res))
 			}
 
 			if isError := IsErrorResponse(string(res)); isError {
+				noErrors = false
 				configuration.Logger.Sugar().Warnf("got internal server error response: %s  on retry %d when requesting: %s", string(res), i, targetURL)
 			}
 
-			if err == nil {
+			if err == nil && noErrors {
 				configuration.Logger.Sugar().Infof("success on the %d request to GetFriendsList  (%s)", i, targetURL)
 				successfulRequest = true
 				break

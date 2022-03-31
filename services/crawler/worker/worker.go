@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"sync"
 	"time"
 
@@ -159,7 +158,7 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 		AddField("saveuserduration", saveUserDuration).
 		AddField("gamesowned", len(fiftyOrFewerGamesOwnedForCurrentUser)).
 		SetTime(time.Now())
-	configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), "crawlerMetrics").WritePoint(point)
+	configuration.EndpointWriteAPI.WritePoint(point)
 }
 
 // GetFriends gets the friendslist for a given user through either datastore

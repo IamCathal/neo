@@ -154,6 +154,7 @@ func (endpoints *Endpoints) LoggingMiddleware(next http.Handler) http.Handler {
 			AddField("latency", util.GetCurrentTimeInMs()-requestStartTime).
 			SetTime(time.Now())
 		writeAPI.WritePoint(point)
+		defer writeAPI.Close()
 	})
 }
 

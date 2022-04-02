@@ -6,10 +6,8 @@ export function getCrawlIDs() {
     const secondCrawlID = queryParams.get("secondcrawlid")
 
     if (secondCrawlID != undefined) {
-        console.log(`return crawlids: ${[firstCrawlID, secondCrawlID]}`)
         return [firstCrawlID, secondCrawlID]
     } else {
-        console.log(`return crawlid: ${[firstCrawlID]}`)
         return [firstCrawlID]
     }
 }

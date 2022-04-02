@@ -2,7 +2,6 @@ import * as util from '/static/javascript/util.js';
 "use strict";
 
 export function setUserCardDetails(user) {
-    console.log(user)
     document.getElementById("userUsername").textContent = user.accdetails.personaname;
     document.getElementById("userCountry").textContent = util.countryCodeToName(user.accdetails.loccountrycode) === "" ? 'unknown' : util.countryCodeToName(user.accdetails.loccountrycode);
     document.getElementById("userFriendCount").textContent = user.friendids.length;
@@ -24,7 +23,6 @@ export function setUserCardDetails(user) {
 }
 
 export function setCrawlPageUserCardDetails(user, idPrefix) {
-  console.log(user)
   document.getElementById(`${idPrefix}UserUsername`).textContent = user.accdetails.personaname;
   document.getElementById(`${idPrefix}UserCountry`).textContent = util.countryCodeToName(user.accdetails.loccountrycode) === "" ? 'unknown' : util.countryCodeToName(user.accdetails.loccountrycode);
   document.getElementById(`${idPrefix}UserFriendCount`).textContent = user.friendids.length;

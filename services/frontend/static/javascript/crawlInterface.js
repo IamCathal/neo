@@ -69,7 +69,6 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
     const firstSteamID = document.getElementById("firstSteamID").value;
     const secondSteamID = document.getElementById("secondSteamID").value;
     const level = document.getElementById("levelChoice").value;
-    console.log(firstSteamID, secondSteamID, level, singleUserMode)
 
     if (singleUserMode == true) {
         if (!isValidFormatSteamID(firstSteamID)) {
@@ -88,9 +87,7 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
             return
         }
     }
-    console.log(singleUserMode)
     if (singleUserMode == true) {
-        console.log("single user mode")
         utilRequest.isPublicProfile(firstSteamID).then((isPublic) => {
             if (!isPublic) {
                 hideCrawlLoadingElements()
@@ -124,18 +121,16 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                 }
                 hideCrawlLoadingElements()
             }, (err) => {
-                console.log(`err from hasBeenCrawl: ${err}`)
+                console.error(`err from hasBeenCrawl: ${err}`)
             })
         }, (err) => {
-            console.log(`err from isPublic: ${err}`)
+            console.error(`err from isPublic: ${err}`)
         })
     } else {
-        console.log("double userrrr")
         let firstProfileIsPublic = utilRequest.isPublicProfile(firstSteamID);
         let secondProfileIsPublic = utilRequest.isPublicProfile(secondSteamID)
 
         Promise.all([firstProfileIsPublic, secondProfileIsPublic]).then(isPublicArr => {
-            console.log(isPublicArr)
             if (isPublicArr[0] != true && isPublicArr[1] != true) {
                 hideCrawlLoadingElements()
                 displayErrorForInvalidSteamID(true, "Both profiles are not public");
@@ -149,7 +144,6 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
             Promise.all([firstUserHasBeenCrawled, secondUserHasBeenCrawled]).then(crawlIDs => {
                 if (crawlIDs[0] != "" && crawlIDs[1] != "") {
                     // both users have been crawled before
-                    console.log(`both ids are not empty ${crawlIDs}`)
                     window.location.href = `/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
                 }
 
@@ -167,17 +161,13 @@ document.getElementById("crawlButton").addEventListener("click", function(event)
                     document.getElementById("isCrawledBeforeCheckMark").style.filter = "invert(78%) sepia(41%) saturate(7094%) hue-rotate(81deg) brightness(111%) contrast(109%)"
                     crawlDTO["steamids"].push(secondSteamID)
                 }
-                console.log(`crawlDTO is ${JSON.stringify(crawlDTO)}`)
                 
                 utilRequest.startCrawl(crawlDTO).then(newCrawlIDs => {
                     if (newCrawlIDs.length == 2) {
                         // Two new crawls are starting
-                        console.log("both new")
-                        console.log(newCrawlIDs)
                         window.location.href = `/crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${newCrawlIDs[1]}`
                     } else {
                         crawlIDs = crawlIDs.filter(k => k)
-                        console.log(`One or more were existing, going to /crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`)
                         window.location.href = `/crawl?firstcrawlid=${newCrawlIDs[0]}&secondcrawlid=${crawlIDs[0]}`
                     }
                 }, (err) => {

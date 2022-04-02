@@ -38,7 +38,6 @@ if (crawlIDs.length == 2) {
     
                         Promise.all([firstUserGraphExists, secondUserGraphExists]).then(vals => {
                             utilRequest.startCalculateGetShortestDistance(crawlIDs).then(res => {
-                                console.log(res);
                                 window.location.href = `/shortestdistance?firstcrawlid=${crawlIDs[0]}&secondcrawlid=${crawlIDs[1]}`
                             }, err => {
                                 console.error(`err calculating shortest distance: ${JSON.stringify(err)}`)
@@ -67,7 +66,6 @@ if (crawlIDs.length == 2) {
 if (crawlIDs.length == 1) {
     // Pre emptively check for finished crawls every 500ms is the graph is done processing yet
 
-    console.log("checking pre emptively")
     utilRequest.isCrawlingFinished(crawlIDs[0]).then((isFinished) => {
         if (isFinished) {
             utilRequest.startCreateGraph(crawlIDs[0]).then(res => {
@@ -78,8 +76,6 @@ if (crawlIDs.length == 1) {
                         if (doesExist === true) {
                             clearInterval(interval);
                             window.location.href = `/graph/${crawlIDs[0]}`;
-                        } else {
-                            console.log("graph not done processing")
                         }
                     }, err => {
                         clearInterval(interval);
@@ -98,12 +94,7 @@ if (crawlIDs.length == 1) {
    
 
     utilRequest.doesProcessedGraphDataExist(crawlIDs[0]).then(doesExist => {
-        if (doesExist) {
-            console.log("did exist")
-            // forward to that page
-            // window.location.href = `/graph/${crawlID}`;
-        } else {
-            console.log("no exist")
+        if (!doesExist) {
             renderCrawlStatusBoxes(1)
             // subscribe to crawling status updates
             initAndMonitorCrawlingStatusWebsocket(crawlIDs[0], "firstCrawl").then(res => {
@@ -116,8 +107,6 @@ if (crawlIDs.length == 1) {
                         if (doesExist === true) {
                             clearInterval(interval);
                             window.location.href = `/graph/${crawlIDs[0]}`;
-                        } else {
-                            console.log("graph not done processing")
                         }
                     }, err => {
                         clearInterval(interval);

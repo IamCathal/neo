@@ -67,7 +67,6 @@ export function getAnyNewFinishedShortestDistanceCrawlStatuses() {
 
 export function getUser(crawlID) {
     return new Promise((resolve, reject) => {
-        console.log("get user")
         fetch(`http://localhost:2590/api/getcrawlinguser/${crawlID}`, {
             headers: {
                 "Content-Type": "application/json"
@@ -112,7 +111,6 @@ export function isCrawlingFinished(crawlID) {
             }
         }).then((res => res.json()))
         .then(data => {
-            console.log(data.crawlingstatus)
             if (data.crawlingstatus.totaluserstocrawl == data.crawlingstatus.userscrawled) {
                 resolve(true)
             }
@@ -162,8 +160,6 @@ export function waitUntilGraphDataExists(crawlID) {
                 if (doesExist === true) {
                     clearInterval(interval);
                     resolve(true)
-                } else {
-                    console.log("graph not done processing")
                 }
             }, err => {
                 clearInterval(interval);
@@ -179,8 +175,6 @@ export function getCrawlingUserWhenAvailable(crawlID , idPrefix) {
         if (usersCrawledIsMoreThanZero(idPrefix)) {
             clearInterval(interval);
             getUser(crawlID).then(user => {
-                console.log(`got user`)
-                console.log(user)
                 setCrawlPageUserCardDetails(user, idPrefix)
                 resolve(true)
             }, err => {
@@ -210,7 +204,6 @@ export function startCalculateGetShortestDistance(crawlIDs) {
 
 export function startCrawl(crawlDTO) {
     return new Promise((resolve, reject) => {
-        console.log(`sending ${JSON.stringify(crawlDTO)}`)
         fetch(`http://localhost:2570/crawl`, {
             method: "POST",
             headers: {

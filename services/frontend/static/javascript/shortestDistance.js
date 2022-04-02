@@ -3,8 +3,6 @@ import { countUpElement } from '/static/javascript/countUpScript.js';
 const crawlIDs = getCrawlIDsFromShortestDistanceURL()
 
 getShortestDistance(crawlIDs).then(shortestDistanceInfo => {
-    console.log(shortestDistanceInfo)
-    console.log(shortestDistanceInfo.shortestdistance.length)
     if (shortestDistanceInfo.shortestdistance.length == 0 || shortestDistanceInfo.shortestdistance.length === undefined) {
         document.getElementById("shortestPathExists").style.visibility = 'hidden';
         document.getElementById("shortestPathDoesntExist").style.visibility = 'visible';
@@ -41,7 +39,6 @@ function getTotalDistanceTravelled(shortestDistancePath) {
         let firstCountryCoords = countryCodeToCoords[countries[i].toUpperCase()]
         let secondCountryCoords = countryCodeToCoords[countries[i+1].toUpperCase()]
         const diff = totalDistance += getDistanceBetweenCoordsInKM(firstCountryCoords, secondCountryCoords)
-        console.log(`Distance between ${countries[i].toUpperCase()} and ${countries[i+1].toUpperCase()} is ${diff}km`)
         totalDistance += diff
     }
     return totalDistance
@@ -109,7 +106,6 @@ function initLinkForInteractiveGraphPage() {
 function getAllCountriesInShortestPath(shortestDistancePath) {
     let countries = []
     shortestDistancePath.forEach(user => {
-        console.log(user.accdetails.loccountrycode)
         if (user.accdetails.loccountrycode != "") {
             countries.push(user.accdetails.loccountrycode)
         }
@@ -192,8 +188,6 @@ function initEchartsGraph(shortestDistanceData) {
             "target": shortestDistanceData.shortestdistance[i+1].accdetails.steamid
         })
     }
-    console.log(nodes)
-    console.log(links)
 
     var option;
     myChart.showLoading();

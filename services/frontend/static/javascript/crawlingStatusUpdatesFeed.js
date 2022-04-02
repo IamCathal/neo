@@ -20,7 +20,7 @@ export function initAndMonitorCrawlingStatusWebsocket(crawlID, idPrefix, isAlrea
 
     let wsConn = new WebSocket(`ws://localhost:2590/ws/crawlingstatstream/${crawlID}`);
     wsConn.addEventListener("close", (evt) => {
-        console.log("CLOSED!");
+        
     })
     
     wsConn.addEventListener("message", (evt) => {

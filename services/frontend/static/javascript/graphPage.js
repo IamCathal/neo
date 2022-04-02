@@ -14,7 +14,6 @@ utilRequest.doesProcessedGraphDataExist(crawlID).then(doesExist => {
     }
     utilRequest.getProcessedGraphData(crawlID).then(crawlDataObj => {
         crawlData = crawlDataObj
-        console.log(crawlData.usergraphdata.userdetails.User)
         setUserCardDetails(crawlData.usergraphdata.userdetails.User);
         let countryFrequencies = {}
         var countryFrequenciesArr = []
@@ -276,7 +275,6 @@ function getDataForGamesBarChart(gData) {
 }
 
 function fillInGamesStatBoxes(graphData) {
-    console.log(graphData)
     const minWage = 10.20
     let totalHoursPlayedForUser = 0
     graphData.userdetails.User.gamesowned.forEach(game => {
@@ -315,7 +313,6 @@ function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
 
     const usersFavoriteGame = graphData.userdetails.User.gamesowned[0];
     if (usersFavoriteGame != undefined) {
-        console.log(`${steamGameInfoAPI}/${usersFavoriteGame.appid}`)
         fetch(`${steamGameInfoAPI}/${usersFavoriteGame.appid}`)
         .then(res => res.json())
         .then(res => {
@@ -339,10 +336,6 @@ function fillInUserAndNetworkFavoriteGameStatBoxes(graphData) {
 
             let costPerHour = 0;
             if (gameCost) {
-                console.log(gameCost)
-                console.log((gameCost.initial/100))
-                console.log(playtimeInHours)
-                console.log(((gameCost.initial/100)/playtimeInHours))
                 costPerHour = ((gameCost.initial/100)/playtimeInHours).toFixed(2);
             }
             document.getElementById('statBoxUsersFavoriteGamesCostPerHour').textContent = `€${costPerHour}`
@@ -835,7 +828,6 @@ function generateOverallGamerScore(graphData) {
     const totalFriends = graphData.userdetails.User.friendids.length;
 
     const gamerScore = (totalHoursPlayed * 2) + totalFriends
-    console.log(gamerScore)
     return gamerScore >= 5000 ? 5000 : gamerScore 
 }
 

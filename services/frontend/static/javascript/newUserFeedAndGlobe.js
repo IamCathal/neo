@@ -37,7 +37,7 @@ function initAndMonitorWebsocket() {
 
     let wsConn = new WebSocket("ws://localhost:2590/ws/newuserstream");
     wsConn.addEventListener("close", (evt) => {
-        console.log("CLOSED!");
+       
     })
 
     wsConn.addEventListener("message", (evt) => {

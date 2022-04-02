@@ -64,7 +64,9 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 		logMsg := fmt.Sprintf("error from first call to GetFriendsList (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
 			zap.String("errorMsg", fmt.Sprint(err)),
-			zap.String("response", string(res)))
+			zap.String("response", string(res)),
+			zap.Bool("isError", isError),
+			zap.Bool("invalidKeyResponse", invalidKeyResponse))
 
 		for i := 0; i < maxRetryCount; i++ {
 			noErrors := true
@@ -94,7 +96,9 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times", targetURL, i)
 			configuration.Logger.Info(logMsg,
 				zap.String("errorMsg", fmt.Sprint(err)),
-				zap.String("response", string(res)))
+				zap.String("response", string(res)),
+				zap.Bool("isError", isError),
+				zap.Bool("invalidKeyResponse", invalidKeyResponse))
 		}
 	} else {
 		successfulRequest = true
@@ -146,7 +150,9 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 		logMsg := fmt.Sprintf("error from first call to getPlayerSummaries (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
 			zap.String("errorMsg", fmt.Sprint(err)),
-			zap.String("response", string(res)))
+			zap.String("response", string(res)),
+			zap.Bool("isError", isError),
+			zap.Bool("invalidKeyResponse", invalidKeyResponse))
 
 		for i := 0; i < maxRetryCount; i++ {
 			noErrors := true
@@ -175,7 +181,9 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 			logMsg := fmt.Sprintf("failed to call GetPlayerSummaries (%s) %d times", targetURL, i)
 			configuration.Logger.Info(logMsg,
 				zap.String("errorMsg", fmt.Sprint(err)),
-				zap.String("response", string(res)))
+				zap.String("response", string(res)),
+				zap.Bool("isError", isError),
+				zap.Bool("invalidKeyResponse", invalidKeyResponse))
 		}
 	} else {
 		successfulRequest = true
@@ -220,7 +228,9 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 		logMsg := fmt.Sprintf("error from first call to GetOwnedGames (%s), retrying now", targetURL)
 		configuration.Logger.Info(logMsg,
 			zap.String("errorMsg", fmt.Sprint(err)),
-			zap.String("response", string(res)))
+			zap.String("response", string(res)),
+			zap.Bool("isError", isError),
+			zap.Bool("invalidKeyResponse", invalidKeyResponse))
 
 		for i := 0; i < maxRetryCount; i++ {
 			noErrors := true
@@ -249,7 +259,9 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 			logMsg := fmt.Sprintf("failed to call get friends (%s) %d times", targetURL, i)
 			configuration.Logger.Info(logMsg,
 				zap.String("errorMsg", fmt.Sprint(err)),
-				zap.String("response", string(res)))
+				zap.String("response", string(res)),
+				zap.Bool("isError", isError),
+				zap.Bool("invalidKeyResponse", invalidKeyResponse))
 		}
 	} else {
 		successfulRequest = true
@@ -862,9 +874,9 @@ func (control Cntr) Sleep(duration time.Duration) {
 }
 
 func IsErrorResponse(response string) bool {
-	return strings.Contains(response, "Internal Server Error")
+	return strings.Contains(response, "Internal Server Error") && strings.Contains(response, "<html>")
 }
 
 func IsInvalidKeyResponse(response string) bool {
-	return strings.Contains(response, "Access is denied")
+	return response == "<html><head><title>Forbidden</title></head><body><h1>Forbidden</h1>Access is denied. Retrying will not help. Please verify your <pre>key=</pre> parameter.</body></html>"
 }

@@ -9,7 +9,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
@@ -84,6 +83,7 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 			if isError := IsErrorResponse(string(res)); isError {
 				noErrors = false
 				configuration.Logger.Sugar().Warnf("got internal server error response: %s on retry %d  when requesting: %s", string(res), i, targetURL)
+				time.Sleep(3000 * time.Millisecond)
 			}
 
 			if err == nil && noErrors {
@@ -105,7 +105,7 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	}
 
 	if !successfulRequest {
-		newErr := fmt.Errorf("failed %d retries to GetFriendList: %+v Most recent response: %+v", maxRetryCount, err, res)
+		newErr := fmt.Errorf("failed %d retries to GetFriendList: %+v Most recent response: %+v", maxRetryCount, err, string(res))
 		return []string{}, commonUtil.MakeErr(newErr)
 	}
 
@@ -170,6 +170,7 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 			if isError := IsErrorResponse(string(res)); isError {
 				noErrors = false
 				configuration.Logger.Sugar().Warnf("got internal server error response: %s on retry %d when requesting: %s", string(res), i, targetURL)
+				time.Sleep(3000 * time.Millisecond)
 			}
 
 			if err == nil && noErrors {
@@ -248,6 +249,7 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 			if isError := IsErrorResponse(string(res)); isError {
 				noErrors = false
 				configuration.Logger.Sugar().Warnf("got internal server error response: %s  on retry %d when requesting: %s", string(res), i, targetURL)
+				time.Sleep(3000 * time.Millisecond)
 			}
 
 			if err == nil && noErrors {
@@ -874,7 +876,7 @@ func (control Cntr) Sleep(duration time.Duration) {
 }
 
 func IsErrorResponse(response string) bool {
-	return strings.Contains(response, "Internal Server Error") && strings.Contains(response, "<html>")
+	return response == "<html><head><title>Internal Server Error</title></head><body><h1>Internal Server Error</h1>Failed to forward request message to internal server</body></html>"
 }
 
 func IsInvalidKeyResponse(response string) bool {

@@ -60,8 +60,7 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 	invalidKeyResponse := IsInvalidKeyResponse(string(res))
 
 	if err != nil || isError || invalidKeyResponse {
-		logMsg := fmt.Sprintf("error from first call to GetFriendsList (%s), retrying now", targetURL)
-		configuration.Logger.Info(logMsg,
+		configuration.Logger.Warn(fmt.Sprintf("error from first call to GetFriendsList (%s), retrying now", targetURL),
 			zap.String("errorMsg", fmt.Sprint(err)),
 			zap.String("response", string(res)),
 			zap.Bool("isError", isError),
@@ -77,12 +76,18 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 			res, err = MakeNetworkGETRequest(targetURL)
 			if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
 				noErrors = false
-				configuration.Logger.Sugar().Warnf("invalid key %s request to %s on retry %d caused response: %+v", apiKey, targetURL, i, string(res))
+				configuration.Logger.Warn(fmt.Sprintf("invalid key caused invalid key response on retry %d", i),
+					zap.String("apiKey", apiKey),
+					zap.String("targetURL", targetURL),
+					zap.String("response", string(res)))
 			}
 
 			if isError := IsErrorResponse(string(res)); isError {
 				noErrors = false
-				configuration.Logger.Sugar().Warnf("got internal server error response: %s on retry %d  when requesting: %s", string(res), i, targetURL)
+				configuration.Logger.Warn(fmt.Sprintf("Steam API returned Internal Server Error response on retry %d, sleeping for 3000ms", i),
+					zap.String("apiKey", apiKey),
+					zap.String("targetURL", targetURL),
+					zap.String("response", string(res)))
 				time.Sleep(3000 * time.Millisecond)
 			}
 
@@ -164,12 +169,18 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 			res, err = MakeNetworkGETRequest(targetURL)
 			if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
 				noErrors = false
-				configuration.Logger.Sugar().Warnf("invalid key %s request to %s on retry %d caused response: %+v", apiKey, targetURL, i, string(res))
+				configuration.Logger.Warn(fmt.Sprintf("invalid key caused invalid key response on retry %d", i),
+					zap.String("apiKey", apiKey),
+					zap.String("targetURL", targetURL),
+					zap.String("response", string(res)))
 			}
 
 			if isError := IsErrorResponse(string(res)); isError {
 				noErrors = false
-				configuration.Logger.Sugar().Warnf("got internal server error response: %s on retry %d when requesting: %s", string(res), i, targetURL)
+				configuration.Logger.Warn(fmt.Sprintf("Steam API returned Internal Server Error response on retry %d, sleeping for 3000ms", i),
+					zap.String("apiKey", apiKey),
+					zap.String("targetURL", targetURL),
+					zap.String("response", string(res)))
 				time.Sleep(3000 * time.Millisecond)
 			}
 
@@ -243,12 +254,18 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 			res, err = MakeNetworkGETRequest(targetURL)
 			if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
 				noErrors = false
-				configuration.Logger.Sugar().Warnf("invalid key %s request to %s on retry %d caused response: %+v", apiKey, targetURL, i, string(res))
+				configuration.Logger.Warn(fmt.Sprintf("invalid key caused invalid key response on retry %d", i),
+					zap.String("apiKey", apiKey),
+					zap.String("targetURL", targetURL),
+					zap.String("response", string(res)))
 			}
 
 			if isError := IsErrorResponse(string(res)); isError {
 				noErrors = false
-				configuration.Logger.Sugar().Warnf("got internal server error response: %s  on retry %d when requesting: %s", string(res), i, targetURL)
+				configuration.Logger.Warn(fmt.Sprintf("Steam API returned Internal Server Error response on retry %d, sleeping for 3000ms", i),
+					zap.String("apiKey", apiKey),
+					zap.String("targetURL", targetURL),
+					zap.String("response", string(res)))
 				time.Sleep(3000 * time.Millisecond)
 			}
 

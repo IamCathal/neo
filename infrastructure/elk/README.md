@@ -4,7 +4,7 @@ This docker-compose runs elasticsearch, logstash and kibana for log processing a
 
 # Configuration
 
-Default usernames and passwords in setup yml files should be changed
+Default usernames and passwords in setup yml files **MUST** be changed. Check in the yml config files for elasticsearch and kibana
 
 # Health check endpoints
 

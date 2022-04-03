@@ -41,8 +41,8 @@ func main() {
 	srv := &http.Server{
 		Handler:      router,
 		Addr:         fmt.Sprintf(":%s", os.Getenv("API_PORT")),
-		WriteTimeout: 10 * time.Second,
-		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 20 * time.Second,
+		ReadTimeout:  20 * time.Second,
 	}
 	configuration.Logger.Info(fmt.Sprintf("crawler start up and serving requests on %s:%s", commonUtil.GetLocalIPAddress(), os.Getenv("API_PORT")))
 	log.Fatal(srv.ListenAndServe())

@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/iamcathal/neo/services/crawler/apikeymanager"
@@ -301,7 +302,7 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 
 	err = json.Unmarshal(res, &apiResponse)
 	if err != nil {
-		return common.GamesOwnedResponse{}, util.MakeErr(err, fmt.Sprintf("error unmarshalling gamesOwnedResponed object: %+v. got response: %+v", apiResponse.Response, res))
+		return common.GamesOwnedResponse{}, util.MakeErr(err, fmt.Sprintf("error unmarshalling gamesOwnedResponed object: %+v. got response: %+v", apiResponse.Response, string(res)))
 	}
 
 	return apiResponse.Response, nil
@@ -893,7 +894,9 @@ func (control Cntr) Sleep(duration time.Duration) {
 }
 
 func IsErrorResponse(response string) bool {
-	return response == "<html><head><title>Internal Server Error</title></head><body><h1>Internal Server Error</h1>Failed to forward request message to internal server</body></html>"
+	return response == "<html><head><title>Internal Server Error</title></head><body><h1>Internal Server Error</h1>Failed to forward request message to internal server</body></html>" ||
+		strings.Contains(response, `<HTML><HEAD><TITLE>Error</TITLE></HEAD><BODY>
+		An error occurred while processing your request.<p>`)
 }
 
 func IsInvalidKeyResponse(response string) bool {

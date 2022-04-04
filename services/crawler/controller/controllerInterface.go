@@ -115,14 +115,6 @@ func (control Cntr) CallGetFriends(steamID string) ([]string, error) {
 		return []string{}, commonUtil.MakeErr(newErr)
 	}
 
-	if isError := IsErrorResponse(string(res)); isError {
-		return []string{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s caused response: %+v", apiKey, string(res)))
-	}
-
-	if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
-		return []string{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s caused response: %+v", apiKey, string(res)))
-	}
-
 	err = json.Unmarshal(res, &friendsListObj)
 	if err != nil {
 		return []string{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling friendsListObj object: %+v, got: %+v", friendsListObj, string(res)))
@@ -207,14 +199,6 @@ func (control Cntr) CallGetPlayerSummaries(steamIDStringList string) ([]common.P
 		return []common.Player{}, commonUtil.MakeErr(newErr)
 	}
 
-	if isError := IsErrorResponse(string(res)); isError {
-		return []common.Player{}, commonUtil.MakeErr(fmt.Errorf("got internal server error response: %s when requesting: %s", string(res), targetURL))
-	}
-
-	if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
-		return []common.Player{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s caused response: %+v", apiKey, string(res)))
-	}
-
 	err = json.Unmarshal(res, &allPlayerSummaries)
 	if err != nil {
 		return []common.Player{}, util.MakeErr(err, fmt.Sprintf("error unmarshaling allPlayerSummaries object: %+v, got: %+v", allPlayerSummaries, string(res)))
@@ -290,14 +274,6 @@ func (control Cntr) CallGetOwnedGames(steamID string) (common.GamesOwnedResponse
 	if !successfulRequest {
 		newErr := fmt.Errorf("failed %d retries to GetOwnedGames: %+v Most recent response: %+v", maxRetryCount, err, res)
 		return common.GamesOwnedResponse{}, commonUtil.MakeErr(newErr)
-	}
-
-	if isError := IsErrorResponse(string(res)); isError {
-		return common.GamesOwnedResponse{}, commonUtil.MakeErr(fmt.Errorf("got internal server error response: %s when requesting: %s", string(res), targetURL))
-	}
-
-	if invalidKeyResponse := IsInvalidKeyResponse(string(res)); invalidKeyResponse {
-		return common.GamesOwnedResponse{}, commonUtil.MakeErr(fmt.Errorf("invalid key %s caused response: %+v", apiKey, string(res)))
 	}
 
 	err = json.Unmarshal(res, &apiResponse)
@@ -893,12 +869,12 @@ func (control Cntr) Sleep(duration time.Duration) {
 	time.Sleep(duration)
 }
 
-func IsErrorResponse(response string) bool {
-	return response == "<html><head><title>Internal Server Error</title></head><body><h1>Internal Server Error</h1>Failed to forward request message to internal server</body></html>" ||
-		strings.Contains(response, `<HTML><HEAD><TITLE>Error</TITLE></HEAD><BODY>
-		An error occurred while processing your request.<p>`)
+func IsInvalidKeyResponse(response string) bool {
+	response = strings.ToLower(response)
+	return strings.HasPrefix(response, "<html>") && (strings.Contains(response, "Access is denied. Retrying will not help.") ||
+		strings.Contains(response, "An error occurred while processing your request."))
 }
 
-func IsInvalidKeyResponse(response string) bool {
-	return response == "<html><head><title>Forbidden</title></head><body><h1>Forbidden</h1>Access is denied. Retrying will not help. Please verify your <pre>key=</pre> parameter.</body></html>"
+func IsErrorResponse(response string) bool {
+	return strings.HasPrefix(response, "<html>") && strings.Contains(response, "Internal Server Error")
 }

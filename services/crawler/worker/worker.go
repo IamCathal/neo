@@ -55,13 +55,15 @@ func Worker(cntr controller.CntrInterface, job datastructures.Job) {
 			}
 		}
 
+		writeAPI := configuration.InfluxDBClient.WriteAPI(os.Getenv("ORG"), "crawlerMetrics")
 		point := influxdb2.NewPointWithMeasurement("crawlerMetrics").
 			AddTag("service", "crawler").
 			AddTag("fromdatastore", "yes").
 			AddField("totalTime", commonUtil.GetCurrentTimeInMs()-startTime).
 			AddField("totalfriends", len(friendsList)).
 			SetTime(time.Now())
-		configuration.EndpointWriteAPI.WritePoint(point)
+		writeAPI.WritePoint(point)
+		defer writeAPI.Close()
 		return
 	}
 	playerSummaryForCurrentUser := common.Player{}

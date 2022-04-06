@@ -3,7 +3,6 @@ package worker
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"sync"
@@ -192,8 +191,7 @@ func GetFriends(cntr controller.CntrInterface, steamID string) (bool, []string, 
 func ControlFunc(cntr controller.CntrInterface) {
 	msgs, err := cntr.ConsumeFromJobsQueue()
 	if err != nil {
-		configuration.Logger.Fatal(fmt.Sprintf("failed to consume from jobs queue on ControlFunc init: %v", err))
-		log.Fatal(err)
+		configuration.Logger.Panic(fmt.Sprintf("failed to consume from jobs queue on ControlFunc init: %v", err))
 	}
 
 	for {
@@ -258,8 +256,7 @@ func getSummaryForMainUserFunc(cntr controller.CntrInterface, steamID string, ma
 	startTime := time.Now().UnixNano() / int64(time.Millisecond)
 	playerSummaries, err := cntr.CallGetPlayerSummaries(steamID)
 	if err != nil {
-		configuration.Logger.Fatal(fmt.Sprintf("failed to get player summary for target user %s: %v", steamID, err.Error()))
-		log.Fatal(err)
+		configuration.Logger.Panic(fmt.Sprintf("failed to get player summary for target user %s: %v", steamID, err.Error()))
 	}
 
 	// Sometimes occurs with accounts that have complex combinatioons of data privacy settings
@@ -315,7 +312,6 @@ func getSummariesForFriendsFunc(cntr controller.CntrInterface, friendIDs []strin
 	friendPlayerSummaries, err := getPlayerSummaries(cntr, friendIDs)
 	if err != nil {
 		configuration.Logger.Sugar().Panicf("failed to get player summaries for friends: %+v", err)
-		log.Fatal(err)
 	}
 
 	*friends = friendPlayerSummaries

@@ -37,7 +37,7 @@ func LogBasicErr(err error, req *http.Request, statusCode int) {
 func LogBasicFatal(err error, req *http.Request, statusCode int) {
 	vars := mux.Vars(req)
 	requestStartTime, _ := strconv.ParseInt(vars["requestStartTime"], 10, 64)
-	configuration.Logger.Fatal(fmt.Sprintf("%v", err),
+	configuration.Logger.Panic(fmt.Sprintf("%v", err),
 		zap.String("requestID", vars["requestID"]),
 		zap.Int("status", http.StatusInternalServerError),
 		zap.Int64("duration", commonUtil.GetCurrentTimeInMs()-requestStartTime),

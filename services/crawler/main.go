@@ -45,5 +45,5 @@ func main() {
 		ReadTimeout:  20 * time.Second,
 	}
 	configuration.Logger.Info(fmt.Sprintf("crawler start up and serving requests on %s:%s", commonUtil.GetLocalIPAddress(), os.Getenv("API_PORT")))
-	log.Fatal(srv.ListenAndServe())
+	log.Panic(srv.ListenAndServe())
 }

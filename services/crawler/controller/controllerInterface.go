@@ -876,5 +876,7 @@ func IsInvalidKeyResponse(response string) bool {
 }
 
 func IsErrorResponse(response string) bool {
-	return strings.HasPrefix(response, "<html>") && strings.Contains(response, "Internal Server Error")
+	response = strings.ToLower(response)
+	return strings.HasPrefix(response, "<html>") && (strings.Contains(response, "Internal Server Error") ||
+		strings.Contains(response, "Server is temporarily unavailable, or too busy to respond. Please wait and try again later"))
 }

@@ -8,7 +8,7 @@ getTotalUsersInDB().then(totalUsers => {
         getTotalUsersInDB().then((newTotalUsers) => {
             if (newTotalUsers != totalUsersCached) {
                 totalUsersCached = newTotalUsers
-                const currentVal = parseInt(document.getElementById("totalUsersCrawled").textContent.replace(",",""))
+                const currentVal = parseInt(document.getElementById("totalUsersCrawled").textContent.replaceAll(",",""))
                 countUpElement("totalUsersCrawled", totalUsersCached, {'startVal': currentVal})
             }
         }, err => {
@@ -24,7 +24,7 @@ getTotalCrawls().then(totalCrawls => {
         getTotalCrawls().then((newTotalCrawls) => {
             if (newTotalCrawls != totalCrawlsCached) {
                 totalCrawlsCached = newTotalCrawls
-                const currentVal = parseInt(document.getElementById("totalCrawls").textContent.replace(",",""))
+                const currentVal = parseInt(document.getElementById("totalCrawls").textContent.replaceAll(",",""));
                 countUpElement("totalCrawls", totalCrawlsCached, {'startVal': currentVal})
             }
         }, err => {

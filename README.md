@@ -12,7 +12,7 @@ Generate an indepth analysis of your friend network on Steam to see exactly what
 
 ## Deployment
 
-Visit the [deployed project](http://neofyp.com) or the [status page](http://status.neofyp.com/status)
+Neo is a distributed system deployed across 9 servers hosted mostly by OVH. Visit the deployed project at [neofyp.com](http://neofyp.com) or the [project's status page](http://status.neofyp.com/status)
 
 | Service     | Tests | Deploy |  
 | ----------- | ----------- | ----------- |
@@ -25,6 +25,8 @@ Visit the [deployed project](http://neofyp.com) or the [status page](http://stat
 
 ![Architecture diagram](services/frontend/static/images/NeoArchitectureFinal.png)
 
+# Gallery
+
 | Landing Page    | Section of Shortest Distance Page | 
 | ----------- | ----------- | 
 |      ![](https://i.imgur.com/YFnBviP.png)       |    ![](https://i.imgur.com/xTHPqXD.png)  |
@@ -33,6 +35,10 @@ Visit the [deployed project](http://neofyp.com) or the [status page](http://stat
 | ----------- | ----------- | 
 |      ![](http://neofyp.com/static/images/NeoExample.jpg)       |    ![](https://i.imgur.com/MJ4Lkvi.png)  |
 
+
+# Documentation
+
+My submitted FYP report detailing everything from planning, development and operations will be available at a later date
 
 ## Where to get started?
 
@@ -48,6 +54,6 @@ If you're looking to browse the codebase here are the main points of interest:
 
 * [Logging (ELK Stack)](infrastructure/elk)
 * [Metrics (Grafana, InfluxDB)](infrastructure/grafana)
-* [MongoDB](infrastructure/mongoDB)
-* [PostgreSQL](infrastructure/postgresql)
+* [Database (MongoDB)](infrastructure/mongoDB)
+* [Database (PostgreSQL)](infrastructure/postgresql)
 * [Queue/Messaging System (RabbitMQ)](infrastructure/rabbitMQ)

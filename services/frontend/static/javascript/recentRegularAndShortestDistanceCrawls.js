@@ -65,7 +65,7 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
     mostRecentCrawls.forEach(crawl => {
         const usersFlagEmoji = util.getFlagEmoji(crawl.user.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.user.accdetails.loccountrycode)
         const creationDate = new Date(crawl.crawlingstatus.timestarted*1000);
-        const timeSinceString = `${util.timezSince(creationDate)}`
+        const timeSinceString = `${util.timeSinceShort(creationDate)}`
 
         document.getElementById("finishedCrawlsDiv").innerHTML += `
         <div class="row pt-1 pb-1 mt-1" style="border-radius: 8px; background-color:${backgroundColors[i%backgroundColors.length]};">
@@ -109,7 +109,7 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
         const secondUserMediumQualityProfiler = crawl.seconduser.accdetails.avatar.split(".jpg").join("") + "_medium.jpg";
 
         const crawlStartTime = new Date(crawl.timestarted*1000);
-        const timeSinceString = `${util.timezSince(crawlStartTime)}`
+        const timeSinceString = `${util.timeSinceShort(crawlStartTime)}`
 
         document.getElementById("finishedShortestDistanceCrawlsDiv").innerHTML += `
         <div class="col-5 m-3 box" style="border: 2px solid white; border-radius: 8px;">

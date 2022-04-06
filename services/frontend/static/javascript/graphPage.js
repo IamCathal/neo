@@ -411,7 +411,7 @@ function initAndRenderAccountAgeVsFriendCountChart(graphData) {
     document.getElementById("highestFriendCountUserFriendCount").textContent = highestFriendCountUser.friendids.length;
     let creationDate = new Date(highestFriendCountUser.accdetails.timecreated*1000);
     let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    let timeSinceString = `(${util.timezSince(creationDate)})`
+    let timeSinceString = `(${util.timeSinceLong(creationDate)} ago)`
     document.getElementById("highestFriendCountUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
     document.getElementById("highestFriendCountUserProfile").innerHTML = `<a href="${highestFriendCountUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("highestFriendCountUserAvatar").src = highestFriendCountUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
@@ -1397,7 +1397,7 @@ function fillInOldestAndNewestUserCards(graphData) {
     document.getElementById("oldestUserFriendCount").textContent = oldestUser.friendids.length;
     let creationDate = new Date(oldestUser.accdetails.timecreated*1000);
     let dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    let timeSinceString = `(${util.timezSince(creationDate)} ago)`
+    let timeSinceString = `(${util.timeSinceLong(creationDate)} ago)`
     document.getElementById("oldestUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
     document.getElementById("oldestUserProfile").innerHTML = `<a href="${oldestUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("oldestUserAvatar").src = oldestUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
@@ -1407,7 +1407,7 @@ function fillInOldestAndNewestUserCards(graphData) {
     document.getElementById("newestUserFriendCount").textContent = newestUser.friendids.length;
     creationDate = new Date(newestUser.accdetails.timecreated*1000);
     dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    timeSinceString = `(${util.timezSince(creationDate)} ago)`
+    timeSinceString = `(${util.timeSinceLong(creationDate)} ago)`
     document.getElementById("newestUserCreationDate").textContent = `${dateString} ${timeSinceString}`;
     document.getElementById("newestUserProfile").innerHTML = `<a href="${newestUser.accdetails.profileurl}">Profile Link</a>`;
     document.getElementById("newestUserAvatar").src = newestUser.accdetails.avatar.split(".jpg").join("") + "_full.jpg";

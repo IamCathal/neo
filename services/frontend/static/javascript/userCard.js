@@ -8,7 +8,7 @@ export function setUserCardDetails(user) {
     
     const creationDate = new Date(user.accdetails.timecreated*1000);
     const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    const timeSinceString = `(${util.timezSince(creationDate)})`
+    const timeSinceString = `(${util.timeSinceLong(creationDate)} ago)`
     document.getElementById("userCreationDate").textContent = `${dateString} ${timeSinceString}`;
     
     document.getElementById("userProfile").innerHTML = `<a href="${user.accdetails.profileurl}">Profile Link</a>`;
@@ -29,7 +29,7 @@ export function setCrawlPageUserCardDetails(user, idPrefix) {
   
   const creationDate = new Date(user.accdetails.timecreated*1000);
   const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-  const timeSinceString = `(${util.timezSince(creationDate)})`
+  const timeSinceString = `(${util.timeSinceLong(creationDate)})`
   document.getElementById(`${idPrefix}UserCreationDate`).textContent = `${dateString} ${timeSinceString}`;
   
   document.getElementById(`${idPrefix}UserProfile`).innerHTML = `<a href="${user.accdetails.profileurl}">Profile Link</a>`;

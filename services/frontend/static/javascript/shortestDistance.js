@@ -52,7 +52,7 @@ function fillInShortestPathMenu(shortestDistanceInfo) {
     let fullResProfiler = user.accdetails.avatar.split(".jpg").join("") + "_full.jpg";
     const creationDate = new Date(user.accdetails.timecreated*1000);
     const dateString = `${creationDate.getDate()} ${creationDate.toLocaleString('default', { month: 'long' })} ${creationDate.getFullYear()}`;
-    const timeSinceString = `(${timezSince(creationDate)})`
+    const timeSinceString = `(${timeSinceShort(creationDate)})`
 
     document.getElementById("shortestPathDiv").innerHTML += `
     <div class="row pl-3 pr-3 mt-4">
@@ -114,7 +114,7 @@ function getAllCountriesInShortestPath(shortestDistancePath) {
 }
 
 // COMMON
-function timezSince(targetDate) {
+function timeSinceShort(targetDate) {
     let seconds = Math.floor((new Date()-targetDate)/1000)
     let interval = seconds / 31536000 
     if (interval > 1) {

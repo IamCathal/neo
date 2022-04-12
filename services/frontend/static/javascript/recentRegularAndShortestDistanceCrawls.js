@@ -85,7 +85,7 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
                 ${crawl.crawlingstatus.maxlevel}
             </div>
             <div class="col-2 pl-5">
-                ${timeSinceString}
+                ${timeSinceString} ago
             </div>
             <div class="col-sm- ml-5 align-self-end">
                 <div class="col-3 pr-5" style="border: 2px solid white; border-radius: 6px;">
@@ -138,7 +138,7 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
                     <p style="font-size: 1.3rem;">${crawl.totalnetworkspan} users</p>
                 </div>
                 <div class="col text-center">
-                    <p style="font-size: 1.3rem;">${timeSinceString}</p>
+                    <p style="font-size: 1.3rem;">${timeSinceString} ago</p>
                 </div>
             </div>
             <div class="row justify-content-md-center mb-2">

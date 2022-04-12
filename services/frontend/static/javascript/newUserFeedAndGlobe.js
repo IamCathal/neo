@@ -92,15 +92,15 @@ function timeSince(targetDate) {
     interval = seconds / 2592000; // months
     interval = seconds / 86400; // days
     if (interval > 1) {
-        return Math.floor(interval) + "d ago";
+        return Math.floor(interval) + "d";
     }
     interval = seconds / 3600;
     if (interval > 1) {
-        return Math.floor(interval) + "h ago";
+        return Math.floor(interval) + "h";
     }
     interval = seconds / 60;
     if (interval > 1) {
-        return Math.floor(interval) + "m ago";
+        return Math.floor(interval) + "m";
     }
     return Math.floor(seconds) + "s";
 }

@@ -18,7 +18,7 @@
 
 body {
     /* background-color: #2D3334; */
-    background-image: url('https://cathaloc.dev/images/backgroundDarkMode.jpg');
+    background-image: url('/static/images/backgroundDarkMode.webp');
     color: black;
     text-shadow: var(--text-shadow)
 }

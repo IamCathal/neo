@@ -65,7 +65,8 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
     mostRecentCrawls.forEach(crawl => {
         const usersFlagEmoji = util.getFlagEmoji(crawl.user.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.user.accdetails.loccountrycode)
         const creationDate = new Date(crawl.crawlingstatus.timestarted*1000);
-        const timeSinceString = `${util.timeSinceShort(creationDate)}`
+        const timeSinceString = `${util.timeSinceLong(creationDate)}`
+        console.log(creationDate, timeSinceString)
 
         document.getElementById("finishedCrawlsDiv").innerHTML += `
         <div class="row pt-1 pb-1 mt-1" style="border-radius: 8px; background-color:${backgroundColors[i%backgroundColors.length]};">
@@ -103,6 +104,7 @@ function renderTopTwelveMostRecentFinishedCrawlStatuses(mostRecentCrawls) {
 function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRecentCrawls) {
     document.getElementById("finishedShortestDistanceCrawlsDiv").innerHTML = '';
     mostRecentCrawls.forEach(crawl => {
+        console.log(crawl)
         const firstUsersFlagEmoji = getFlagEmoji(crawl.firstuser.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.firstuser.accdetails.loccountrycode)
         const secondUsersFlagEmoji = getFlagEmoji(crawl.seconduser.accdetails.loccountrycode) == "" ? '🏴‍☠️' : getFlagEmoji(crawl.seconduser.accdetails.loccountrycode)
         const firstUserMediumQualityProfiler = crawl.firstuser.accdetails.avatar.split(".jpg").join("") + "_medium.jpg";
@@ -110,6 +112,7 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
 
         const crawlStartTime = new Date(crawl.timestarted*1000);
         const timeSinceString = `${util.timeSinceShort(crawlStartTime)}`
+        console.log(crawlStartTime, timeSinceString)
 
         document.getElementById("finishedShortestDistanceCrawlsDiv").innerHTML += `
         <div class="col-5 m-3 box" style="border: 2px solid white; border-radius: 8px;">
@@ -133,12 +136,9 @@ function renderTopTwelveMostRecentFinishedShortestDistanceCrawlStatuses(mostRece
                     ${secondUsersFlagEmoji}  ${crawl.seconduser.accdetails.personaname} 
                 </div>
             </div>
-            <div class="row">
+            <div class="row justify-content-md-center">
                 <div class="col text-center">
                     <p style="font-size: 1.3rem;">${crawl.totalnetworkspan} users</p>
-                </div>
-                <div class="col text-center">
-                    <p style="font-size: 1.3rem;">${timeSinceString} ago</p>
                 </div>
             </div>
             <div class="row justify-content-md-center mb-2">

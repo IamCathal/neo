@@ -12,7 +12,7 @@ Generate an indepth analysis of your friend network on Steam to see exactly what
 
 ## Deployment
 
-Neo is a distributed system deployed across 9 servers hosted mostly by OVH. Visit the deployed project at [neofyp.com](http://neofyp.com) or the [project's status page](http://status.neofyp.com/status)
+Neo is a distributed system deployed across 9 servers hosted mostly by OVH. V̶i̶s̶i̶t̶ ̶t̶h̶e̶ ̶d̶e̶p̶l̶o̶y̶e̶d̶ ̶p̶r̶o̶j̶e̶c̶t̶ ̶a̶t̶ A static snapshot of the site can be viewed at [cathaloc.dev/fyp](https://cathaloc.dev/fyp)
 
 | Service     | Tests | Deploy |  
 | ----------- | ----------- | ----------- |
@@ -33,12 +33,12 @@ Neo is a distributed system deployed across 9 servers hosted mostly by OVH. Visi
 
 | Section of Graph Page    | Interactive Graph Page | 
 | ----------- | ----------- | 
-|      ![](http://neofyp.com/static/images/NeoExample.jpg)       |    ![](https://i.imgur.com/MJ4Lkvi.png)  |
+|      ![](https://i.imgur.com/HR9UEqk.jpeg)       |    ![](https://i.imgur.com/MJ4Lkvi.png)  |
 
 
 # Documentation
 
-My submitted FYP report detailing everything from planning, development and operations will be available at a later date
+My submitted FYP report detailing everything from planning, development and operations can be viewed [here](https://cathaloc.dev/static/pdfs/fyp.pdf)
 
 ## Where to get started?
 
